@@ -61,6 +61,7 @@ angular.module('cocoa.controllers', [])
   $scope.usergroups = Usergroups.all();
   $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
   $scope.eventlist = Usergroups.getEventList();
+  $scope.filterText = "";
 
   var createNewCCA = function(name){
     var newCCA = Usergroups.newCCA(name);
