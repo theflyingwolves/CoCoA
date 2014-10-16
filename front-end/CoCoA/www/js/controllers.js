@@ -27,6 +27,7 @@ angular.module('cocoa.controllers', [])
       console.log("Creating event "+name+" with id: "+id);
       return {
         title:name,
+        tasks:[],
         id:id
       }
     },
@@ -67,6 +68,53 @@ angular.module('cocoa.controllers', [])
       }
 
       return randId;
+    }
+  };
+})
+
+.factory('EventViewFactory',function(){
+  var selectedEvent = undefined;
+  var getEventFromId = function(id){
+    var allgroups = window.localStorage['usergroups'];
+    if(allgroups){
+      var groups = angular.fromJson(allgroups);
+      var selectedEvent = undefined;
+      for(var i=0; i<groups.length; i++){
+        var CCA = groups[i];
+        var events = CCA.events;
+        for(var j=0; j<events.length; j++){
+          var event = events[j];
+          if(event.id == id){
+            selectedEvent = event;
+          }
+        }
+      }
+
+      return selectedEvent;
+    }else{
+      return undefined;
+    }
+  };
+
+  return {
+    allTasks:function(eventId){
+      selectedEvent = getEventFromId(eventId);
+      if(selectedEvent){
+        return selectedEvent.tasks;
+      }else{
+        return [];
+      }
+    },
+    newTask: function(name){
+      return {
+        name:name,
+        status:[]
+      }
+    },
+
+    saveTask:function(tasks){
+      var groups = angular.fromJson(window.localStorage['usergroups']);
+      
     }
   };
 })
@@ -124,12 +172,7 @@ angular.module('cocoa.controllers', [])
   });
 })
 
-.controller('eventViewCtrl',function($scope, $stateParams){
-  $scope.eventtasks = [{
-    title:"Task 1"
-  },
-  {
-    title:"Task 2"
-  }];
-  console.log("Params: "+angular.toJson($stateParams));
+.controller('eventViewCtrl',function($scope, $stateParams, EventViewFactory){
+  $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks($stateParams.eventId.substring(1));
+  console.log("All Tasks: "+angular.toJson($scope.eventtasks));
 })
