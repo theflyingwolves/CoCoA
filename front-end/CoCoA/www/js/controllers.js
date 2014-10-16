@@ -22,6 +22,31 @@ angular.module('cocoa.controllers', [])
       };
     },
 
+    newEvent: function(name){
+      return {
+        title:name
+      }
+    },
+
+    getEventList: function(){
+      var allgroups = angular.fromJson(window.localStorage['usergroups']);
+      if(allgroups){
+        var activeIndex = parseInt(window.localStorage['lastActiveProject']) || 0;
+        var activeGroup = allgroups[activeIndex];
+        return activeGroup.events;
+      }else{
+        return [];
+      }
+    },
+
+    saveEventList: function(events){
+        var allgroups = angular.fromJson(window.localStorage['usergroups']);
+        var activeIndex = parseInt(window.localStorage['lastActiveProject']) || 0;
+        var activeGroup = allgroups[activeIndex];
+        activeGroup.events = events;
+        window.localStorage['usergroups'] = angular.toJson(allgroups);
+    },
+
     getLastActiveIndex: function(){
       return parseInt(window.localStorage['lastActiveProject']) || 0;
     },
@@ -35,6 +60,8 @@ angular.module('cocoa.controllers', [])
 .controller('usergroupCtrl',function($scope,$timeout, $ionicSideMenuDelegate, Usergroups){
   $scope.usergroups = Usergroups.all();
   $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
+  $scope.eventlist = Usergroups.getEventList();
+
   var createNewCCA = function(name){
     var newCCA = Usergroups.newCCA(name);
     $scope.usergroups.push(newCCA);
@@ -43,7 +70,7 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.newUserGroup = function(){
-    var ccaName = promp("Name for new CCA");
+    var ccaName = prompt("Name for new CCA");
     if(ccaName){
       createNewCCA(ccaName);
     }
@@ -52,8 +79,22 @@ angular.module('cocoa.controllers', [])
   $scope.selectCCA = function(cca, index){
     $scope.activeGroup = cca;
     Usergroups.setLastActiveIndex(index);
+    $scope.eventlist = Usergroups.getEventList();
     $ionicSideMenuDelegate.toggleLeft(false);
   };
+
+  var createNewEvent = function(name){
+    var newEvent = Usergroups.newEvent(name);
+    $scope.eventlist.push(newEvent);
+    Usergroups.saveEventList($scope.eventlist);
+  };
+
+  $scope.newEvent = function(){
+    var eventName = prompt("Name for new event");
+    if(eventName){
+      createNewEvent(eventName);
+    }
+  }
 
   $timeout(function() {
     if($scope.usergroups.length == 0) {
@@ -66,27 +107,4 @@ angular.module('cocoa.controllers', [])
       }
     }
   });
-})
-
-.controller('eventlistCtrl',function($scope){
-  $scope.eventlist = [
-  {
-    id:'event1',
-    title:'Event 1'
-  },
-
-  {
-    id:'event2',
-    title:'Event 2'
-  },
-
-  {
-    id:'event3',
-    title:'Event 3'
-  },
-
-  {
-    id:'event4',
-    title:'Event 4'
-  }];
 })

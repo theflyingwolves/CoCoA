@@ -28,8 +28,7 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       url:"/eventview",
       views:{
         content:{
-          templateUrl:"templates/eventlist.html",
-          controller:"eventlistCtrl"
+          templateUrl:"templates/eventlist.html"
         }
       }
     })
