@@ -20,19 +20,35 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
     .state('app', {
       url: "/app",
       abstract: true,
-      templateUrl: "templates/userGropuMenu.html",
+      templateUrl: "templates/userGroupMenu.html",
       controller: 'usergroupCtrl'
     })
 
-    .state('app.eventview',{
-      url:"/eventview",
+    .state('app.events',{
+      url:"/eventlist",
       views:{
         content:{
           templateUrl:"templates/eventlist.html"
         }
       }
     })
+
+    .state('event',{
+      url:"/event",
+      abstract:true,
+      templateUrl:"templates/userGroupMenu.html"
+    })
+
+    .state('event.eventview',{
+      url:"/:eventId",
+      views:{
+        content:{
+          templateUrl:"templates/eventview.html",
+          controller:'eventViewCtrl'
+        }
+      }
+    })
   
-  $urlRouterProvider.otherwise('/app/eventview');
+  $urlRouterProvider.otherwise('/app/eventlist');
 });
 

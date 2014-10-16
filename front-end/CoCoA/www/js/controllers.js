@@ -23,8 +23,11 @@ angular.module('cocoa.controllers', [])
     },
 
     newEvent: function(name){
+      var id = this.generateRandomId();
+      console.log("Creating event "+name+" with id: "+id);
       return {
-        title:name
+        title:name,
+        id:id
       }
     },
 
@@ -53,6 +56,17 @@ angular.module('cocoa.controllers', [])
 
     setLastActiveIndex: function(index) {
       window.localStorage['lastActiveProject'] = index;
+    },
+
+    generateRandomId: function(){
+      var randId = "";
+      var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+      for( var i=0; i < 10; i++ ){
+          randId += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+
+      return randId;
     }
   };
 })
@@ -108,4 +122,14 @@ angular.module('cocoa.controllers', [])
       }
     }
   });
+})
+
+.controller('eventViewCtrl',function($scope, $stateParams){
+  $scope.eventtasks = [{
+    title:"Task 1"
+  },
+  {
+    title:"Task 2"
+  }];
+  console.log("Params: "+angular.toJson($stateParams));
 })
