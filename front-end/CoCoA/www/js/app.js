@@ -37,7 +37,7 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       url:"/event",
       abstract:true,
       templateUrl:"templates/eventTaskMenu.html",
-      // controller:"eventViewCtrl"
+      controller:"eventViewCtrl"
     })
 
     .state('event.eventview',{
@@ -45,7 +45,7 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       views:{
         content:{
           templateUrl:"templates/eventview.html",
-          controller:'eventViewCtrl'
+          // controller:'eventViewCtrl'
         }
       }
     })

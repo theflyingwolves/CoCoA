@@ -59,6 +59,10 @@ angular.module('cocoa.controllers', [])
       window.localStorage['lastActiveProject'] = index;
     },
 
+    enterEvent: function(id){
+      window.localStorage['eventId'] = id;
+    },
+
     generateRandomId: function(){
       var randId = "";
       var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -99,12 +103,18 @@ angular.module('cocoa.controllers', [])
   return {
     allTasks:function(eventId){
       selectedEvent = getEventFromId(eventId);
+      console.log("Event Id: "+eventId+" Event: "+angular.toJson(selectedEvent));
       if(selectedEvent){
         return selectedEvent.tasks;
       }else{
         return [];
       }
     },
+
+    getEventId:function(){
+      return window.localStorage['eventId'];
+    },
+
     newTask: function(name){
       return {
         name:name,
@@ -113,8 +123,21 @@ angular.module('cocoa.controllers', [])
     },
 
     saveTask:function(tasks){
+      selectedEvent.tasks = tasks;
       var groups = angular.fromJson(window.localStorage['usergroups']);
-      
+      console.log("Before: "+angular.toJson(groups));
+      for(var i=0; i<groups.length; i++){
+        var CCA = groups[i];
+        var events = CCA.events;
+        for(var j=0; j<events.length; j++){
+          var event = events[j];
+          if(event.id == selectedEvent.id){
+            event.tasks = selectedEvent.tasks;
+          }
+        }
+      }
+      console.log("After: "+angular.toJson(groups));
+      window.localStorage['usergroups'] = angular.toJson(groups);
     }
   };
 })
@@ -157,7 +180,11 @@ angular.module('cocoa.controllers', [])
     if(eventName){
       createNewEvent(eventName);
     }
-  }
+  };
+
+  $scope.enterEvent = function(id){
+    Usergroups.enterEvent(id);
+  };
 
   $timeout(function() {
     if($scope.usergroups.length == 0) {
@@ -173,6 +200,24 @@ angular.module('cocoa.controllers', [])
 })
 
 .controller('eventViewCtrl',function($scope, $stateParams, EventViewFactory){
-  $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks($stateParams.eventId.substring(1));
-  console.log("All Tasks: "+angular.toJson($scope.eventtasks));
+  $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
+
+  $scope.selectedTask = $scope.eventtasks[0];
+
+  var createTask = function(name){
+    var task = EventViewFactory.newTask(name);
+    $scope.eventtasks.push(task);
+    EventViewFactory.saveTask($scope.eventtasks);
+    $scope.selectTask(task);
+  };
+
+  $scope.newTask = function(){
+    var name = prompt("Name for new task");
+    createTask(name);
+  };
+
+  $scope.selectTask = function(task){
+    $scope.selectedTask = task;
+    console.log("Task Selected: "+angular.toJson(task));
+  };
 })
