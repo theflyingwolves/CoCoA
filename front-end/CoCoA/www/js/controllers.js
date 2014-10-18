@@ -1,6 +1,33 @@
 angular.module('cocoa.controllers', [])
 
 .factory('Usergroups',function(){
+  var allStudents = [{
+          id:"aaa",
+          name:"Wang Kunzhen",
+          status:false,
+          isSelected:true
+        },
+        {
+          id:"bbb",
+          name:"Wang Yichao",
+          status:false,
+          isSelected:true
+        },
+        {
+          id:"ccc",
+          name:"Wu Lifu",
+          status:false,
+          isSelected:true
+        },
+        {
+          id:"ddd",
+          name:"Li Zhenshuo",
+          status:false,
+          isSelected:true
+        }];
+
+  window.localStorage['allStudents'] = angular.toJson(allStudents);
+  
   return {
     all: function(){
       var allgroups = window.localStorage['usergroups'];
@@ -9,23 +36,6 @@ angular.module('cocoa.controllers', [])
       }else{
         return [];
       }
-    },
-
-    allStudents:function(){
-      // var studentlist = window.localStorage['studentlist'];
-      // return angular.fromJson(studentlist);
-
-      return [
-        {
-          id:"aaa",
-          name:"Wang Kunzhen",
-          status:false
-        },
-        {
-          id:"bbb",
-          name:"Wang Yichao",
-          status:false
-        }];
     },
 
     save: function(groups){
@@ -41,7 +51,6 @@ angular.module('cocoa.controllers', [])
 
     newEvent: function(name){
       var id = this.generateRandomId();
-      console.log("Creating event "+name+" with id: "+id);
       return {
         title:name,
         tasks:[],
@@ -122,7 +131,6 @@ angular.module('cocoa.controllers', [])
   return {
     allTasks:function(eventId){
       selectedEvent = getEventFromId(eventId);
-      console.log("Event Id: "+eventId+" Event: "+angular.toJson(selectedEvent));
       if(selectedEvent){
         return selectedEvent.tasks;
       }else{
@@ -139,34 +147,14 @@ angular.module('cocoa.controllers', [])
       if(selectedEvent.participants.length > 0){
         return selectedEvent.participants;
       }else{
-      return [
-      {
-        id:"aaa",
-        name:"Wang Kunzhen",
-        status:false,
-        isSelected:true
-      },
-      {
-        id:"bbb",
-        name:"Wang Yichao",
-        status:false,
-        isSelected:true
-      },
-      {
-        id:"ccc",
-        name:"Wu Lifu",
-        status:false,
-        isSelected:false
+        return angular.fromJson(window.localStorage['allStudents']);
       }
-      ];
-    }
     },
 
     saveEventParticipants:function(participants){
       selectedEvent.participants = participants;
 
       var groups = angular.fromJson(window.localStorage['usergroups']);
-      // console.log("groups: "+window.localStorage['usergroups']);
       for(var i=0; i<groups.length; i++){
         var events = groups[i].events;
         for(var j=0; j<events.length; j++){
@@ -202,6 +190,22 @@ angular.module('cocoa.controllers', [])
         }
       }
       window.localStorage['usergroups'] = angular.toJson(groups);
+    }
+  };
+})
+
+.factory('StudentInfoFactory',function(){
+  return {
+    getStudent:function(id){
+      var allStudents = angular.fromJson(window.localStorage['allStudents']);
+      var selectedStudent = undefined;
+      for(var i=0; i<allStudents.length; i++){
+        if(allStudents[i].id == id){
+          selectedStudent = allStudents[i];
+          break;
+        }
+      }
+      return selectedStudent;
     }
   };
 })
@@ -289,7 +293,6 @@ angular.module('cocoa.controllers', [])
     for(var i=0; i<$scope.eventtasks.length;i++){
       var task = $scope.eventtasks[i];
       var tempTaskStatus = angular.fromJson(angular.toJson(task.status));
-      console.log("Before: "+angular.toJson(task));
       task.status = angular.fromJson(angular.toJson(allParticipants));
       for(var j=0; j<allParticipants.length; j++){
         var participant = task.status[j];
@@ -300,7 +303,6 @@ angular.module('cocoa.controllers', [])
           }
         }
       }
-      console.log("After: "+angular.toJson(task));
     }
   };
 
@@ -315,15 +317,12 @@ angular.module('cocoa.controllers', [])
 
   $scope.selectStudent = function(id){
     var allParticipants = $scope.selectedTask.status;
-    var count = 0;
     for(var i=0; i<allParticipants.length; i++){
       var participant = allParticipants[i];
       if(participant.id == id){
         participant.status = !participant.status;
-        console.log("participant: "+angular.toJson(participant));
       }
     }
-    console.log("Count: "+count);
     EventViewFactory.saveTask($scope.eventtasks);
   };
 
@@ -357,3 +356,8 @@ angular.module('cocoa.controllers', [])
     $scope.eventDetailsModal.show();
   };
 })
+
+.controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
+  $scope.student = StudentInfoFactory.getStudent($stateParams.studentId);
+})
+

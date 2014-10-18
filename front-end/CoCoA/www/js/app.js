@@ -48,6 +48,12 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
         }
       }
     })
+
+    .state('student',{
+      url:"/students/:studentId",
+      templateUrl:"templates/studentDetails.html",
+      controller:"studentDetailsViewCtrl"
+    })
   
   $urlRouterProvider.otherwise('/app/eventlist');
 });
