@@ -14,6 +14,7 @@ angular.module('cocoa.controllers', [])
     allStudents:function(){
       // var studentlist = window.localStorage['studentlist'];
       // return angular.fromJson(studentlist);
+
       return [
         {
           id:"aaa",
@@ -44,6 +45,7 @@ angular.module('cocoa.controllers', [])
       return {
         title:name,
         tasks:[],
+        participants:[],
         id:id
       }
     },
@@ -131,6 +133,21 @@ angular.module('cocoa.controllers', [])
       return window.localStorage['eventId'];
     },
 
+    getEventParticipant:function(){
+      // return selectedEvent.participants;
+            return [
+        {
+          id:"aaa",
+          name:"Wang Kunzhen",
+          status:false
+        },
+        {
+          id:"bbb",
+          name:"Wang Yichao",
+          status:false
+        }];
+    },
+
     newTask: function(name){
       return {
         name:name,
@@ -181,36 +198,6 @@ angular.module('cocoa.controllers', [])
   //   status:false
   // }];
 
-  $scope.studentlist = Usergroups.allStudents();
-
-  $ionicModal.fromTemplateUrl('templates/participantSelector.html',{
-    scope:$scope,
-    animation:'slide-in-up'
-  }).then(function(modal){
-    $scope.eventParticipantModal = modal;
-  });
-
-  $scope.chooseStudent = function(id){
-    for(var i=0; i<$scope.studentlist.length; i++){
-      var student = $scope.studentlist[i];
-      if(student.id == id){
-        student.status = true;
-      }
-    }
-  };
-
-  $scope.$on('modal.hidden',function(){
-    var selectedStudent = [];
-    for(var i=0 ;i < $scope.studentlist; i++){
-      var student = $scope.studentlist[i];
-      if(student.status){
-        selectedStudent.push(student);
-      }
-    }
-    var newEvent = $scope.eventlist[$scope.eventlist.length - 1];
-    
-  });
-
   $scope.newUserGroup = function(){
     var ccaName = prompt("Name for new CCA");
     if(ccaName){
@@ -234,7 +221,6 @@ angular.module('cocoa.controllers', [])
   $scope.newEvent = function(){
     var eventName = prompt("Name for new event");
     if(eventName){
-      $scope.eventParticipantModal.show();
       createNewEvent(eventName);
     }
   };
@@ -263,6 +249,7 @@ angular.module('cocoa.controllers', [])
 
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
+    task.status = EventViewFactory.getEventParticipant();
     $scope.eventtasks.push(task);
     EventViewFactory.saveTask($scope.eventtasks);
     $scope.selectTask(task);
@@ -277,5 +264,14 @@ angular.module('cocoa.controllers', [])
     $scope.selectedTask = task;
   };
 
-
+  $scope.selectStudent = function(id){
+    var allParticipants = $scope.selectedTask.status;
+    for(var i=0; i<allParticipants.length; i++){
+      var participant = allParticipants[i];
+      if(participant.id == id){
+        participant.status = !participant.status;
+      }
+    }
+    EventViewFactory.saveTask($scope.eventtasks);
+  }
 })

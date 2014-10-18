@@ -5,4 +5,12 @@
     <h1 class="title" ng-if="!selectedTask">All Participants</h1>
     <button class="button button-icon ion-plus" ng-click="newEvent()"></button>
   </ion-nav-buttons>
+  <ion-content>
+  	<ion-list>
+  		<ion-item ng-repeat="student in selectedTask.status" ng-click="selectStudent(student.id)">
+  		{{student.name}}
+  		<i class="icon ion-checkmark-circled" ng-if="student.status"></i>
+  		</ion-item>
+  	</ion-list>
+	</ion-content>
 </ion-view>
