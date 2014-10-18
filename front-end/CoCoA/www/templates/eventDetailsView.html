@@ -21,7 +21,7 @@
 			<ion-list>
 	      <ion-item ng-repeat="student in tempParticipants" ng-if="student.name.indexOf(stdNameFilter) > -1"  ng-click="chooseParticipant(student.id)">
 	        {{student.name}}
-	        <i class="icon ion-checkmark-circled" ng-if="student.status"></i>
+	        <i class="icon ion-checkmark-circled" ng-if="student.isSelected"></i>
 	      </ion-item>
 	  	</ion-list>
 	  </div>

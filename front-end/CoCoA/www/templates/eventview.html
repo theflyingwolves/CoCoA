@@ -7,7 +7,7 @@
   </ion-nav-buttons>
   <ion-content>
   	<ion-list>
-  		<ion-item ng-repeat="student in selectedTask.status" ng-click="selectStudent(student.id)">
+  		<ion-item ng-repeat="student in selectedTask.status" ng-if="student.isSelected" ng-click="selectStudent(student.id)">
   		{{student.name}}
   		<i class="icon ion-checkmark-circled" ng-if="student.status"></i>
   		</ion-item>

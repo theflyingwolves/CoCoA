@@ -135,7 +135,31 @@ angular.module('cocoa.controllers', [])
     },
 
     getEventParticipants:function(){
-      return selectedEvent.participants;
+      // return selectedEvent.participants;
+      if(selectedEvent.participants.length > 0){
+        return selectedEvent.participants;
+      }else{
+      return [
+      {
+        id:"aaa",
+        name:"Wang Kunzhen",
+        status:false,
+        isSelected:true
+      },
+      {
+        id:"bbb",
+        name:"Wang Yichao",
+        status:false,
+        isSelected:true
+      },
+      {
+        id:"ccc",
+        name:"Wu Lifu",
+        status:false,
+        isSelected:false
+      }
+      ];
+    }
     },
 
     saveEventParticipants:function(participants){
@@ -253,7 +277,7 @@ angular.module('cocoa.controllers', [])
 
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
-    task.status = EventViewFactory.getEventParticipant();
+    task.status = EventViewFactory.getEventParticipants();
     $scope.eventtasks.push(task);
     EventViewFactory.saveTask($scope.eventtasks);
     $scope.selectTask(task);
@@ -264,8 +288,19 @@ angular.module('cocoa.controllers', [])
     var allParticipants = $scope.eventParticipants;
     for(var i=0; i<$scope.eventtasks.length;i++){
       var task = $scope.eventtasks[i];
-      var tempTaskParticipant = angular.fromJson(angular.toJson($scope.task.status));
-      
+      var tempTaskStatus = angular.fromJson(angular.toJson(task.status));
+      console.log("Before: "+angular.toJson(task));
+      task.status = angular.fromJson(angular.toJson(allParticipants));
+      for(var j=0; j<allParticipants.length; j++){
+        var participant = task.status[j];
+        for(var k=0; k<tempTaskStatus.length; k++){
+          if(participant.id == tempTaskStatus[k].id){
+            participant.status = tempTaskStatus[k].status;
+            break;
+          }
+        }
+      }
+      console.log("After: "+angular.toJson(task));
     }
   };
 
@@ -280,12 +315,15 @@ angular.module('cocoa.controllers', [])
 
   $scope.selectStudent = function(id){
     var allParticipants = $scope.selectedTask.status;
+    var count = 0;
     for(var i=0; i<allParticipants.length; i++){
       var participant = allParticipants[i];
       if(participant.id == id){
         participant.status = !participant.status;
+        console.log("participant: "+angular.toJson(participant));
       }
     }
+    console.log("Count: "+count);
     EventViewFactory.saveTask($scope.eventtasks);
   };
 
@@ -295,7 +333,7 @@ angular.module('cocoa.controllers', [])
     for(var i=0; i<$scope.tempParticipants.length; i++){
       var participant = $scope.tempParticipants[i];
       if(participant.id == id){
-        participant.status = !participant.status;
+        participant.isSelected = !participant.isSelected;
       }
     }
 
@@ -311,12 +349,11 @@ angular.module('cocoa.controllers', [])
     EventViewFactory.saveEventParticipants($scope.eventParticipants);
     updateTaskParticipants();
     $scope.eventDetailsModal.hide();
-  }
+  };
 
   $scope.eventDetailsView = function(){
     $scope.eventParticipants = EventViewFactory.getEventParticipants();
     $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
-
     $scope.eventDetailsModal.show();
   };
 })
