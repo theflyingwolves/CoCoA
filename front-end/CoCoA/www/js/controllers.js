@@ -96,6 +96,7 @@ angular.module('cocoa.controllers', [])
 
 .factory('EventViewFactory',function(){
   var selectedEvent = undefined;
+
   var getEventFromId = function(id){
     var allgroups = window.localStorage['usergroups'];
     if(allgroups){
@@ -133,19 +134,27 @@ angular.module('cocoa.controllers', [])
       return window.localStorage['eventId'];
     },
 
-    getEventParticipant:function(){
-      // return selectedEvent.participants;
-            return [
-        {
-          id:"aaa",
-          name:"Wang Kunzhen",
-          status:false
-        },
-        {
-          id:"bbb",
-          name:"Wang Yichao",
-          status:false
-        }];
+    getEventParticipants:function(){
+      return selectedEvent.participants;
+    },
+
+    saveEventParticipants:function(participants){
+      selectedEvent.participants = participants;
+
+      var groups = angular.fromJson(window.localStorage['usergroups']);
+      // console.log("groups: "+window.localStorage['usergroups']);
+      for(var i=0; i<groups.length; i++){
+        var events = groups[i].events;
+        for(var j=0; j<events.length; j++){
+          var event = events[j];
+          if(event.id == selectedEvent.id){
+            event.participants = participants;
+            break;
+          }
+        }
+      }
+
+      window.localStorage['usergroups'] = angular.toJson(groups);
     },
 
     newTask: function(name){
@@ -185,18 +194,6 @@ angular.module('cocoa.controllers', [])
     Usergroups.save($scope.usergroups);
     $scope.selectCCA(newCCA, $scope.usergroups.length - 1);
   };
-
-  // $scope.studentlist = [
-  // {
-  //   id:"aaa",
-  //   name:"Wang Kunzhen",
-  //   status:true
-  // },
-  // {
-  //   id:"bbb",
-  //   name:"Wang Yichao",
-  //   status:false
-  // }];
 
   $scope.newUserGroup = function(){
     var ccaName = prompt("Name for new CCA");
@@ -242,10 +239,17 @@ angular.module('cocoa.controllers', [])
   });
 })
 
-.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicModal, EventViewFactory){
+.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, EventViewFactory){
   $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
 
   $scope.selectedTask = $scope.eventtasks[0];
+
+  $ionicModal.fromTemplateUrl('templates/eventDetailsView.html',{
+    scope:$scope,
+    animation:'slide-in-up'
+  }).then(function(modal){
+    $scope.eventDetailsModal = modal;
+  });
 
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
@@ -253,6 +257,16 @@ angular.module('cocoa.controllers', [])
     $scope.eventtasks.push(task);
     EventViewFactory.saveTask($scope.eventtasks);
     $scope.selectTask(task);
+    $ionicSideMenuDelegate.toggleLeft(false);
+  };
+
+  var updateTaskParticipants = function(){
+    var allParticipants = $scope.eventParticipants;
+    for(var i=0; i<$scope.eventtasks.length;i++){
+      var task = $scope.eventtasks[i];
+      var tempTaskParticipant = angular.fromJson(angular.toJson($scope.task.status));
+      
+    }
   };
 
   $scope.newTask = function(){
@@ -273,5 +287,36 @@ angular.module('cocoa.controllers', [])
       }
     }
     EventViewFactory.saveTask($scope.eventtasks);
+  };
+
+  $scope.chooseParticipant = function(id){
+    // $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
+
+    for(var i=0; i<$scope.tempParticipants.length; i++){
+      var participant = $scope.tempParticipants[i];
+      if(participant.id == id){
+        participant.status = !participant.status;
+      }
+    }
+
+    // EventViewFactory.saveEventParticipants(allParticipants);
+  };
+
+  $scope.cancel = function(){
+    $scope.eventDetailsModal.hide();
+  };
+
+  $scope.confirm = function(){
+    $scope.eventParticipants = $scope.tempParticipants;
+    EventViewFactory.saveEventParticipants($scope.eventParticipants);
+    updateTaskParticipants();
+    $scope.eventDetailsModal.hide();
   }
+
+  $scope.eventDetailsView = function(){
+    $scope.eventParticipants = EventViewFactory.getEventParticipants();
+    $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
+
+    $scope.eventDetailsModal.show();
+  };
 })
