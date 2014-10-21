@@ -40,11 +40,11 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       controller:"eventTaskMenuCtrl"
     })
 
-    .state('event.eventDetailView',{
+    .state('event.eventview',{
       url:"/:eventId",
       views:{
         content:{
-          templateUrl:"templates/eventDetailsView.html"
+          templateUrl:"templates/eventview.html"
         }
       }
     })

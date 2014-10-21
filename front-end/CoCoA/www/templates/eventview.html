@@ -9,19 +9,20 @@
     <ion-list>
   		<ion-item ng-repeat="student in selectedTask.status" ng-if="student.isSelected">
   		<div class="row" ng-click="toggleStuInfoDisplay($index)">
-        <div class="col col-5">
   			<div class="col col-95">
   				<i class="icon ion-checkmark-circled" ng-click="selectStudent(student.id)" ng-if="student.status && isEditMode"></i>
           <i class="icon ion-ios7-circle-outline" ng-click="selectStudent(student.id)" ng-if="!student.status && isEditMode"></i>
   				{{student.name}}
-          <p ng-if="selectedRow == $index">
+          <div ng-show="selectedRow == $index" class="item-animate" >
+            <br>
             {{student.status}}
             {{student.contactNumber}}<br>
             {{student.address}}
-          </p>
+          </div>
   			</div>
   		</div>
   		</ion-item>
   	</ion-list>
 	</ion-content>
 </ion-view>
+

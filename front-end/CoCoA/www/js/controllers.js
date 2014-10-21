@@ -370,4 +370,3 @@ angular.module('cocoa.controllers', [])
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
   $scope.student = StudentInfoFactory.getStudent($stateParams.studentId);
 })
-
