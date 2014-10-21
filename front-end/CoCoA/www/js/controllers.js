@@ -319,6 +319,10 @@ angular.module('cocoa.controllers', [])
     $scope.selectedTask = task;
   };
 
+  $scope.diselectTask = function(){
+    $scope.selectedTask = null;
+  }
+
   $scope.selectStudent = function(id){
     var allParticipants = $scope.selectedTask.status;
     for(var i=0; i<allParticipants.length; i++){

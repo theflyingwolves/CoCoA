@@ -14,7 +14,10 @@
     </header>
     <ion-content class="has-header">
       <ion-list>
-        <ion-item nav-clear menu-close ng-repeat="task in eventtasks" ng-click="selectTask(task,$index)">
+        <ion-item nav-clear menu-close href="#/event/detail/:{{event.id}}" ng-click="diselectTask()" >
+        Event Info
+        </ion-item>
+        <ion-item nav-clear menu-close ng-repeat="task in eventtasks" href="#/event/:{{event.id}}" ng-click="selectTask(task,$index)">
         {{task.name}}
         </ion-item>
       </ion-list>

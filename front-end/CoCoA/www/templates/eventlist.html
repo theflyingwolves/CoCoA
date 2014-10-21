@@ -14,7 +14,7 @@
   </form>
 
 	<ion-list>
-      <ion-item ng-repeat="event in eventlist" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/:{{event.id}}" ng-click="enterEvent(event.id)">
+      <ion-item ng-repeat="event in eventlist" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/detail/:{{event.id}}" ng-click="enterEvent(event.id)">
         {{event.title}}
       </ion-item>
   </ion-list>

@@ -2,9 +2,11 @@
 	font-size:30px;
 }
 
+/*check circle in each row */
 .ion-checkmark-circled, .ion-ios7-circle-outline{
 	font-size: 20px;
 	padding-right: 5px;
+	color:blue;
 }
 
 #menu-toggle{
@@ -28,6 +30,8 @@ ion-list .row{
 	padding-left: 20px;
 }
 
+
+/*animated ion item in ion list with animation when ng-show / ng-hide*/
 .item-animate.ng-hide-add, .cssFade.ng-hide-remove {
     /* ensure visibility during the transition */
     display: block!important; /* yes, important */

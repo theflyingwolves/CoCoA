@@ -40,6 +40,15 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       controller:"eventTaskMenuCtrl"
     })
 
+    .state('event.eventDetailView',{
+      url:"/detail/:eventId",
+      views:{
+        content:{
+          templateUrl:"templates/eventDetailsView.html"
+        }
+      }
+    })
+
     .state('event.eventview',{
       url:"/:eventId",
       views:{
@@ -49,15 +58,6 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       }
     })
 
-    // .state('event.eventview',{
-    //   url:"/:eventId",
-    //   views:{
-    //     content:{
-    //       templateUrl:"templates/eventview.html"
-    //     }
-    //   }
-    // })
-
     .state('student',{
       url:"/students/:studentId",
       templateUrl:"templates/studentDetails.html",
@@ -65,5 +65,15 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
     })
   
   $urlRouterProvider.otherwise('/app/eventlist');
-});
+})
 
+.directive('stopEvent', function () {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attr) {
+            element.bind('click', function (e) {
+                e.stopPropagation();
+            });
+        }
+    };
+ });

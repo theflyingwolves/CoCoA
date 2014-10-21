@@ -5,13 +5,20 @@
     <button id="edit-btn" class="button button-clear button-positive" ng-click="toggleEditMode()"><span class="ion-compose"></span></button>
   </ion-nav-buttons>
   <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
-  <ion-content>
+  
+  <ion-content class="has-header">
+      <form>
+        <label class="item item-input">
+          <i class="icon ion-search placeholder-icon"></i>
+          <input type="text" ng-model="stdNameFilter" placeholder="Search">
+        </label>
+      </form>
     <ion-list>
-  		<ion-item ng-repeat="student in selectedTask.status" ng-if="student.isSelected">
+  		<ion-item ng-repeat="student in selectedTask.status" ng-if="student.isSelected &&(!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1)">
   		<div class="row" ng-click="toggleStuInfoDisplay($index)">
   			<div class="col col-95">
-  				<i class="icon ion-checkmark-circled" ng-click="selectStudent(student.id)" ng-if="student.status && isEditMode"></i>
-          <i class="icon ion-ios7-circle-outline" ng-click="selectStudent(student.id)" ng-if="!student.status && isEditMode"></i>
+  				<i class="icon ion-checkmark-circled" ng-click="selectStudent(student.id)" ng-if="student.status && isEditMode" stop-event></i>
+          <i class="icon ion-ios7-circle-outline" ng-click="selectStudent(student.id)" ng-if="!student.status && isEditMode" stop-event></i>
   				{{student.name}}
           <div ng-show="selectedRow == $index" class="item-animate" >
             <br>
@@ -23,6 +30,6 @@
   		</div>
   		</ion-item>
   	</ion-list>
-	</ion-content>
+  </ion-content>
 </ion-view>
 
