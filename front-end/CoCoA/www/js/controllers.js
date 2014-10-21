@@ -283,14 +283,6 @@ angular.module('cocoa.controllers', [])
   $scope.selectedTask = $scope.eventtasks[0];
 
 
-
-  $ionicModal.fromTemplateUrl('templates/eventDetailsView.html',{
-    scope:$scope,
-    animation:'slide-in-up'
-  }).then(function(modal){
-    $scope.eventDetailsModal = modal;
-  });
-
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
     task.status = EventViewFactory.getEventParticipants();
@@ -362,21 +354,16 @@ angular.module('cocoa.controllers', [])
     else
       $("#edit-btn").text("Finish");
   }
-  $scope.cancel = function(){
-    $scope.eventDetailsModal.hide();
-  };
 
   $scope.confirm = function(){
     $scope.eventParticipants = $scope.tempParticipants;
     EventViewFactory.saveEventParticipants($scope.eventParticipants);
     updateTaskParticipants();
-    $scope.eventDetailsModal.hide();
   };
 
   $scope.eventDetailsView = function(){
     $scope.eventParticipants = EventViewFactory.getEventParticipants();
     $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
-    $scope.eventDetailsModal.show();
   };
 })
 

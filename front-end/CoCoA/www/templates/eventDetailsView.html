@@ -1,34 +1,34 @@
-<ion-modal-view>
-	<div class="button-bar">
-		<a class="button button-stable" ng-click="cancel()">Cancel</a>
-		<a class="button button-stable" ng-click="confirm()">Confirm</a>
-	</div>
-<ion-scroll zooming="true" direction="y">
-	<div class="card">
-	  <div class="item item-divider">
-	  	Event Details
-	  </div>
-	  <div class="item item-text-wrap">
-	    This is some details of the event!
-	  </div>
-	  <div class="item item-divider">
-	    Participants
-	  </div>
-	  <div class="item item-text-wrap">
-	  	<form>
-    		<label class="item item-input">
-      		<i class="icon ion-search placeholder-icon"></i>
-      		<input type="text" ng-model="stdNameFilter" placeholder="Search">
-    		</label>
-  		</form>
+<ion-view data-ng-init="eventDetailsView()">
+  <ion-nav-buttons side="left">
+    <h1 class="title">Event Info</h1>
+    <button class="button button-clear button-positive" ng-click="toggleEditMode()">Task</button>
+  </ion-nav-buttons>
+  <div class="item item-divider">
+  	Event Details
+  </div>
+  <div class="item item-text-wrap">
+    This is some details of the event!
+  </div>
+  <div id="divider" class="item item-divider">
+	Participants
+  </div>
 
-			<ion-list>
-	      <ion-item ng-repeat="student in tempParticipants" ng-if="!stdNameFilter || student.name.indexOf(stdNameFilter) > -1"  ng-click="chooseParticipant(student.id)">
-	        {{student.name}}
-	        <i class="icon ion-checkmark-circled" ng-if="student.isSelected"></i>
-	      </ion-item>
-	  	</ion-list>
-	  </div>
-	</div>
+  	<div class="item item-text-wrap">
+  	<form>
+   		<label class="item item-input">
+     		<i class="icon ion-search placeholder-icon"></i>
+     		<input type="text" ng-model="stdNameFilter" placeholder="Search">
+   		</label>
+  	</form>
+  </div>
+
+  <ion-scroll zooming="true" direction="y">
+  	<ion-list>
+      <ion-item ng-repeat="student in tempParticipants" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1"  ng-click="chooseParticipant(student.id)">
+        {{student.name}}
+        <i class="icon ion-checkmark-circled" ng-if="student.isSelected"></i>
+      </ion-item>
+  	</ion-list>
 </ion-scroll>
-</ion-modal-view>
+</html>
+
