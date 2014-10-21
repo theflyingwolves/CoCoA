@@ -338,7 +338,14 @@ angular.module('cocoa.controllers', [])
 
     // EventViewFactory.saveEventParticipants(allParticipants);
   };
-
+  
+  $scope.toggleEditMode = function(){
+    $scope.isEditMode = $scope.isEditMode? false : true;
+    if($("#edit-btn").text() == "Finish")
+      $("#edit-btn").html("<span class='ion-compose'></span>");
+    else
+      $("#edit-btn").text("Finish");
+  }
   $scope.cancel = function(){
     $scope.eventDetailsModal.hide();
   };
