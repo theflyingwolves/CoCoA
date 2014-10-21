@@ -5,25 +5,35 @@ angular.module('cocoa.controllers', [])
           id:"aaa",
           name:"Wang Kunzhen",
           status:false,
-          isSelected:true
+          isSelected:true,
+          contactNumber:"8888",
+          address:"NUS"
         },
         {
           id:"bbb",
           name:"Wang Yichao",
-          status:false,
-          isSelected:true
+          status:true,
+          isSelected:true,
+          contactNumber:"8888",
+          address:"NUS"
+
         },
         {
           id:"ccc",
           name:"Wu Lifu",
-          status:false,
-          isSelected:true
+          status:true,
+          isSelected:true,
+          contactNumber:"8888",
+          address:"NUS"
+
         },
         {
           id:"ddd",
           name:"Li Zhenshuo",
           status:false,
-          isSelected:true
+          isSelected:true,
+          contactNumber:"8888",
+          address:"NUS"
         }];
 
   window.localStorage['allStudents'] = angular.toJson(allStudents);
@@ -272,6 +282,8 @@ angular.module('cocoa.controllers', [])
 
   $scope.selectedTask = $scope.eventtasks[0];
 
+
+
   $ionicModal.fromTemplateUrl('templates/eventDetailsView.html',{
     scope:$scope,
     animation:'slide-in-up'
@@ -338,7 +350,11 @@ angular.module('cocoa.controllers', [])
 
     // EventViewFactory.saveEventParticipants(allParticipants);
   };
-  
+
+  $scope.toggleStuInfoDisplay = function(rowIndex){
+    $scope.selectedRow = $scope.selectedRow == rowIndex? -1 : rowIndex;
+  }
+
   $scope.toggleEditMode = function(){
     $scope.isEditMode = $scope.isEditMode? false : true;
     if($("#edit-btn").text() == "Finish")

@@ -8,17 +8,17 @@
   <ion-content>
     <ion-list>
   		<ion-item ng-repeat="student in selectedTask.status" ng-if="student.isSelected">
-  		<div class="row">
-  			<div class="col col-90" ng-click="selectStudent(student.id)">
-  				<i class="icon ion-checkmark-circled" ng-if="student.status && isEditMode"></i>
-          <i class="icon ion-ios7-circle-outline" ng-if="!student.status && isEditMode"></i>
-
+  		<div class="row" ng-click="toggleStuInfoDisplay($index)">
+        <div class="col col-5">
+  			<div class="col col-95">
+  				<i class="icon ion-checkmark-circled" ng-click="selectStudent(student.id)" ng-if="student.status && isEditMode"></i>
+          <i class="icon ion-ios7-circle-outline" ng-click="selectStudent(student.id)" ng-if="!student.status && isEditMode"></i>
   				{{student.name}}
-  			</div>
-  			<div class="col col-10">
-  				<a href="#/students/{{student.id}}">
-  					<i class="icon ion-information-circled"></i>
-  				</a>
+          <p ng-if="selectedRow == $index">
+            {{student.status}}
+            {{student.contactNumber}}<br>
+            {{student.address}}
+          </p>
   			</div>
   		</div>
   		</ion-item>
