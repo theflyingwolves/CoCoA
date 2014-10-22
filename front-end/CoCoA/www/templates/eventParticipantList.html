@@ -1,0 +1,33 @@
+<ion-view data-ng-init="eventDetailsView()">
+  <ion-nav-buttons side="left">
+    <h1 class="title">Participants</h1>
+    <button id="edit-btn" class="button button-clear button-positive" ng-click="showPartModel()"><span class="ion-edit"></span></button>
+  </ion-nav-buttons>
+  
+  <ion-content class="has-header">
+    <form>
+      <label class="item item-input">
+        <i class="icon ion-search placeholder-icon"></i>
+        <input type="text" ng-model="stdNameFilter" placeholder="Search">
+      </label>
+    </form>
+  <ion-scroll zooming="true" direction="y" ng-show="!isAddPartMode">
+  	<ion-list show-delete="isEditMode">
+      <ion-item class="participants-row" ng-repeat="student in tempParticipants" ng-if="student.isSelected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  ng-click="toggleStuInfoDisplay($index)">
+      <div class="col col-90 participants-row-inner">
+        <ion-delete-button class="ion-minus-circled" ng-click="diselectParticipant(student.id)" ></ion-delete-button>
+        {{student.name}} 
+        <div ng-show="selectedRow == $index" class="item-animate">
+            <br>
+            {{student.status}}
+            {{student.contactNumber}}<br>
+            {{student.address}}
+        </div>
+      </div>
+      <div class="col col-1 red-signal" ng-if="!student.status"></div>
+      </ion-item>
+  	</ion-list>
+  </ion-content>
+</ion-view>
+
+

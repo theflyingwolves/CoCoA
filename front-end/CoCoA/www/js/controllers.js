@@ -36,6 +36,8 @@ angular.module('cocoa.controllers', [])
           explain:"MC"
         }];
 
+
+
   window.localStorage['allStudents'] = angular.toJson(allStudents);
   
   return {
@@ -282,6 +284,14 @@ angular.module('cocoa.controllers', [])
 
   $scope.selectedTask = $scope.eventtasks[0];
 
+  $scope.eventId = EventViewFactory.getEventId();
+
+  $ionicModal.fromTemplateUrl('templates/eventEditParticipant.html',{
+    scope:$scope,
+    animation:'slide-in-up'
+  }).then(function(modal){
+    $scope.partEditModal = modal;
+  });
 
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
@@ -378,16 +388,26 @@ angular.module('cocoa.controllers', [])
     //   $("#addParticipantBtn").text("Finish");
   }
 
+  $scope.cancel = function(){
+    $scope.partEditModal.hide();
+  };
+
+
   $scope.confirm = function(){
     $scope.eventParticipants = $scope.tempParticipants;
     EventViewFactory.saveEventParticipants($scope.eventParticipants);
     updateTaskParticipants();
+    $scope.partEditModal.hide();
   };
 
   $scope.eventDetailsView = function(){
     $scope.eventParticipants = EventViewFactory.getEventParticipants();
     $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
   };
+
+  $scope.showPartModel = function(){
+    $scope.partEditModal.show();
+  }
 })
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){

@@ -1,7 +1,7 @@
 <ion-view data-ng-init="eventDetailsView()">
   <ion-nav-buttons side="left">
     <h1 class="title">Event Info</h1>
-    <button id="edit-btn" class="button button-clear button-positive" ng-click="toggleEditMode()"><span class="ion-edit"></span></button>
+    <a id="edit-btn" class="button button-clear button-positive" href="#/event/participants/:{{eventId}}">Participants</a>
   </ion-nav-buttons>
   <div class="item item-divider">
   	Event Details
@@ -9,44 +9,8 @@
   <div class="item item-text-wrap">
     This is some details of the event!
   </div>
-  <div id="divider" class="item item-divider">
-	   <span>Participants</span>
-    <button id="addParticipantBtn" class="button button-clear button-positive" ng-if="!isAddPartMode" ng-click="toggleAddParticpantMode()"><span class="ion-plus"></span></button>
-    <button id="addParticipantBtn" class="button button-clear button-positive" ng-if="isAddPartMode" ng-click="toggleAddParticpantMode()">Finish</button>
-  </div>
 
   <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
 
-  	<div class="item item-text-wrap">
-  	<form>
-   		<label class="item item-input">
-     		<i class="icon ion-search placeholder-icon"></i>
-     		<input type="text" ng-model="stdNameFilter" placeholder="Search">
-   		</label>
-  	</form>
-  </div>
 
-  <ion-scroll zooming="true" direction="y" ng-show="isAddPartMode">
-    <ion-list show-delete="isEditMode">
-      <ion-item class="participants-row" ng-repeat="student in tempParticipants" ng-if="student.isSelected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  >
-      <div class="col col-90 participants-row-inner">
-        <ion-delete-button class="ion-minus-circled" ng-click="diselectParticipant(student.id)"></ion-delete-button>
-       {{student.name}} 
-      </div>
-      <div class="col col-1 red-signal" ng-if="!student.status"></div>
-      </ion-item>
-    </ion-list>
-</ion-scroll>
-  <ion-scroll zooming="true" direction="y" ng-show="!isAddPartMode">
-  	<ion-list show-delete="isEditMode">
-      <ion-item class="participants-row" ng-repeat="student in tempParticipants" ng-if="student.isSelected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  >
-      <div class="col col-90 participants-row-inner">
-        <ion-delete-button class="ion-minus-circled" ng-click="diselectParticipant(student.id)"></ion-delete-button>
-       {{student.name}} 
-      </div>
-      <div class="col col-1 red-signal" ng-if="!student.status"></div>
-      </ion-item>
-  	</ion-list>
-</ion-scroll>
-</html>
-
+</ion-view>

@@ -58,6 +58,15 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       }
     })
 
+    .state('event.participantview',{
+      url:"/participants/:eventId",
+      views:{
+        content:{
+          templateUrl:"templates/eventParticipantList.html"
+        }
+      }
+    })
+
     .state('student',{
       url:"/students/:studentId",
       templateUrl:"templates/studentDetails.html",

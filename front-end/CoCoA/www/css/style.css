@@ -16,6 +16,15 @@
 	font-size: 20px;
 }
 
+/* event participants view */
+#part-popover{
+	width: 200px;
+	height:120px;
+}
+
+#part-popover ion-item{
+}
+
 /*check circle in each row */
 .ion-checkmark-circled, .ion-ios7-circle-outline{
 	font-size: 20px;
