@@ -2,7 +2,7 @@
   <ion-nav-buttons side="left">
     <h1 class="title" ng-if="selectedTask">{{selectedTask.name}}: Participants</h1>
     <h1 class="title" ng-if="!selectedTask" >All Participants</h1>
-    <button id="edit-btn" class="button button-clear button-positive" ng-click="toggleEditMode()"><span class="ion-compose"></span></button>
+    <button id="edit-btn" class="button button-clear button-positive" ng-click="toggleEditMode()"><span class="ion-edit"></span></button>
   </ion-nav-buttons>
   <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
   
@@ -14,9 +14,8 @@
         </label>
       </form>
     <ion-list>
-  		<ion-item ng-repeat="student in selectedTask.status" ng-if="student.isSelected &&(!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1)">
-  		<div class="row" ng-click="toggleStuInfoDisplay($index)">
-  			<div class="col col-95">
+  		<ion-item class="participants-row"  ng-repeat="student in selectedTask.status" ng-if="student.isSelected &&(!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1)" ng-click="toggleStuInfoDisplay($index)">
+  			<div class="col col-90 task-row-inner">
   				<i class="icon ion-checkmark-circled" ng-click="selectStudent(student.id)" ng-if="student.status && isEditMode" stop-event></i>
           <i class="icon ion-ios7-circle-outline" ng-click="selectStudent(student.id)" ng-if="!student.status && isEditMode" stop-event></i>
   				{{student.name}}
@@ -27,7 +26,7 @@
             {{student.address}}
           </div>
   			</div>
-  		</div>
+       <div class="col col-1 red-signal" ng-if="!student.status"></div>
   		</ion-item>
   	</ion-list>
   </ion-content>

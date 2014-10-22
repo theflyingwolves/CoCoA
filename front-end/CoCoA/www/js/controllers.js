@@ -24,8 +24,7 @@ angular.module('cocoa.controllers', [])
           status:true,
           isSelected:true,
           contactNumber:"8888",
-          address:"NUS"
-
+          address:"NUS",
         },
         {
           id:"ddd",
@@ -33,7 +32,8 @@ angular.module('cocoa.controllers', [])
           status:false,
           isSelected:true,
           contactNumber:"8888",
-          address:"NUS"
+          address:"NUS",
+          explain:"MC"
         }];
 
   window.localStorage['allStudents'] = angular.toJson(allStudents);
@@ -347,16 +347,35 @@ angular.module('cocoa.controllers', [])
     // EventViewFactory.saveEventParticipants(allParticipants);
   };
 
+  $scope.diselectParticipant = function(id){
+    for(var i=0; i<$scope.tempParticipants.length; i++){
+      var participant = $scope.tempParticipants[i];
+      if(participant.id == id){
+        participant.isSelected = false;
+      }
+    }
+
+    // EventViewFactory.saveEventParticipants(allParticipants);
+  };
+
   $scope.toggleStuInfoDisplay = function(rowIndex){
     $scope.selectedRow = $scope.selectedRow == rowIndex? -1 : rowIndex;
   }
 
   $scope.toggleEditMode = function(){
-    $scope.isEditMode = $scope.isEditMode? false : true;
+    $scope.isEditMode = !$scope.isEditMode;
     if($("#edit-btn").text() == "Finish")
-      $("#edit-btn").html("<span class='ion-compose'></span>");
+      $("#edit-btn").html("<span class='ion-edit'></span>");
     else
       $("#edit-btn").text("Finish");
+  }
+
+  $scope.toggleAddParticpantMode = function(){
+    $scope.isAddPartMode = !$scope.isAddPartMode;
+    // if($("#addParticipantBtn").text() == "Finish")
+    //   $("addParticipantBtn").text("");
+    // else 
+    //   $("#addParticipantBtn").text("Finish");
   }
 
   $scope.confirm = function(){

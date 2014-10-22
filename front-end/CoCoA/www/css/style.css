@@ -1,6 +1,20 @@
 #edit-btn span{
 	font-size:30px;
 }
+#divider span{
+	display: inline;
+}
+
+#addParticipantBtn{
+	position: absolute;
+	display: inline;
+	right: 0;
+	top:-5px;
+}
+
+#addParticipantBtn span{
+	font-size: 20px;
+}
 
 /*check circle in each row */
 .ion-checkmark-circled, .ion-ios7-circle-outline{
@@ -26,10 +40,30 @@
     transition: all 0.3s;
 }
 
-ion-list .row{
-	padding-left: 20px;
+.participants-row{
+	padding: 0;
 }
 
+.task-row-inner{
+	padding:20px;
+	display: inline-block;
+}
+
+
+.participants-row-inner{
+	padding:5px;
+	display: inline-block;
+}
+
+.red-signal {
+	position: absolute;
+	right: 0;
+	background-color: red;
+	width: 10px;
+	height: 100%;
+	display: inline-block;
+
+}
 
 /*animated ion item in ion list with animation when ng-show / ng-hide*/
 .item-animate.ng-hide-add, .cssFade.ng-hide-remove {
