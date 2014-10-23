@@ -36,8 +36,6 @@ angular.module('cocoa.controllers', [])
           explain:"MC"
         }];
 
-
-
   window.localStorage['allStudents'] = angular.toJson(allStudents);
   
   return {

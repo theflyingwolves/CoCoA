@@ -13,11 +13,13 @@
       <button class="button button-icon ion-plus" ng-click="newUserGroup()"></button>
     </header>
     <ion-content class="has-header">
+
       <ion-list>
         <ion-item nav-clear menu-close ng-repeat="group in usergroups" ng-click="selectCCA(group,$index)">
         {{group.title}}
         </ion-item>
       </ion-list>
+      
     </ion-content>
   </ion-side-menu>
 </ion-side-menus>
