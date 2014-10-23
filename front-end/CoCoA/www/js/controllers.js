@@ -36,7 +36,11 @@ angular.module('cocoa.controllers', [])
           explain:"MC"
         }];
 
+  var allCCA
 
+  var allEvent = [{
+
+  }]
 
   window.localStorage['allStudents'] = angular.toJson(allStudents);
   
@@ -82,6 +86,8 @@ angular.module('cocoa.controllers', [])
       }
     },
 
+
+
     saveEventList: function(events){
         var allgroups = angular.fromJson(window.localStorage['usergroups']);
         var activeIndex = parseInt(window.localStorage['lastActiveProject']) || 0;
@@ -89,6 +95,7 @@ angular.module('cocoa.controllers', [])
         activeGroup.events = events;
         window.localStorage['usergroups'] = angular.toJson(allgroups);
     },
+
 
     getLastActiveIndex: function(){
       return parseInt(window.localStorage['lastActiveProject']) || 0;
@@ -154,6 +161,18 @@ angular.module('cocoa.controllers', [])
       return window.localStorage['eventId'];
     },
 
+
+    getEventInfo:function(eventId){
+      selectedEvent = getEventFromId(eventId);
+      return {
+        title: selectedEvent.title,
+        startDate: selectedEvent.startDate,
+        endDate: selectedEvent.endDate,
+        time: selectedEvent.time,
+        venue: selectedEvent.venue
+      }
+    },
+
     getEventParticipants:function(){
       // return selectedEvent.participants;
       if(selectedEvent.participants.length > 0){
@@ -161,6 +180,26 @@ angular.module('cocoa.controllers', [])
       }else{
         return angular.fromJson(window.localStorage['allStudents']);
       }
+    },
+
+    saveEventInfo:function(eventInfo){
+
+      var groups = angular.fromJson(window.localStorage['usergroups']);
+      for(var i=0; i<groups.length; i++){
+        var events = groups[i].events;
+        for(var j=0; j<events.length; j++){
+          var event = events[j];
+          if(event.id == selectedEvent.id){
+            event.startDate = eventInfo.startDate;
+            event.endDate = eventInfo.endDate;
+            event.time = eventInfo.time;
+            event.venue = eventInfo.venue;
+            break;
+          }
+        }
+      }
+
+      window.localStorage['usergroups'] = angular.toJson(groups);
     },
 
     saveEventParticipants:function(participants){
@@ -286,6 +325,8 @@ angular.module('cocoa.controllers', [])
 
   $scope.eventId = EventViewFactory.getEventId();
 
+  $scope.eventInfo = EventViewFactory.getEventInfo($scope.eventId);
+
   $ionicModal.fromTemplateUrl('templates/eventEditParticipant.html',{
     scope:$scope,
     animation:'slide-in-up'
@@ -377,6 +418,15 @@ angular.module('cocoa.controllers', [])
     if($("#edit-btn").text() == "Finish")
       $("#edit-btn").html("<span class='ion-edit'></span>");
     else
+      $("#edit-btn").text("Finish");
+  }
+
+  $scope.toggleEventDetailEditMode = function(){
+    $scope.isEditMode = !$scope.isEditMode;
+    if($("#edit-btn").text() == "Finish"){
+      $("#edit-btn").text("Edit");
+      EventViewFactory.saveEventInfo($scope.eventInfo);
+    } else
       $("#edit-btn").text("Finish");
   }
 

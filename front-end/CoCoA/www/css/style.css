@@ -1,3 +1,19 @@
+/*change apply to all pages*/
+.bar.bar-stable{
+	background-color: #E3AB10;
+	color:white;
+	border:0;
+}
+
+.bar-stable .button{
+	color:white;
+}
+
+.bar.bar-stable .title, .bar-stable .button.button-clear{
+	color:white;
+	font-weight:bold;
+}
+
 #edit-btn span{
 	font-size:30px;
 }
@@ -73,6 +89,24 @@
 	display: inline-block;
 
 }
+
+
+/* event detail*/
+#eventDetailList{
+	font-size: 20px;
+}
+
+#titleInput input{
+	font-size:30px;
+	height: 50px;
+}
+
+#edit-participant-btn{
+	margin:30px auto;
+	width: 80%
+}
+
+
 
 /*animated ion item in ion list with animation when ng-show / ng-hide*/
 .item-animate.ng-hide-add, .cssFade.ng-hide-remove {
