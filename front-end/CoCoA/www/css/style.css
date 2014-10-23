@@ -32,6 +32,12 @@
 	font-size: 20px;
 }
 
+/*event list view*/
+.event-row .icon.ion-ios7-location{
+	padding-right: 5px;
+}
+
+
 /* event participants view */
 #part-popover{
 	width: 200px;
@@ -59,7 +65,7 @@
 	height:50px;
 	border-radius:20px;
 	color:#FFF;
-	background:#AA3;
+	background:#E3AB10;
 	position:fixed;
 	top: 200px;
 	left: -20px;
@@ -71,7 +77,11 @@
     transition: all 0.3s;
 }
 
-.participants-row{
+.participants-row, .task-row{
+	padding: 0;
+}
+
+.task-row .item-content{
 	padding: 0;
 }
 
@@ -86,15 +96,7 @@
 	display: inline-block;
 }
 
-.red-signal {
-	position: absolute;
-	right: 0;
-	background-color: red;
-	width: 10px;
-	height: 100%;
-	display: inline-block;
 
-}
 
 
 /* event detail*/
@@ -107,6 +109,10 @@
 	height: 50px;
 }
 
+
+
+
+/*event task*/
 #edit-participant-btn{
 	font-weight: bold;
 	margin:60px auto;
@@ -116,41 +122,27 @@
 	border-radius:10px;
 }
 
-
-
-/*animated ion item in ion list with animation when ng-show / ng-hide*/
-.item-animate.ng-hide-add, .cssFade.ng-hide-remove {
-    /* ensure visibility during the transition */
-    display: block!important; /* yes, important */
+.participants-row, .event-row{
+	padding-left: 10px;
 }
 
-
-.item-animate.ng-hide-add {
-  -webkit-animation:0.2s hide;
-  animation:0.2s hide;
+.participants-row .icon{
+	font-size: 22px;
 }
 
-@keyframes hide {
-  from { height: 40px; }
-  to { height: 0; }
+.icon.ion-checkmark-circled  {
+	color:grey;
 }
 
-@-webkit-keyframes hide {
-  from { height:  40px; }
-  to { height: 0; }
+.icon.ion-ios7-circle-outline {
+	color: red;
 }
 
-.item-animate.ng-hide-remove {
-  -webkit-animation:0.2s show;
-  animation:0.2s show;
+.edit-mode .icon.ion-checkmark-circled {
+	color:#5E79FF;
 }
 
-@keyframes show {
-  from { height: 0; }
-  to { height: 40px; }
+.squeezed-content{
+	margin-left: 20px;
 }
 
-@-webkit-keyframes show {
-  from { height: 0; }
-  to { height: 40px; }
-}

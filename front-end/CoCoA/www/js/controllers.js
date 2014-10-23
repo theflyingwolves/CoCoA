@@ -169,7 +169,10 @@ angular.module('cocoa.controllers', [])
         startDate: selectedEvent.startDate,
         endDate: selectedEvent.endDate,
         time: selectedEvent.time,
-        venue: selectedEvent.venue
+        venue: selectedEvent.venue,
+        busTime: selectedEvent.busTime,
+        comment: selectedEvent.comment,
+        TO: selectedEvent.TO
       }
     },
 
@@ -242,6 +245,7 @@ angular.module('cocoa.controllers', [])
       }
       window.localStorage['usergroups'] = angular.toJson(groups);
     }
+
   };
 })
 
@@ -276,7 +280,7 @@ angular.module('cocoa.controllers', [])
 
   $scope.newUserGroup = function(){
     var ccaName = prompt("Name for new CCA");
-    if(ccaName){
+    if(ccaName && ccaName.trim() != ""){
       createNewCCA(ccaName);
     }
   };
@@ -296,7 +300,7 @@ angular.module('cocoa.controllers', [])
 
   $scope.newEvent = function(){
     var eventName = prompt("Name for new event");
-    if(eventName){
+    if(eventName && eventName.trim() != ""){
       createNewEvent(eventName);
     }
   };
@@ -309,7 +313,7 @@ angular.module('cocoa.controllers', [])
     if($scope.usergroups.length == 0) {
       while(true) {
         var ccaName = prompt('Your first CCA name:');
-        if(ccaName) {
+        if(ccaName && ccaName.trim() != "") {
           createNewCCA(ccaName);
           break;
         }
@@ -320,12 +324,11 @@ angular.module('cocoa.controllers', [])
 
 .controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, EventViewFactory){
   $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
-
   $scope.selectedTask = $scope.eventtasks[0];
-
   $scope.eventId = EventViewFactory.getEventId();
-
   $scope.eventInfo = EventViewFactory.getEventInfo($scope.eventId);
+  $scope.selectedTaskIndex = -1;
+  $scope.deletingTaskIndex = -1;
 
   $ionicModal.fromTemplateUrl('templates/eventEditParticipant.html',{
     scope:$scope,
@@ -342,6 +345,15 @@ angular.module('cocoa.controllers', [])
     $scope.selectTask(task);
     $ionicSideMenuDelegate.toggleLeft(false);
   };
+
+  $scope.deleteTask = function(name){
+    for(var i = 0; i < $scope.eventtasks.length; i++){
+      if($scope.eventtasks[i].name == name){
+        $scope.eventtasks.splice(i,1);
+        EventViewFactory.saveTask($scope.eventtasks);
+      }
+    }
+  }
 
   var updateTaskParticipants = function(){
     var allParticipants = $scope.eventParticipants;
@@ -362,8 +374,9 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.newTask = function(){
-    var name = prompt("Name for new task");
-    createTask(name);
+    var taskName = prompt("Name for new task");
+    if(taskName && taskName.trim() != "")
+      createTask(Name);
   };
 
   $scope.selectTask = function(task, index){
@@ -377,6 +390,9 @@ angular.module('cocoa.controllers', [])
   }
 
   $scope.selectStudent = function(id){
+    if(!$scope.isEditMode)
+      return;
+
     var allParticipants = $scope.selectedTask.status;
     for(var i=0; i<allParticipants.length; i++){
       var participant = allParticipants[i];
@@ -411,6 +427,12 @@ angular.module('cocoa.controllers', [])
     // EventViewFactory.saveEventParticipants(allParticipants);
   };
 
+  $scope.selectDeletingTaskIndex = function(index){
+    $scope.deletingTaskIndex = index;
+  }
+
+
+
   $scope.toggleStuInfoDisplay = function(rowIndex){
     $scope.selectedRow = $scope.selectedRow == rowIndex? -1 : rowIndex;
   }
@@ -430,6 +452,15 @@ angular.module('cocoa.controllers', [])
       EventViewFactory.saveEventInfo($scope.eventInfo);
     } else
       $("#edit-btn").text("Finish");
+  }
+
+  $scope.toggleTaskEditMode = function(){
+    $scope.isTaskEditMode = !$scope.isTaskEditMode;
+      if($("#task-edit-btn").text() == "Finish"){
+      $("#task-edit-btn").text("Edit");
+      $scope.deletingTaskIndex = -1;
+    } else
+      $("#task-edit-btn").text("Finish");
   }
 
   $scope.toggleAddParticpantMode = function(){
