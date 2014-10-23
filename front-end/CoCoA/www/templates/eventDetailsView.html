@@ -1,15 +1,36 @@
 <ion-view data-ng-init="eventDetailsView()">
   <ion-nav-buttons side="left">
     <h1 class="title">Event Info</h1>
-    <a id="edit-btn" class="button button-clear button-positive" href="#/event/participants/:{{eventId}}">Participants</a>
+    <a id="edit-btn" class="button button-clear button-positive" ng-click="toggleEventDetailEditMode()">Edit</a>
   </ion-nav-buttons>
-  <div class="item item-divider">
-  	Event Details
-  </div>
-  <div class="item item-text-wrap">
-    This is some details of the event!
-  </div>
-
+<ion-content>
+<div class="list" id="eventDetailList">
+  <label id="titleInput" class="item item-input item-stacked-label"  ng-show="isEditMode" >
+    <input  type="text" placeholder="End Title" ng-model="eventInfo.title">
+  </label>
+  <label class="item item-input item-stacked-label">
+    <h1 ng-show="!isEditMode">{{eventInfo.title}}</h1>
+    <span class="input-label">Start Date</span>
+    <input type="text" placeholder="Start Date" ng-show="isEditMode" ng-model="eventInfo.startDate">
+    <p ng-show="!isEditMode">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
+  </label>
+  <label class="item item-input item-stacked-label"  ng-show="isEditMode" >
+    <span class="input-label">End Date</span>
+    <input type="text" placeholder="End Date" ng-model="eventInfo.endDate">
+  </label>
+  <label class="item item-input item-stacked-label">
+    <span class="input-label">Time</span>
+    <input type="text" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
+    <p ng-show="!isEditMode">{{eventInfo.time}}</p>
+  </label>
+  <label class="item item-input item-stacked-label">
+    <span class="input-label">Venue</span>
+    <input type="text" placeholder="Event Venue" ng-show="isEditMode" ng-model="eventInfo.venue">
+    <p ng-show="!isEditMode">{{eventInfo.venue}}</p>
+  </label>
+  <a id="edit-participant-btn" class="button button-block button-positive" href="#/event/participants/:{{eventId}}">Edit Participants</a>
+</div>
+</ion-content>
   <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
 
 

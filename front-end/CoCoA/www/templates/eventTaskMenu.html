@@ -7,7 +7,7 @@
     <ion-nav-view name="content" animation="slide-left-right"></ion-nav-view>
   </ion-pane>
 
-  <ion-side-menu side="left">
+  <ion-side-menu side="left" width="200">
     <header class="bar bar-header bar-stable">
       <h1 class="title">Tasks</h1>
       <button class="button button-icon ion-plus" ng-click="newTask()"></button>
@@ -17,7 +17,7 @@
         <ion-item nav-clear menu-close href="#/event/detail/:{{event.id}}" ng-click="diselectTask()" >
         Event Info
         </ion-item>
-        <ion-item nav-clear menu-close ng-repeat="task in eventtasks" href="#/event/:{{event.id}}" ng-click="selectTask(task,$index)">
+        <ion-item nav-clear menu-close ng-repeat="task in eventtasks" href="#/event/:{{event.id}}" ng-class="{selectedTask: $index==selectedTaskIndex}" ng-click="selectTask(task, $index)">
         {{task.name}}
         </ion-item>
       </ion-list>

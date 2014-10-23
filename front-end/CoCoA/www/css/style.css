@@ -1,3 +1,19 @@
+/*change apply to all pages*/
+.bar.bar-stable{
+	background-color: #E3AB10;
+	color:white;
+	border:0;
+}
+
+.bar-stable .button{
+	color:white;
+}
+
+.bar.bar-stable .title, .bar-stable .button.button-clear{
+	color:white;
+	font-weight:bold;
+}
+
 #edit-btn span{
 	font-size:30px;
 }
@@ -23,6 +39,12 @@
 }
 
 #part-popover ion-item{
+}
+
+/*task side menu*/
+.selectedTask .item-content{
+	background-color: #E3AB10;
+	color:white;
 }
 
 /*check circle in each row */
@@ -73,6 +95,28 @@
 	display: inline-block;
 
 }
+
+
+/* event detail*/
+#eventDetailList{
+	font-size: 20px;
+}
+
+#titleInput input{
+	font-size:30px;
+	height: 50px;
+}
+
+#edit-participant-btn{
+	font-weight: bold;
+	margin:60px auto;
+	font-size: 18px;
+	width: 70%;
+	border-width:0;
+	border-radius:10px;
+}
+
+
 
 /*animated ion item in ion list with animation when ng-show / ng-hide*/
 .item-animate.ng-hide-add, .cssFade.ng-hide-remove {
