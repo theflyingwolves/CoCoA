@@ -407,7 +407,6 @@ angular.module('cocoa.controllers', [])
         participant.isSelected = false;
       }
     }
-
     // EventViewFactory.saveEventParticipants(allParticipants);
   };
 
@@ -444,7 +443,6 @@ angular.module('cocoa.controllers', [])
     $scope.partEditModal.hide();
   };
 
-
   $scope.confirm = function(){
     $scope.eventParticipants = $scope.tempParticipants;
     EventViewFactory.saveEventParticipants($scope.eventParticipants);
@@ -455,11 +453,34 @@ angular.module('cocoa.controllers', [])
   $scope.eventDetailsView = function(){
     $scope.eventParticipants = EventViewFactory.getEventParticipants();
     $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
+    $scope.participantsEditModel = generatePartEditModel($scope.tempParticipants);
   };
 
   $scope.showPartModel = function(){
     $scope.partEditModal.show();
-  }
+  };
+
+  var generatePartEditModel = function(array){
+    var sorted = array.sort(function(a,b){
+      return a.name.localeCompare(b.name);
+    });
+
+    var firstLetter = "A";
+    var result = {};
+    for(var i=0; i<sorted.length; i++){
+      var item = sorted[i].name;
+      var initial = item.toUpperCase().charAt(0);
+      if( initial != firstLetter){
+        firstLetter = initial;
+      }
+      if(result[firstLetter] == undefined){
+        result[firstLetter] = [];
+      }
+      result[firstLetter].push(sorted[i]);
+    }
+    console.log("Result: "+angular.toJson(result));
+    return result;
+  };
 })
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){

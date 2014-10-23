@@ -7,6 +7,7 @@
 
     <link href="lib/ionic/css/ionic.css" rel="stylesheet">
     <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="lib/iosList/jquery.ioslist.css">
 
     <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
     <link href="css/ionic.app.css" rel="stylesheet">
@@ -20,7 +21,6 @@
 
     <!-- jquery js -->
     <script type="text/javascript" src="lib/jQuery/jquery-2.1.1.js"></script>
-    <script type="text/javascript" src="lib/iosList/jquery.ioslist.min.js"></script>
     
     <!-- cordova script (this will be a 404 during development) -->
     <script src="cordova.js"></script>
@@ -33,4 +33,10 @@
   <body ng-app="cocoa" class="platform-ios">
     <ion-nav-view></ion-nav-view>
   </body>
+  <script type="text/javascript" src="lib/iosList/jquery.ioslist.min.js"></script>
+  <script>
+    $(function(){
+        $("#list1").ioslist();
+    });
+  </script>
 </html>
