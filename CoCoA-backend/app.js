@@ -87,7 +87,14 @@ app.post('/create-cca', function(req,res){
 
 // students
 app.get('/allStudents', function(req, res) {
+    var resToClient = res;
     var CCADirectoryID = "0B-ZozyuGnVX3cW0yem5jaV94eTQ";
+    var fileName = "Student Details";
+    // var fileName = "testSheet";
+    // console.log("test access_token");
+    if (!gapi.oauth2Client.credentials.access_token) {
+        resToClient.json({message: "please log in first"});
+    }
 
     if (CCADirectoryID !== "") {
         gapi.googleDrive.children.list({'folderId': CCADirectoryID}, function(err,res){
@@ -95,42 +102,64 @@ app.get('/allStudents', function(req, res) {
                 for (var i = 0; i < res.items.length; i++) {
                     var id = res.items[i].id;
                     gapi.googleDrive.files.get({'fileId': id}, function(err,res){
-                        if (res.title === "Student Details") {
+                        if (err) {
+                            resToClient.json({message:"error when checking a file", err:err});
+                        }
+
+                        if (res.title === fileName) {
                             if (res.mimeType == "application/vnd.google-apps.spreadsheet") {
                                 var targetFileId = res.id;
 
-                                // Spreadsheet.load({
-                                //     debug: true,
-                                //     spreadsheetId: targetFileId,
-                                //     worksheetName: 'Sheet1',
-                                //     accessToken : {
-                                //       type: 'Bearer',
-                                //       token: 'my-generated-token'
-                                //     }
-                                //     }, function sheetReady(err, spreadsheet) {
-                                        
-                                //     }
-                                // );
+                                spreadsheet.load({
+                                    debug: true,
+                                    spreadsheetId: targetFileId,
+                                    worksheetName: 'Sheet1',
+                                    accessToken : {
+                                      type: 'Bearer',
+                                      token: gapi.oauth2Client.credentials.access_token
+                                    }
+                                    }, function sheetReady(err, spreadsheet) {
+                                        if(err) {
+                                            resToClient.json({message:"error when loading the spreadsheet", err:err});
+                                        } else {
+                                            spreadsheet.receive(function(err, rows, info) {
+                                              if(err){
+                                                throw err;
+                                              }else {
+                                                var numOfRows = info.totalRows;
+                                                var studentInfo = [];
+
+                                                for (var i = 2; i < numOfRows+1; i++) {
+                                                    var index = '' + i;
+                                                    var curStudent = rows[index];
+                                                    var curInfo = {name:curStudent['1'] , id:curStudent['2'] }
+                                                    studentInfo.push(curInfo);
+                                                };
+
+                                                // console.log(studentInfo);
+                                                resToClient.json({message:"success", students: studentInfo});
+                                                // console.log("Found rows:", rows['1']);  
+                                              } 
+                                            });
+                                        }
+
+                                    }
+                                );
 
                             } else {
-                                console.log("unknown type error of student detail file: ");
-                                console.log(res.mimeType);
+                                var message = "unknown type error of student detail file: " + res.mimeType;
+                                resToClient.json({message:message});
                             }
-
-                            
-
                         };
                     });
                 }      
             } else{
                 if (err) {
-                    console.log(err);
+                    resToClient.json({message:"error when loading the spreadsheet", err:err});
                 }
             }
         });
     }
-
-    res.json();
 });
 
 

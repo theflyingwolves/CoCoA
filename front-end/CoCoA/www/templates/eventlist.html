@@ -14,8 +14,15 @@
   </form>
 
 	<ion-list>
-      <ion-item ng-repeat="event in eventlist" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/detail/:{{event.id}}" ng-click="enterEvent(event.id)">
-        {{event.title}}
+      <ion-item class="event-row" ng-repeat="event in eventlist" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/detail/:{{event.id}}" ng-click="enterEvent(event.id)">
+        <h2>{{event.title}}</h2>
+
+        <p><span><i class="icon ion-ios7-location" ng-if="event.venue"></i>{{event.venue}}</span>
+          <span class="location-date-divider" ng-if="event.venue && (event.startDate || event.endDate)">|</span>
+          <span ng-if="event.startDate && event.endDate">{{event.startDate}} - {{event.endDate}}</span>
+          <span ng-if="event.startDate && !event.endDate">{{event.startDate}}</span>
+          <span ng-if="!event.startDate && event.endDate">{{event.endDate}}</span>
+        </p>
       </ion-item>
   </ion-list>
 	</ion-content>
