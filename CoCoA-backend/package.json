@@ -15,6 +15,6 @@
     "cookie-parser": "*",
     "method-override": "*",
     "googleapis": "*",
-    "google-spreadsheet": "*"
+    "edit-google-spreadsheet": "*"
   }
 }
