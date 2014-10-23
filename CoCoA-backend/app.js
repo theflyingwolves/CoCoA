@@ -26,6 +26,11 @@ app.use(errorhandler());
 
 }
 
+app.use(bodyParser.json());
+app.use(cookieParser());
+
+
+
 app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
@@ -43,36 +48,42 @@ app.get('/', function(req, res) {
 
 app.get('/oauth2callback', function(req, res) {
     var code = req.query.code;
-    // console.log(code);
     gapi.oauth2Client.getToken(code, function(err, tokens){
-    //gapi.oauth2Client.credentials = tokens; 
-    gapi.oauth2Client.setCredentials(tokens); 
-    console.log("tokens:\n");
-    console.log(tokens);
-    console.log("\n");
-
-    gapi.googleDrive.files.list({'access_token':tokens.access_token}, function(req,res) {
-        var list = res;
-        for(var i = 0;i<list.items.length;i++){
-            if(list.items[i].title == 'CCA-AdminUltra' && list.items[i].mimeType == 'application/vnd.google-apps.folder'){
-                console.log("this file's id is "+list.items[i].id);
-                // gapi.googleDrive.children.list({'folderId':list.items[i].id}, function(req,res){
-                //     var targetFileId = res.items[0].id;
-                //     gapi.googleDrive.files.get({'fileId':targetFileId}, function(req,res){
-                //         // console.log(res);
-                //     });
-                // });
-            }
-        }
+        gapi.oauth2Client.setCredentials(tokens); 
+        gapi.googleDrive.files.list({'access_token':gapi.oauth2Client.credentials.access_token}, function(req,res){
+            var list = res;
+           for(var i = 0;i<list.items.length;i++){
+                if(list.items[i].title == 'CCA-Admin' && list.items[i].mimeType == 'application/vnd.google-apps.folder'){
+                    console.log("root file's id is "+list.items[i].id);
+                    rootFolderId = list.items[i].id;
+                };
+            };
+        });
     });
-});
+    
     var locals = {
-        title: 'What are you doing with yours?',
+        title: 'What are you doing?',
         url: gapi.authUrl
     };
     res.render('index.jade', locals);
 });
 
+app.post('/create-cca', function(req,res){
+    console.log("fetch root folder id in create-cca: "+rootFolderId);
+    gapi.googleDrive.files.insert({
+        resource: {
+            title: req.body.title,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [{
+            "kind":"drive#fileLink",
+            "id":rootFolderId
+            }]
+        }
+    },
+        function(req,res){
+            console.log("create a new folder under CCA-AdminUltra", res);
+    });
+});
 
 // students
 app.get('/allStudents', function(req, res) {
