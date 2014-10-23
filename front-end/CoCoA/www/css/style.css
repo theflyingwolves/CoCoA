@@ -41,6 +41,12 @@
 #part-popover ion-item{
 }
 
+/*task side menu*/
+.selectedTask .item-content{
+	background-color: #E3AB10;
+	color:white;
+}
+
 /*check circle in each row */
 .ion-checkmark-circled, .ion-ios7-circle-outline{
 	font-size: 20px;
@@ -102,8 +108,12 @@
 }
 
 #edit-participant-btn{
-	margin:30px auto;
-	width: 80%
+	font-weight: bold;
+	margin:60px auto;
+	font-size: 18px;
+	width: 70%;
+	border-width:0;
+	border-radius:10px;
 }
 
 

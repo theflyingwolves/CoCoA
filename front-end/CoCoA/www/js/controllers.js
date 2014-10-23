@@ -366,12 +366,14 @@ angular.module('cocoa.controllers', [])
     createTask(name);
   };
 
-  $scope.selectTask = function(task){
+  $scope.selectTask = function(task, index){
     $scope.selectedTask = task;
+    $scope.selectedTaskIndex = index;
   };
 
   $scope.diselectTask = function(){
     $scope.selectedTask = null;
+    $scope.selectedTaskIndex = -1;
   }
 
   $scope.selectStudent = function(id){
