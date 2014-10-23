@@ -1,0 +1,20 @@
+{
+  "name": "SampleApp",
+  "version": "0.0.1",
+  "private": true,
+  "main": "server",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "dependencies": {
+    "express": "*",
+    "jade": "*",
+    "errorhandler": "*",
+    "morgan": "*",
+    "body-parser": "*",
+    "cookie-parser": "*",
+    "method-override": "*",
+    "googleapis": "*",
+    "edit-google-spreadsheet": "*"
+  }
+}

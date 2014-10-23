@@ -334,6 +334,12 @@ angular.module('cocoa.controllers', [])
     $scope.partEditModal = modal;
   });
 
+  $scope.$on("modal.hidden",function(){
+    for(var i=0; i<$scope.tempParticipants.length; i++){
+      $scope.tempParticipants[i].isSelected = $scope.eventParticipants[i].isSelected;
+    }
+  });
+
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
     task.status = EventViewFactory.getEventParticipants();
@@ -444,7 +450,7 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.confirm = function(){
-    $scope.eventParticipants = $scope.tempParticipants;
+    $scope.eventParticipants = angular.fromJson(angular.toJson($scope.tempParticipants));
     EventViewFactory.saveEventParticipants($scope.eventParticipants);
     updateTaskParticipants();
     $scope.partEditModal.hide();
@@ -478,7 +484,7 @@ angular.module('cocoa.controllers', [])
       }
       result[firstLetter].push(sorted[i]);
     }
-    console.log("Result: "+angular.toJson(result));
+    
     return result;
   };
 })
