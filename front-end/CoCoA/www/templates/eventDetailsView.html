@@ -6,75 +6,6 @@
 <ion-content class="squeezed-content">
 <div class="list" id="eventDetailList">
 
-<!--   <div class="item item-divider">
-    {{eventInfo.title}}
-  </div>
-
-  <div class="item item-text-wrap">
-    <textarea placeholder="Tap to Edit Event Information" ng-if="isEditMode" ng-model="eventInfo.comments" value="{{eventInfo.comments}}"></textarea>
-    <p ng-if="!isEditMode">{{eventInfo.comments}}</p>
-  </div>
-
-  <div ng-if="isEditMode">
-     <div class="item item-divider">
-      Start Date
-    </div>
-    <div class="item item-input">
-      <input type="date" ng-model="eventInfo.startDate">
-    </div>
-    <div class="item item-divider">
-      End Date
-    </div>
-    <div class="item item-input">
-      <input type="date" ng-model="eventInfo.endDate">
-    </div>
-  </div>
-
-  <div ng-if="!isEditMode && (eventInfo.startDate || eventInfo.endDate)">
-    <div class="item item-divider">Duration</div>
-    <div class="item item-text-wrap">
-      <p ng-if="eventInfo.startDate && eventInfo.endDate">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
-      <p ng-if="eventInfo.startDate && !eventInfo.endDate">{{eventInfo.startDate}}</p>
-      <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}}</p>
-    </div>
-  </div>
-
-  <div ng-if="eventInfo.time">
-    <div class="item item-divider">
-      Time
-    </div>
-
-    <div class="item item-text-wrap">
-      <div ng-if="!isEditMode">
-        {{eventInfo.time}}
-      </div>
-      <div ng-if="isEditMode">
-        <input type="time" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
-      </div>
-    </div>
-  </div> -->
-
-  
-<!--   <label id="titleInput" class="item item-input item-stacked-label"  ng-show="isEditMode" >
-    <input  type="text" placeholder="End Title" ng-model="eventInfo.title">
-  </label>
-  <label class="item item-input item-stacked-label">
-    <h1 ng-show="!isEditMode">{{eventInfo.title}}</h1>
-    <div class="row">
-      <div class="col col-33">
-        <span class="input-label">Start Date</span>
-      </div>
-      <div class="col col-67">
-        <input type="date" placeholder="Start Date" ng-show="isEditMode" ng-model="eventInfo.startDate">
-        <div ng-show="!isEditMode">
-          <p ng-if="eventInfo.startDate && eventInfo.endDate">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
-          <p ng-if="eventInfo.startDate && !eventInfo.endDate">{{eventInfo.startDate}}</p>
-          <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}}</p>
-        </div>
-      </div>
-    </div>
-  </label> -->
-
   <div ng-if="isEditMode">
       <label class="item item-input item-stacked-label">
         <div class="row">
@@ -115,7 +46,7 @@
   <label class="item item-input item-stacked-label">
     <div class="row">
       <div class="col col-33">
-        <span class="input-label">Time</span>
+        <span class="input-label">Start Time</span>
       </div>
       <div class="col col-67">
         <input type="time" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
@@ -134,6 +65,24 @@
       </div>
     </div>
   </label>
+
+    <label class="item item-input item-stacked-label" ng-if="isEditMode">
+      <span>Comments</span>
+      <div>
+        <textarea ng-model="eventInfo.comments" value="eventInfo.comments"></textarea>
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-if="!isEditMode && eventInfo.comments">
+      <div class="row">
+        <div class="col col-33">Notes</div>
+        <div class="col col-67"></div>
+      </div>
+      <div class="row">
+        <div class="col">{{eventInfo.comments}}</div>
+      </div>
+    </label>
+
   <a id="edit-participant-btn" class="button button-block button-positive" href="#/event/participants/:{{eventId}}">View Participants</a>
 </div>
 </ion-content>
