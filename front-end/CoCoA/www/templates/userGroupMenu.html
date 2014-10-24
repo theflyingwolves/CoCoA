@@ -9,14 +9,14 @@
 
   <ion-side-menu side="left">
     <header class="bar bar-header bar-stable">
-      <h1 class="title">User Groups</h1>
+      <h1 class="title">CCA</h1>
       <button class="button button-icon ion-plus" ng-click="newUserGroup()"></button>
     </header>
     <ion-content class="has-header">
 
       <ion-list>
-        <ion-item nav-clear menu-close ng-repeat="group in usergroups" ng-click="selectCCA(group,$index)">
-        {{group.title}}
+        <ion-item nav-clear menu-close ng-repeat="group in usergroups" ng-click="selectCCA(group,$index)" style="font-size:20px; font-weight:500">
+        {{group.title}} <span style="float: right"><i class="icon ion-person-add" style="font-size:20px" ng-click="showMemberModal(group.title);$event.stopPropagation()"></i></span>
         </ion-item>
       </ion-list>
       

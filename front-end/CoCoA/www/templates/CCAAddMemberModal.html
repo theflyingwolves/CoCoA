@@ -1,0 +1,23 @@
+<ion-modal-view>
+  <div class="button-bar">
+    <a class="button button-stable" ng-click="cancel()">Cancel</a>
+    <a class="button button-stable" ng-click="confirm()">Confirm</a>
+  </div>
+	<ion-content class="has-header">
+		<label class="item item-input">
+      <i class="icon ion-search placeholder-icon"></i>
+      <input type="search" ng-model="stdNameFilter" placeholder="Search">
+    </label>
+
+		<ion-list>
+			<ion-item ng-repeat="student in allSchoolStudents" ng-click="selectMember(student)">
+			  <div class="col col-90 task-row-inner">
+    			<i class="icon ion-checkmark-circled" ng-if="student.isMember"></i>
+          <i class="icon ion-ios7-circle-outline" ng-if="!student.isMember"></i>
+          {{student.name}}
+        </div>
+			</ion-item>
+		</ion-list>
+
+	</ion-content>
+</ion-modal-view>
