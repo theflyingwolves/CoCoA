@@ -1,10 +1,11 @@
 <ion-view>
+  <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
+
   <ion-nav-buttons side="left">
     <h1 class="title" ng-if="selectedTask">{{selectedTask.name}}: Participants</h1>
     <h1 class="title" ng-if="!selectedTask" >All Participants</h1>
     <button id="edit-btn" class="button button-clear button-positive" ng-click="toggleEditMode()"><span class="ion-edit"></span></button>
   </ion-nav-buttons>
-  <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
   
   <ion-content class="has-header">
       <form>
@@ -30,5 +31,6 @@
   		</ion-item>
   	</ion-list>
   </ion-content>
+
 </ion-view>
 

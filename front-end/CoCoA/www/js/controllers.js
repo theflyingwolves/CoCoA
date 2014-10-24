@@ -322,7 +322,7 @@ angular.module('cocoa.controllers', [])
   });
 })
 
-.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, EventViewFactory){
+.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicActionSheet, EventViewFactory){
   $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
   $scope.selectedTask = $scope.eventtasks[0];
   $scope.eventId = EventViewFactory.getEventId();
@@ -336,6 +336,7 @@ angular.module('cocoa.controllers', [])
   }).then(function(modal){
     $scope.partEditModal = modal;
   });
+
 
   $scope.$on("modal.hidden",function(){
     for(var i=0; i<$scope.tempParticipants.length; i++){
@@ -380,9 +381,10 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.newTask = function(){
+    console.log("new task");
     var taskName = prompt("Name for new task");
     if(taskName && taskName.trim() != "")
-      createTask(Name);
+      createTask(taskName);
   };
 
   $scope.selectTask = function(task, index){
@@ -518,6 +520,37 @@ angular.module('cocoa.controllers', [])
     
     return result;
   };
+
+  titleText = "eve";
+  destructiveText = "Delete";
+
+  $scope.onTaskRowHold = function (task) {
+
+
+    $ionicActionSheet.show({
+      titleText: task.name,
+      buttons: [
+        { text: 'Share <i class="icon ion-share"></i>' },
+        { text: 'Move <i class="icon ion-arrow-move"></i>' },
+      ],
+      destructiveText: 'Delete',
+      cancelText: 'Cancel',
+      cancel: function() {
+        console.log('CANCELLED');
+      },
+      buttonClicked: function(index) {
+        console.log('BUTTON CLICKED', index);
+        return true;
+      },
+      destructiveButtonClicked: function() {
+        console.log('DESTRUCT');
+        return true;
+      }
+    }); 
+
+
+  };
+
 })
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
