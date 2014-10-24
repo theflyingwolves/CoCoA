@@ -1,36 +1,138 @@
 <ion-view data-ng-init="eventDetailsView()">
   <ion-nav-buttons side="left">
-    <h1 class="title">Event Info</h1>
+    <h1 class="title">{{eventInfo.title}} Info</h1>
     <a id="edit-btn" class="button button-clear button-positive" ng-click="toggleEventDetailEditMode()">Edit</a>
   </ion-nav-buttons>
 <ion-content class="squeezed-content">
 <div class="list" id="eventDetailList">
-  <label id="titleInput" class="item item-input item-stacked-label"  ng-show="isEditMode" >
-    <input  type="text" placeholder="End Title" ng-model="eventInfo.title">
-  </label>
-  <label class="item item-input item-stacked-label">
-    <h1 ng-show="!isEditMode">{{eventInfo.title}}</h1>
-    <span class="input-label">Start Date</span>
-    <input type="date" placeholder="Start Date" ng-show="isEditMode" ng-model="eventInfo.startDate">
-    <div ng-show="!isEditMode">
+
+<!--   <div class="item item-divider">
+    {{eventInfo.title}}
+  </div>
+
+  <div class="item item-text-wrap">
+    <textarea placeholder="Tap to Edit Event Information" ng-if="isEditMode" ng-model="eventInfo.comments" value="{{eventInfo.comments}}"></textarea>
+    <p ng-if="!isEditMode">{{eventInfo.comments}}</p>
+  </div>
+
+  <div ng-if="isEditMode">
+     <div class="item item-divider">
+      Start Date
+    </div>
+    <div class="item item-input">
+      <input type="date" ng-model="eventInfo.startDate">
+    </div>
+    <div class="item item-divider">
+      End Date
+    </div>
+    <div class="item item-input">
+      <input type="date" ng-model="eventInfo.endDate">
+    </div>
+  </div>
+
+  <div ng-if="!isEditMode && (eventInfo.startDate || eventInfo.endDate)">
+    <div class="item item-divider">Duration</div>
+    <div class="item item-text-wrap">
       <p ng-if="eventInfo.startDate && eventInfo.endDate">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
       <p ng-if="eventInfo.startDate && !eventInfo.endDate">{{eventInfo.startDate}}</p>
       <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}}</p>
     </div>
-  </label>
-  <label class="item item-input item-stacked-label"  ng-show="isEditMode" >
-    <span class="input-label">End Date</span>
-    <input type="date" placeholder="End Date" ng-model="eventInfo.endDate">
+  </div>
+
+  <div ng-if="eventInfo.time">
+    <div class="item item-divider">
+      Time
+    </div>
+
+    <div class="item item-text-wrap">
+      <div ng-if="!isEditMode">
+        {{eventInfo.time}}
+      </div>
+      <div ng-if="isEditMode">
+        <input type="time" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
+      </div>
+    </div>
+  </div> -->
+
+  
+<!--   <label id="titleInput" class="item item-input item-stacked-label"  ng-show="isEditMode" >
+    <input  type="text" placeholder="End Title" ng-model="eventInfo.title">
   </label>
   <label class="item item-input item-stacked-label">
-    <span class="input-label">Time</span>
-    <input type="time" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
-    <p ng-show="!isEditMode">{{eventInfo.time}}</p>
+    <h1 ng-show="!isEditMode">{{eventInfo.title}}</h1>
+    <div class="row">
+      <div class="col col-33">
+        <span class="input-label">Start Date</span>
+      </div>
+      <div class="col col-67">
+        <input type="date" placeholder="Start Date" ng-show="isEditMode" ng-model="eventInfo.startDate">
+        <div ng-show="!isEditMode">
+          <p ng-if="eventInfo.startDate && eventInfo.endDate">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
+          <p ng-if="eventInfo.startDate && !eventInfo.endDate">{{eventInfo.startDate}}</p>
+          <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}}</p>
+        </div>
+      </div>
+    </div>
+  </label> -->
+
+  <div ng-if="isEditMode">
+      <label class="item item-input item-stacked-label">
+        <div class="row">
+          <div class="col col-33">
+            <span class="input-label">Start Date</span>
+          </div>
+          <div class="col col-67">
+            <input type="date" ng-model="eventInfo.startDate">
+          </div>
+        </div>
+      </label>
+
+      <label class="item item-input item-stacked-label">
+        <div class="row">
+          <div class="col col-33">
+            <span class="input-label">End Date</span>
+          </div>
+          <div class="col col-67">
+            <input type="date" ng-model="eventInfo.endDate">
+          </div>
+        </div>
+      </label>
+  </div>
+
+  <div ng-if="!isEditMode">
+    <label class="item item-input item-stacked-label">
+      <div class="row">
+        <div class="col col-33">Duration</div>
+        <div class="col col-67">
+          <p ng-if="eventInfo.startDate && eventInfo.endDate">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
+          <p ng-if="eventInfo.startDate && !eventInfo.endDate">{{eventInfo.startDate}}</p>
+          <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}}</p>
+        </div>
+      </div>
+    </label>
+  </div>
+
+  <label class="item item-input item-stacked-label">
+    <div class="row">
+      <div class="col col-33">
+        <span class="input-label">Time</span>
+      </div>
+      <div class="col col-67">
+        <input type="time" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
+        <p ng-show="!isEditMode">{{eventInfo.time}}</p>
+      </div>
+    </div>
   </label>
   <label class="item item-input item-stacked-label">
-    <span class="input-label">Venue</span>
-    <input type="text" placeholder="Event Venue" ng-show="isEditMode" ng-model="eventInfo.venue">
-    <p ng-show="!isEditMode">{{eventInfo.venue}}</p>
+    <div class="row">
+      <div class="col col-33">
+        <span class="input-label">Venue</span>
+      </div>
+      <div class="col col-67">
+        <input type="text" placeholder="Event Venue" ng-show="isEditMode" ng-model="eventInfo.venue">
+        <p ng-show="!isEditMode">{{eventInfo.venue}}</p>
+      </div>
+    </div>
   </label>
   <a id="edit-participant-btn" class="button button-block button-positive" href="#/event/participants/:{{eventId}}">View Participants</a>
 </div>
