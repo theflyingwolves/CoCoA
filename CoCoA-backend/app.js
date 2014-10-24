@@ -220,7 +220,7 @@ app.get('/allStudents', function(req, res) {
                             if (res.mimeType == "application/vnd.google-apps.spreadsheet") {
                                 var targetFileId = res.id;
 
-                                spreadsheet.load({
+                                googleSpreadsheet.load({
                                     debug: true,
                                     spreadsheetId: targetFileId,
                                     worksheetName: 'Sheet1',
@@ -232,7 +232,7 @@ app.get('/allStudents', function(req, res) {
                                         if(err) {
                                             resToClient.json({message:"error when loading the spreadsheet", err:err});
                                         } else {
-                                            spreadsheet.receive(function(err, rows, info) {
+                                            googleSpreadsheet.receive(function(err, rows, info) {
                                               if(err){
                                                 throw err;
                                               }else {
@@ -286,7 +286,7 @@ app.post('/addMembersToCCA', function(req, res) {
     };
     
     var studentDetailsFilename = "Student Details";
-    var memberDetailsFilename = "Member Details";
+    var memberDetailsFilename = "Student Details";
 
     // console.log(req.body);
     var CCAName = req.body.CCAName;
@@ -317,7 +317,7 @@ app.post('/addMembersToCCA', function(req, res) {
                             if (res.mimeType == "application/vnd.google-apps.spreadsheet") {
                                 var targetFileId = res.id;
 
-                                spreadsheet.load({
+                                googleSpreadsheet.load({
                                     debug: true,
                                     spreadsheetId: targetFileId,
                                     worksheetName: 'Sheet1',
@@ -329,7 +329,7 @@ app.post('/addMembersToCCA', function(req, res) {
                                         if(err) {
                                             resToClient.json({message:"error when loading the spreadsheet", err:err});
                                         } else {
-                                            spreadsheet.receive(function(err, rows, info) {
+                                            googleSpreadsheet.receive(function(err, rows, info) {
                                               if(err){
                                                 throw err;
                                               }else {
@@ -386,7 +386,7 @@ app.post('/addMembersToCCA', function(req, res) {
                                                 if (res.title === memberDetailsFilename && res.mimeType == "application/vnd.google-apps.spreadsheet") {
                                                     var memberDetailsFileId = id;
 
-                                                    spreadsheet.load({
+                                                    googleSpreadsheet.load({
                                                         debug: true,
                                                         spreadsheetId: memberDetailsFileId,
                                                         worksheetName: 'Sheet1',
@@ -398,7 +398,7 @@ app.post('/addMembersToCCA', function(req, res) {
                                                             if(err) {
                                                                 resToClient.json({message:"error when loading the spreadsheet", err:err});
                                                             } else {
-                                                                spreadsheet.receive(function(err, rows, info) {
+                                                                googleSpreadsheet.receive(function(err, rows, info) {
                                                                   if(err){
                                                                     throw err;
                                                                   }else {
@@ -413,7 +413,7 @@ app.post('/addMembersToCCA', function(req, res) {
                                                                     contents = {};
                                                                     contents[nextRow] = targetStudentDetails;
 
-                                                                    spreadsheet.add(contents);
+                                                                    googleSpreadsheet.add(contents);
 
                                                                     // spreadsheet.add([[1,2,3],
                                                                     //                  [4,5,6]]);   
@@ -422,7 +422,7 @@ app.post('/addMembersToCCA', function(req, res) {
                                                                     //   10: targetStudentDetails
                                                                     // });
 
-                                                                    spreadsheet.send(function(err) {
+                                                                    googleSpreadsheet.send(function(err) {
                                                                       if(err) {
                                                                         console.log("edit spreadsheet error");
                                                                         console.log(err);
