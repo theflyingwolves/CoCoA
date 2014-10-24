@@ -482,6 +482,7 @@ angular.module('cocoa.controllers', [])
 
   $scope.confirm = function(){
     $scope.eventParticipants = angular.fromJson(angular.toJson($scope.tempParticipants));
+    $scope.partViewModel = generatePartModel($scope.eventParticipants);
     EventViewFactory.saveEventParticipants($scope.eventParticipants);
     updateTaskParticipants();
     $scope.partEditModal.hide();
@@ -489,15 +490,16 @@ angular.module('cocoa.controllers', [])
 
   $scope.eventDetailsView = function(){
     $scope.eventParticipants = EventViewFactory.getEventParticipants();
+    $scope.partViewModel = generatePartModel($scope.eventParticipants);
     $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
-    $scope.participantsEditModel = generatePartEditModel($scope.tempParticipants);
+    $scope.participantsEditModel = generatePartModel($scope.tempParticipants);
   };
 
   $scope.showPartModel = function(){
     $scope.partEditModal.show();
   };
 
-  var generatePartEditModel = function(array){
+  var generatePartModel = function(array){
     var sorted = array.sort(function(a,b){
       return a.name.localeCompare(b.name);
     });
