@@ -17,6 +17,12 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
 .config(function($stateProvider, $urlRouterProvider) {
   $stateProvider
 
+    .state('welcome',{
+      url:'/welcome',
+      templateUrl:'templates/welcome.html',
+      controller:'welcomeCtrl'
+    })
+
     .state('app', {
       url: "/app",
       abstract: true,
