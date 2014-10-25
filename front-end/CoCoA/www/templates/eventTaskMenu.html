@@ -18,9 +18,7 @@
         <ion-item  nav-clear menu-close href="#/event/detail/:{{event.id}}" ng-class="{selectedTask: selectedTaskIndex == -1}" ng-click="diselectTask()" >
         Event Info
         </ion-item>
-        <ion-item nav-clear menu-close class="task-row" ng-repeat="task in eventtasks" href="#/event/:{{event.id}}" ng-class="{selectedTask: $index==selectedTaskIndex}" ng-click="onTaskRowHold(task)">
-
-        <!-- <ion-item nav-clear menu-close class="task-row" ng-repeat="task in eventtasks" href="#/event/:{{event.id}}" ng-class="{selectedTask: $index==selectedTaskIndex}" ng-click="selectTask(task, $index)"> -->
+        <ion-item nav-clear menu-close class="task-row" ng-repeat="task in eventtasks" href="#/event/:{{event.id}}" ng-class="{selectedTask: $index==selectedTaskIndex}" ng-click="selectTask(task, $index)">
           <div my-on-hold="onTaskRowHold(task)">
             <ion-delete-button class="ion-minus-circled" ng-click="deleteTask(task.name)" stop-event></ion-delete-button>
 

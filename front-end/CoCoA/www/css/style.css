@@ -32,6 +32,7 @@
 #edit-btn span{
 	font-size:30px;
 }
+
 #divider span{
 	display: inline;
 }
@@ -57,9 +58,6 @@
 #part-popover{
 	width: 200px;
 	height:120px;
-}
-
-#part-popover ion-item{
 }
 
 /*task side menu*/
@@ -125,21 +123,32 @@
 	height: 50px;
 }
 
-
-
-
-/*event task*/
-#edit-participant-btn{
+.item .info-label{
 	font-weight: bold;
-	margin:60px auto;
-	font-size: 18px;
-	width: 70%;
-	border-width:0;
-	border-radius:10px;
 }
 
-.participants-row, .event-row{
-	padding-left: 10px;
+/*event task*/
+#participants-btn a {
+	margin-left: 10px;
+	text-decoration: none;
+	font-size:14px;
+}
+
+#participants-btn a:link, #participants-btn a:visited, #participants-btn a:active{
+	color:#5E79FF;
+}
+
+#participants-btn span{
+	position: absolute;
+	right:20px;
+	bottom:-4px;
+	margin:0 0 3px 5px;
+	font-size: 24px;
+	color:grey;
+}
+
+.participants-row, .event-row, .item{
+	padding-left: 30px;
 }
 
 .participants-row .icon{
@@ -159,6 +168,14 @@
 }
 
 .squeezed-content{
-	margin-left: 20px;
+	margin-left: 0px;
 }
 
+
+/******input form*/
+.platform-ios input[type="datetime-local"], .platform-ios input[type="date"], .platform-ios input[type="month"],
+ .platform-ios input[type="time"], .platform-ios input[type="week"], .platform-android input[type="datetime-local"],
+  .platform-android input[type="date"], .platform-android input[type="month"], .platform-android input[type="time"],
+   .platform-android input[type="week"] {
+	padding-top: 0px;
+}
