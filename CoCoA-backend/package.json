@@ -14,7 +14,9 @@
     "body-parser": "*",
     "cookie-parser": "*",
     "method-override": "*",
+    "async":"*",
     "googleapis": "*",
-    "edit-google-spreadsheet": "*"
+    "edit-google-spreadsheet": "*",
+    "google-spreadsheet":"*"
   }
 }
