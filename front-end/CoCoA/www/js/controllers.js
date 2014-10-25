@@ -275,7 +275,8 @@ angular.module('cocoa.controllers', [])
     newTask: function(name){
       return {
         name:name,
-        status:[]
+        status:[],
+        viewModel:{}
       }
     },
 
@@ -422,6 +423,7 @@ angular.module('cocoa.controllers', [])
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
     task.status = EventViewFactory.getEventParticipants();
+    task.viewModel = generatePartModel(task.status);
     $scope.eventtasks.push(task);
     EventViewFactory.saveTask($scope.eventtasks);
     $scope.selectTask(task);
@@ -452,11 +454,11 @@ angular.module('cocoa.controllers', [])
           }
         }
       }
+      task.viewModel = generatePartModel(task.status);
     }
   };
 
   $scope.newTask = function(){
-    console.log("new task");
     var taskName = prompt("Name for new task");
     if(taskName && taskName.trim() != "")
       createTask(taskName);
@@ -477,6 +479,7 @@ angular.module('cocoa.controllers', [])
       return;
 
     var allParticipants = $scope.selectedTask.status;
+    $scope.selectedTask.viewModel = generatePartModel(allParticipants);
     for(var i=0; i<allParticipants.length; i++){
       var participant = allParticipants[i];
       if(participant.id == id){
@@ -595,7 +598,8 @@ angular.module('cocoa.controllers', [])
       }
       result[firstLetter].push(sorted[i]);
     }
-    
+
+    console.log(angular.toJson(result));
     return result;
   };
 
@@ -617,7 +621,6 @@ angular.module('cocoa.controllers', [])
    });
 
   };
-
 })
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
