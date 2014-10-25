@@ -1,6 +1,21 @@
 /*change apply to all pages*/
-.bar.bar-stable{
-	background-color: #E3AB10;
+.item{
+	border-color:#ccc;
+}
+
+.bar-stable .button.button-icon {
+	color:white;
+}
+
+.button-bar .button.button-stable {
+	background-color: orange;
+	color:white;
+	border-width: 2px 2px 2px 2px;
+	border-color:white;
+}
+
+.bar.bar-stable, .item-divider{
+	background-color: orange;
 	color:white;
 	border:0;
 }
@@ -9,7 +24,7 @@
 	color:white;
 }
 
-.bar.bar-stable .title, .bar-stable .button.button-clear{
+.bar.bar-stable .title, .bar-stable .button.button-clear, .button.button-stable {
 	color:white;
 	font-weight:bold;
 }
@@ -49,10 +64,10 @@
 
 /*task side menu*/
 .selectedTask .item-content{
-	background-color: #E3AB10;
+	background-color: orange;
 	color:white;
 }
-
+/*#E3AB10*/
 /*check circle in each row */
 .ion-checkmark-circled, .ion-ios7-circle-outline{
 	font-size: 20px;
