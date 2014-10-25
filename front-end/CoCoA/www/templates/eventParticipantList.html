@@ -13,10 +13,11 @@
     </form>
   <ion-scroll zooming="true" direction="y" ng-show="!isAddPartMode">
   	<ion-list show-delete="isEditMode">
-      <ion-item class="participants-row" ng-repeat="student in eventParticipants" ng-if="student.isSelected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  ng-click="toggleStuInfoDisplay($index)">
+      <div class="item item-divider" ng-repeat-start="(initial, participants) in partViewModel">{{initial}}</div>
+      <ion-item class="participants-row" ng-repeat="student in participants" ng-if="student.isSelected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  ng-click="toggleStuInfoDisplay($index)">
       <div class="col col-90 participants-row-inner">
         <ion-delete-button class="ion-minus-circled" ng-click="diselectParticipant(student.id)" ></ion-delete-button>
-        {{student.name}} 
+        {{student.name}}
         <div ng-show="selectedRow == $index" class="item-animate">
             <br>
             {{student.status}}
@@ -25,6 +26,7 @@
         </div>
       </div>
       </ion-item>
+      <div ng-repeat-end></div>
   	</ion-list>
   </ion-content>
 </ion-view>

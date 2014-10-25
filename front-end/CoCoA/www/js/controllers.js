@@ -36,6 +36,42 @@ angular.module('cocoa.controllers', [])
           explain:"MC"
         }];
 
+  var allSchoolStudents = [{
+    id:"aaa",
+    name:"Wang Kunzhen",
+    isMember:false
+  },
+  {
+    id:"bbb",
+    name:"Wang Yichao",
+    isMember:false
+  },
+  {
+    id:"ccc",
+    name:"Wu Lifu",
+    isMember:false
+  },
+  {
+    id:"ddd",
+    name:"Li Zhenshuo",
+    isMember:false
+  },
+  {
+    id:"eee",
+    name:"Wei Wenbo",
+    isMember:false
+  },
+  {
+    id:"fff",
+    name:"Chen Hao",
+    isMember:false
+  },
+  {
+    id:"ggg",
+    name:"Wen Yiran",
+    isMember:false
+  }];
+
   var allCCA
 
   var allEvent = [{
@@ -43,8 +79,14 @@ angular.module('cocoa.controllers', [])
   }]
 
   window.localStorage['allStudents'] = angular.toJson(allStudents);
+  window.localStorage['allSchoolStudents'] = angular.toJson(allSchoolStudents);
   
   return {
+    allStudentsInSchool:function(){
+      var allSchoolStudents = angular.fromJson(window.localStorage['allSchoolStudents']);
+      return allSchoolStudents;
+    },
+
     all: function(){
       var allgroups = window.localStorage['usergroups'];
       if(allgroups){
@@ -61,6 +103,7 @@ angular.module('cocoa.controllers', [])
     newCCA: function(name){
       return {
         title:name,
+        members:[],
         events:[]
       };
     },
@@ -85,8 +128,6 @@ angular.module('cocoa.controllers', [])
         return [];
       }
     },
-
-
 
     saveEventList: function(events){
         var allgroups = angular.fromJson(window.localStorage['usergroups']);
@@ -270,6 +311,14 @@ angular.module('cocoa.controllers', [])
   $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
   $scope.eventlist = Usergroups.getEventList();
   $scope.filterText = "";
+  $scope.allSchoolStudents = Usergroups.allStudentsInSchool();
+
+  $ionicModal.fromTemplateUrl('templates/CCAAddMemberModal.html',{
+    scope:$scope,
+    animation:'slide-in-up'
+  }).then(function(modal){
+    $scope.memberModal = modal;
+  });
 
   var createNewCCA = function(name){
     var newCCA = Usergroups.newCCA(name);
@@ -309,6 +358,23 @@ angular.module('cocoa.controllers', [])
     Usergroups.enterEvent(id);
   };
 
+  $scope.showMemberModal = function(title){
+    console.log("Clicked");
+    $scope.memberModal.show();
+  };
+
+  $scope.cancel = function(){
+    $scope.memberModal.hide();
+  };
+
+  $scope.confirm = function(){
+    // send back to server
+  };
+
+  $scope.selectMember = function(student){
+    student.isMember = !student.isMember
+  };
+
   $timeout(function() {
     if($scope.usergroups.length == 0) {
       while(true) {
@@ -339,6 +405,7 @@ angular.module('cocoa.controllers', [])
 
 
   $scope.$on("modal.hidden",function(){
+    console.log("hidden");
     for(var i=0; i<$scope.tempParticipants.length; i++){
       $scope.tempParticipants[i].isSelected = $scope.eventParticipants[i].isSelected;
     }
@@ -484,6 +551,7 @@ angular.module('cocoa.controllers', [])
 
   $scope.confirm = function(){
     $scope.eventParticipants = angular.fromJson(angular.toJson($scope.tempParticipants));
+    $scope.partViewModel = generatePartModel($scope.eventParticipants);
     EventViewFactory.saveEventParticipants($scope.eventParticipants);
     updateTaskParticipants();
     $scope.partEditModal.hide();
@@ -491,15 +559,16 @@ angular.module('cocoa.controllers', [])
 
   $scope.eventDetailsView = function(){
     $scope.eventParticipants = EventViewFactory.getEventParticipants();
+    $scope.partViewModel = generatePartModel($scope.eventParticipants);
     $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
-    $scope.participantsEditModel = generatePartEditModel($scope.tempParticipants);
+    $scope.participantsEditModel = generatePartModel($scope.tempParticipants);
   };
 
   $scope.showPartModel = function(){
     $scope.partEditModal.show();
   };
 
-  var generatePartEditModel = function(array){
+  var generatePartModel = function(array){
     var sorted = array.sort(function(a,b){
       return a.name.localeCompare(b.name);
     });
