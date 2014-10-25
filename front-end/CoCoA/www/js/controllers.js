@@ -205,10 +205,22 @@ angular.module('cocoa.controllers', [])
 
     getEventInfo:function(eventId){
       selectedEvent = getEventFromId(eventId);
+
+      var startDateFormat = new Date(selectedEvent.startDate);
+      var endDateFormat = new Date(selectedEvent.endDate);
+      var currentDate = new Date();
+      var isCurrentYear = true;
+      if( ( !isNaN(startDateFormat.getFullYear()) && startDateFormat.getFullYear() != currentDate.getFullYear()) ||
+        ( !isNaN(endDateFormat.getFullYear()) && endDateFormat.getFullYear() != currentDate.getFullYear() )){
+        isCurrentYear = false;
+      }
+
+
       return {
         title: selectedEvent.title,
         startDate: selectedEvent.startDate,
         endDate: selectedEvent.endDate,
+        isCurrentYear: isCurrentYear,
         time: selectedEvent.time,
         venue: selectedEvent.venue,
         comments: selectedEvent.comment,
