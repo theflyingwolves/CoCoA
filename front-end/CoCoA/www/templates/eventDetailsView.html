@@ -35,9 +35,9 @@
         <div class="row">
           <div class="col col-33">Duration</div>
           <div class="col col-67">
-            <p ng-if="eventInfo.startDate && eventInfo.endDate">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
-            <p ng-if="eventInfo.startDate && !eventInfo.endDate">{{eventInfo.startDate}}</p>
-            <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}}</p>
+            <p ng-if="eventInfo.startDate && eventInfo.endDate">{{eventInfo.startDate}} ~ {{eventInfo.endDate}}</p>
+            <p ng-if="eventInfo.startDate && !eventInfo.endDate">{{eventInfo.startDate}} ~ </p>
+            <p ng-if="!eventInfo.startDate && eventInfo.endDate"> ~ {{eventInfo.endDate}}</p>
           </div>
         </div>
       </label>
@@ -116,7 +116,7 @@
   <label class="item item-input item-stacked-label" ng-if="isEditMode">
     <div class="row">
       <div class="col col-33">
-        <span>Comments</span>
+        <span>Notes</span>
       </div>
       <div class="col col-67">
         <textarea ng-model="eventInfo.comments" value="eventInfo.comments" ng-show="isEditMode" placeholder="Extra notes of the event"></textarea>
