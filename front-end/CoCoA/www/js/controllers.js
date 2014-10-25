@@ -623,3 +623,11 @@ angular.module('cocoa.controllers', [])
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
   $scope.student = StudentInfoFactory.getStudent($stateParams.studentId);
 })
+
+.controller("welcomeCtrl",function($scope){
+  $scope.loginDetails = {};
+  $scope.isUsernameValid = true;
+  $scope.login = function(){
+    console.log("Logging in with username: "+$scope.loginDetails.username+" and password: "+$scope.loginDetails.password);
+  };
+})
