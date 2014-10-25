@@ -78,7 +78,7 @@
 	height:50px;
 	border-radius:20px;
 	color:#FFF;
-	background:#E3AB10;
+	background:orange;
 	position:fixed;
 	top: 200px;
 	left: -20px;
@@ -127,18 +127,35 @@
 	font-weight: bold;
 }
 
-/*event task*/
-#participants-btn a {
-	margin-left: 10px;
-	text-decoration: none;
-	font-size:14px;
+.item p{
+	font-size:16px;
 }
 
-#participants-btn a:link, #participants-btn a:visited, #participants-btn a:active{
+.row p{
+	padding-top: 5px;
+}
+
+.row{
+	padding: 0;
+}
+
+/*event task*/
+#participants-btn{
+	margin-top: 0;
+	padding-top: 5px;
+}
+
+#participants-btn span.label {
+	padding-left: 40px;
+	position:absolute;
+	left:0px;
+	text-decoration: none;
+	font-size:16px;
+	font-weight: bold;
 	color:#5E79FF;
 }
 
-#participants-btn span{
+#participants-btn span.icon{
 	position: absolute;
 	right:20px;
 	bottom:-4px;
@@ -147,7 +164,7 @@
 	color:grey;
 }
 
-.participants-row, .event-row, .item{
+.participants-row, .event-row, .item-stacked-label{
 	padding-left: 30px;
 }
 
