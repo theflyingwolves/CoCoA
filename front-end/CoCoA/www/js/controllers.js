@@ -396,7 +396,7 @@ angular.module('cocoa.controllers', [])
   });
 })
 
-.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, EventViewFactory){
+.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicPopup, $timeout, EventViewFactory){
   $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
   $scope.selectedTask = $scope.eventtasks[0];
   $scope.eventId = EventViewFactory.getEventId();
@@ -410,6 +410,7 @@ angular.module('cocoa.controllers', [])
   }).then(function(modal){
     $scope.partEditModal = modal;
   });
+
 
   $scope.$on("modal.hidden",function(){
     console.log("hidden");
@@ -455,6 +456,7 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.newTask = function(){
+    console.log("new task");
     var taskName = prompt("Name for new task");
     if(taskName && taskName.trim() != "")
       createTask(taskName);
@@ -596,6 +598,26 @@ angular.module('cocoa.controllers', [])
     
     return result;
   };
+
+  titleText = "eve";
+  destructiveText = "Delete";
+
+  $scope.onTaskRowHold = function (task) {
+
+    // An elaborate, custom popup
+   var confirmPopup = $ionicPopup.confirm({
+     title: 'Delete Task',
+     template: 'Are you sure you want to delete the task?'
+   });
+   confirmPopup.then(function(res) {
+     if(res) {
+        $scope.deleteTask(task.name);
+     } else {
+     }
+   });
+
+  };
+
 })
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
