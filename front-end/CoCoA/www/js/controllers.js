@@ -322,7 +322,7 @@ angular.module('cocoa.controllers', [])
   });
 })
 
-.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicActionSheet, EventViewFactory){
+.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicPopup, $timeout, EventViewFactory){
   $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
   $scope.selectedTask = $scope.eventtasks[0];
   $scope.eventId = EventViewFactory.getEventId();
@@ -526,28 +526,17 @@ angular.module('cocoa.controllers', [])
 
   $scope.onTaskRowHold = function (task) {
 
-
-    $ionicActionSheet.show({
-      titleText: task.name,
-      buttons: [
-        { text: 'Share <i class="icon ion-share"></i>' },
-        { text: 'Move <i class="icon ion-arrow-move"></i>' },
-      ],
-      destructiveText: 'Delete',
-      cancelText: 'Cancel',
-      cancel: function() {
-        console.log('CANCELLED');
-      },
-      buttonClicked: function(index) {
-        console.log('BUTTON CLICKED', index);
-        return true;
-      },
-      destructiveButtonClicked: function() {
-        console.log('DESTRUCT');
-        return true;
-      }
-    }); 
-
+    // An elaborate, custom popup
+   var confirmPopup = $ionicPopup.confirm({
+     title: 'Delete Task',
+     template: 'Are you sure you want to delete the task?'
+   });
+   confirmPopup.then(function(res) {
+     if(res) {
+        $scope.deleteTask(task.name);
+     } else {
+     }
+   });
 
   };
 
