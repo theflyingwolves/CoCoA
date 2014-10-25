@@ -66,10 +66,62 @@
     </div>
   </label>
 
+  <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.studentsNeeded">
+    <div class="row">
+      <div class="col col-33">
+        <span>Students</span>
+      </div>
+      <div class="col col-67">
+        <input type="text" placeholder="Number of Students Needed" ng-show="isEditMode" ng-model="eventInfo.studentsNeeded">
+        <p ng-show="!isEditMode && eventInfo.studentsNeeded">{{eventInfo.studentsNeeded}}</p>
+      </div>
+    </div>
+  </label>
+
+  <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.reportTime">
+    <div class="row">
+      <div class="col col-33 item-text-wrap">
+        Report Time
+      </div>
+      <div class="col col-67">
+        <input type="time" ng-show="isEditMode" placeholder="Reporting time on day of the event" ng-model="eventInfo.reportTime">
+        <p ng-show="!isEditMode">{{eventInfo.reportTime}}</p>
+      </div>
+    </div>
+  </label>
+
+  <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.reportVenue">
+    <div class="row">
+      <div class="col col-33 item-text-wrap">
+        Report Venue
+      </div>
+      <div class="col col-67">
+        <input type="text" placeholder="Reporting venu on day of the event" ng-show="isEditMode" ng-model="eventInfo.reportVenue">
+        <p ng-show="!isEditMode">{{eventInfo.reportVenue}}</p>
+      </div>
+    </div>
+  </label>
+
+  <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.TOIC">
+    <div class="row">
+      <div class="col col-33 item-text-wrap">
+        TO In Charge
+      </div>
+      <div class="col col-67">
+        <input type="text" placeholder="TO In Charge" ng-show="isEditMode" ng-model="eventInfo.TOIC">
+        <p ng-show="!isEditMode">{{eventInfo.TOIC}}</p>
+      </div>
+    </div>
+  </label>
+
     <label class="item item-input item-stacked-label" ng-if="isEditMode">
-      <span>Comments</span>
-      <div>
-        <textarea ng-model="eventInfo.comments" value="eventInfo.comments"></textarea>
+      <div class="row">
+        <div class="col col-33">
+          <span>Comments</span>
+        </div>
+        <div class="col col-67">
+          <textarea ng-model="eventInfo.comments" value="eventInfo.comments" ng-show="isEditMode" placeholder="Extra notes of the event"></textarea>
+        </div>
       </div>
     </label>
 
@@ -79,7 +131,7 @@
         <div class="col col-67"></div>
       </div>
       <div class="row">
-        <div class="col">{{eventInfo.comments}}</div>
+        <p class="col">{{eventInfo.comments}}</p>
       </div>
     </label>
 

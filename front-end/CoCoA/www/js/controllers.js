@@ -211,9 +211,12 @@ angular.module('cocoa.controllers', [])
         endDate: selectedEvent.endDate,
         time: selectedEvent.time,
         venue: selectedEvent.venue,
-        busTime: selectedEvent.busTime,
-        comment: selectedEvent.comment,
-        TO: selectedEvent.TO
+        comments: selectedEvent.comment,
+        TOIC:selectedEvent.TOIC,
+        studentsNeeded:selectedEvent.studentsNeeded,
+        reportTime:selectedEvent.reportTime,
+        reportVenue:selectedEvent.reportVenue,
+        id:selectedEvent.id
       }
     },
 
@@ -238,6 +241,11 @@ angular.module('cocoa.controllers', [])
             event.endDate = eventInfo.endDate;
             event.time = eventInfo.time;
             event.venue = eventInfo.venue;
+            event.studentsNeeded = eventInfo.studentsNeeded;
+            event.reportTime = eventInfo.reportTime;
+            event.reportVenue = eventInfo.reportVenue;
+            event.TOIC = eventInfo.TOIC;
+            event.comments = eventInfo.comments;
             break;
           }
         }
@@ -522,8 +530,9 @@ angular.module('cocoa.controllers', [])
     if($("#edit-btn").text() == "Finish"){
       $("#edit-btn").text("Edit");
       EventViewFactory.saveEventInfo($scope.eventInfo);
-    } else
+    } else{
       $("#edit-btn").text("Finish");
+    }
   }
 
   $scope.toggleTaskEditMode = function(){
