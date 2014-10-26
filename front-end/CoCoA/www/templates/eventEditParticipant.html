@@ -1,27 +1,28 @@
 
 <ion-modal-view>
-	<div class="button-bar">
-		<a class="button button-stable" ng-click="cancel()">Cancel</a>
-		<a class="button button-stable" ng-click="confirm()">Confirm</a>
-	</div>
+  <div class="button-bar">
+    <a class="button button-stable" ng-click="cancel()">Cancel</a>
+    <a class="button button-stable" ng-click="confirm()">Confirm</a>
+  </div>
+
   <ion-content class="has-header">
-    <form>
-      <label class="item item-input">
-        <i class="icon ion-search placeholder-icon"></i>
-        <input type="text" ng-model="stdNameFilter" placeholder="Search">
-      </label>
-    </form>
-  <ion-scroll zooming="true" direction="y" ng-show="!isAddPartMode">
-  	<ion-list show-delete="isEditMode">
-      <ion-item class="participants-row" ng-repeat="student in tempParticipants" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1"  >
-      <div class="col col-90 task-row-inner">
-  			<i class="icon ion-checkmark-circled" ng-click="chooseParticipant(student.id)" ng-if="student.isSelected" stop-event></i>
-          	<i class="icon ion-ios7-circle-outline" ng-click="chooseParticipant(student.id)" ng-if="!student.isSelected" stop-event></i>       
-          	{{student.name}} 
-      </div>
-      <div class="col col-1 red-signal" ng-if="!student.status"></div>
+    <label class="item item-input">
+      <i class="icon ion-search placeholder-icon"></i>
+      <input type="search" ng-model="stdNameFilter" placeholder="Search">
+    </label>
+
+    <ion-list show-delete="isEditMode">
+      <div class="item item-divider" ng-repeat-start="(initial, participants) in participantsEditModel">{{initial}}</div>
+      <ion-item class="participants-row" ng-repeat="student in participants" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1"  >
+        <div class="col col-90 task-row-inner">
+    			<i class="icon ion-checkmark-circled" ng-click="chooseParticipant(student.id)" ng-if="student.isSelected" stop-event></i>
+          <i class="icon ion-ios7-circle-outline" ng-click="chooseParticipant(student.id)" ng-if="!student.isSelected" stop-event></i>
+            	{{student.name}}
+        </div>
       </ion-item>
+      <div ng-repeat-end></div>
   	</ion-list>
+    </div>
   </ion-content>
 </ion-view>
 </ion-modal-view>

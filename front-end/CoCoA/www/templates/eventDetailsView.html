@@ -1,37 +1,140 @@
 <ion-view data-ng-init="eventDetailsView()">
   <ion-nav-buttons side="left">
-    <h1 class="title">Event Info</h1>
+    <h1 class="title">{{eventInfo.title}} Info</h1>
     <a id="edit-btn" class="button button-clear button-positive" ng-click="toggleEventDetailEditMode()">Edit</a>
   </ion-nav-buttons>
-<ion-content>
-<div class="list" id="eventDetailList">
-  <label id="titleInput" class="item item-input item-stacked-label"  ng-show="isEditMode" >
-    <input  type="text" placeholder="End Title" ng-model="eventInfo.title">
-  </label>
-  <label class="item item-input item-stacked-label">
-    <h1 ng-show="!isEditMode">{{eventInfo.title}}</h1>
-    <span class="input-label">Start Date</span>
-    <input type="text" placeholder="Start Date" ng-show="isEditMode" ng-model="eventInfo.startDate">
-    <p ng-show="!isEditMode">{{eventInfo.startDate}} - {{eventInfo.endDate}}</p>
-  </label>
-  <label class="item item-input item-stacked-label"  ng-show="isEditMode" >
-    <span class="input-label">End Date</span>
-    <input type="text" placeholder="End Date" ng-model="eventInfo.endDate">
-  </label>
-  <label class="item item-input item-stacked-label">
-    <span class="input-label">Time</span>
-    <input type="text" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
-    <p ng-show="!isEditMode">{{eventInfo.time}}</p>
-  </label>
-  <label class="item item-input item-stacked-label">
-    <span class="input-label">Venue</span>
-    <input type="text" placeholder="Event Venue" ng-show="isEditMode" ng-model="eventInfo.venue">
-    <p ng-show="!isEditMode">{{eventInfo.venue}}</p>
-  </label>
-  <a id="edit-participant-btn" class="button button-block button-positive" href="#/event/participants/:{{eventId}}">Edit Participants</a>
-</div>
-</ion-content>
+  <ion-content class="squeezed-content">
+  <div class="list" id="eventDetailList">
+
+    <div ng-if="isEditMode">
+        <label class="item item-input item-stacked-label">
+          <div class="row">
+            <div class="col col-33"><p class="info-label">Start Date</span></div>
+            <div class="col col-67">
+              <input type="date" ng-model="eventInfo.startDate">
+            </div>
+          </div>
+        </label>
+
+        <label class="item item-input item-stacked-label">
+          <div class="row">
+            <div class="col col-33"><p class="info-label">End Date</span></div>
+            <div class="col col-67">
+              <input type="date" ng-model="eventInfo.endDate">
+            </div>
+          </div>
+        </label>
+    </div>
+
+    <div ng-if="!isEditMode">
+      <label class="item item-input item-stacked-label">
+        <div class="row">
+          <div class="col col-33"><p class="info-label">Duration</p></div>
+          <div class="col col-67">
+            <p ng-if="eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} ~ {{eventInfo.endDate | date: 'MMM dd'}}</p>
+            <p ng-if="eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} ~ {{eventInfo.endDate | date: 'MMM dd, yyyy'}}</p>
+            <p ng-if="eventInfo.startDate && !eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} </p>
+            <p ng-if="eventInfo.startDate && !eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} </p>
+            <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}} </p>
+          </div>
+        </div>
+      </label>
+    </div>
+    <label class="item item-input item-stacked-label">
+      <div class="row">
+        <div class="col col-33">
+          <p class="info-label">Time</p>
+        </div>
+        <div class="col col-67">
+          <input type="time" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
+          <p ng-show="!isEditMode">{{eventInfo.time | date:'h:mma'}}</p>
+        </div>
+      </div>
+    </label>
+    <label class="item item-input item-stacked-label">
+      <div class="row">
+        <div class="col col-33">
+          <p class="info-label">Venue</p>
+        </div>
+        <div class="col col-67">
+          <input type="text" placeholder="Event Venue" ng-show="isEditMode" ng-model="eventInfo.venue">
+          <p ng-show="!isEditMode">{{eventInfo.venue}}</p>
+        </div>
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.studentsNeeded">
+      <div class="row">
+        <div class="col col-33">
+          <p class="info-label">Students</p>
+        </div>
+        <div class="col col-67">
+          <input type="text" placeholder="Number of Students Needed" ng-show="isEditMode" ng-model="eventInfo.studentsNeeded">
+          <p ng-show="!isEditMode && eventInfo.studentsNeeded">{{eventInfo.studentsNeeded}}</p>
+        </div>
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.reportTime">
+      <div class="row">
+        <div class="col col-33 item-text-wrap">
+          <p class="info-label">Report Time</p>
+        </div>
+        <div class="col col-67">
+          <input type="time" ng-show="isEditMode" placeholder="Reporting time on day of the event" ng-model="eventInfo.reportTime">
+          <p ng-show="!isEditMode">{{eventInfo.reportTime}}</p>
+        </div>
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.reportVenue">
+      <div class="row">
+        <div class="col col-33 item-text-wrap">
+          <p class="info-label">Report Venue</p>
+        </div>
+        <div class="col col-67">
+          <input type="text" placeholder="Reporting venu on day of the event" ng-show="isEditMode" ng-model="eventInfo.reportVenue">
+          <p ng-show="!isEditMode">{{eventInfo.reportVenue}}</p>
+        </div>
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.TOIC">
+      <div class="row">
+        <div class="col col-33 item-text-wrap">
+          <p class="info-label">TO In Charge</p>
+        </div>
+        <div class="col col-67">
+          <input type="text" placeholder="TO In Charge" ng-show="isEditMode" ng-model="eventInfo.TOIC">
+          <p ng-show="!isEditMode">{{eventInfo.TOIC}}</p>
+        </div>
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-if="isEditMode">
+      <div class="row">
+        <div class="col col-33">
+          <p class="info-label">Notes</p>
+        </div>
+        <div class="col col-67">
+          <textarea ng-model="eventInfo.comments" value="eventInfo.comments" ng-show="isEditMode" placeholder="Extra notes of the event"></textarea>
+        </div>
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-if="!isEditMode && eventInfo.comments">
+      <div class="row">
+        <div class="col col-33">Notes</div>
+        <div class="col col-67"></div>
+      </div>
+      <div class="row">
+        <p class="col">{{eventInfo.comments}}</p>
+      </div>
+    </label>
+    <div class="item item-divider" ng-if="!isEditMode"></div>
+    <a id="participants-btn" href="#/event/participants/:{{eventId}}" class="button button-block button-light" ng-if="!isEditMode"><span class="label">View Participants</span><span class="icon ion-ios7-arrow-forward"></span></a>
+        
+  </div>
+
   <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
-
-
 </ion-view>

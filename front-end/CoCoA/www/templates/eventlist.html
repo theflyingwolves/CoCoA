@@ -1,7 +1,7 @@
 <ion-view >
   <ion-nav-buttons side="left">
     <button menu-toggle="left" class="button button-icon icon ion-navicon"></button>
-    <h1 class="title">{{activeGroup.title}}</h1>
+    <h1 class="title">{{activeGroup.title}} - Events</h1>
     <button class="button button-icon ion-plus" ng-click="newEvent()"></button>
   </ion-nav-buttons>
 
@@ -14,8 +14,16 @@
   </form>
 
 	<ion-list>
-      <ion-item ng-repeat="event in eventlist" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/detail/:{{event.id}}" ng-click="enterEvent(event.id)">
-        {{event.title}}
+      <ion-item class="event-row" ng-repeat="event in eventlist" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/detail/:{{event.id}}" ng-click="enterEvent(event.id)">
+        <h2>{{event.title}}</h2>
+
+        <p><span><i class="icon ion-ios7-location" ng-if="event.venue"></i>{{event.venue}}</span>
+          <span class="location-date-divider" ng-if="event.venue && (event.startDate || event.endDate)">|</span>
+          <span><i class="icon ion-calendar" ng-if="event.startDate || evnet.endDate"></i></span>
+          <span ng-if="event.startDate && event.endDate">{{event.startDate}} - {{event.endDate}}</span>
+          <span ng-if="event.startDate && !event.endDate">{{event.startDate}}</span>
+          <span ng-if="!event.startDate && event.endDate">{{event.endDate}}</span>
+        </p>
       </ion-item>
   </ion-list>
 	</ion-content>

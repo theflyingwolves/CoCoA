@@ -1,0 +1,99 @@
+/*animated ion item in ion list with animation when ng-show / ng-hide*/
+.item-animate.ng-hide-add, .item-animate.ng-hide-remove {
+    /* ensure visibility during the transition */
+    display: block!important; /* yes, important */
+}
+
+
+.item-animate.ng-hide-add {
+  -webkit-animation:0.2s hide;
+  animation:0.2s hide;
+}
+
+@keyframes hide {
+  from { height: 40px; }
+  to { height: 0; }
+}
+
+@-webkit-keyframes hide {
+  from { height:  40px; }
+  to { height: 0; }
+}
+
+.item-animate.ng-hide-remove {
+  -webkit-animation:0.2s show;
+  animation:0.2s show;
+}
+
+@keyframes show {
+  from { height: 0; }
+  to { height: 40px; }
+}
+
+@-webkit-keyframes show {
+  from { height: 0; }
+  to { height: 40px; }
+}
+
+
+.red-signal {
+  z-index: 900;
+  position: absolute;
+  background-color: red;
+  height: 100%;
+  display: inline-block;
+  right:100px;
+  width: 0;
+  text-align: center;
+  -webkit-animation:0.2s all;
+  animation:0.2s all;
+}
+
+.red-signal p{
+  font-size:18px;
+  color:white;
+  position: relative;
+  top:30%;
+}
+
+.red-signal.shown{
+  width: 70px;
+}
+
+/*.red-signal.ng-hide-add, .red-signal.ng-hide-remove{
+  display: inline-block !important;
+  position: absolute;
+}
+*/
+
+
+/*.red-signal.shown-remove{
+  -webkit-animation:0.2s hide;
+  animation:0.2s hide;
+}
+
+@keyframes hide {
+  from { width: 70px; }
+  to { width: 0; }
+}
+
+@-webkit-keyframes hide {
+  from { width:  70px; }
+  to { width: 0; }
+}
+
+.red-signal.shown-add{
+  -webkit-animation:0.2s show;
+  animation:0.2s show;
+}
+
+@keyframes show {
+  from { width: 0; }
+  to { width: 70px; }
+}
+
+@-webkit-keyframes show {
+  from { width: 0; }
+  to { width: 70px; }
+}
+*/
