@@ -202,6 +202,7 @@ app.get('/participants', helperFunction.getParticipants);
 app.post('/participants', helperFunction.addParticipants);
 // app.delete('/participants', helperFunction.deleteParticipants);
 
+app.get('/test/:filename', helperFunction.test);
 
 
 
