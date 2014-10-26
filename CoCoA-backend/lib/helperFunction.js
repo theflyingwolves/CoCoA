@@ -1,6 +1,7 @@
 var gapi = require('./gapi');
 var googleSpreadsheet = require('edit-google-spreadsheet');
 var googleSpreadsheetNew = require('google-spreadsheet');
+var async = require('async');
 
 var studentDetailsFilename = "Student Details";
 var memberDetailsFilename = "Student Details";
@@ -291,7 +292,8 @@ exports.addMembersToCCA = function(req, res) {
     // }
 };
 
-
+// currently this method assume the spreadsheet doesnt contain duplicate students (which is reasonable)
+// it is slow since it has to delete the students one by one
 exports.deleteMembersFromCCA = function(req, res) {
     var resToClient = res;
 
@@ -345,38 +347,80 @@ exports.deleteMembersFromCCA = function(req, res) {
 			                                };
 			                                var my_sheet = new googleSpreadsheetNew(memberDetailsFileId, auth);
 
-											// my_sheet.getInfo( function( err, sheet_info ){
-										        // if (err) {
-										        // 	console.log(err);
-										        // } else {
-										        // 	console.log(sheet_info);
-										        // }
+											my_sheet.getInfo( function( err, sheet_info ){
+										        if (err) {
+										        	console.log(err);
+										        } else {
+										        	console.log(sheet_info);
+										        }
 
-										        // console.log( sheet_info.title + ' is loaded' );
-										        
-										        // var rowLastTime = -1;
-										        // var needToContinue = true;
-										        // while(needToContinue){
+										        console.log( sheet_info.title + ' is loaded' );
 
-										        // }
+                                                async.eachSeries(students, function(studentID, callback) {
 
-										        // sheet_info.worksheets[0].getRows( function( err, rows ){
-										        //     if (rows.length !== rowLastTime) {
+                                                    sheet_info.worksheets[0].getRows( function( err, rows ){
+                                                        if (err) {
+                                                            callback(err);
+                                                        } else {
+                                                            var deleted = false;
+                                                            for (var i = 0; i < rows.length; i++) {
+                                                                var curId = rows[i].id;
+                                                                if (curId == studentID) {
+                                                                    deleted = true;
+                                                                    rows[i].del(callback);
+                                                                    break;
+                                                                }                                                       
+                                                            };
+                                                            if (!deleted) {
+                                                                callback();
+                                                            };
+                                                            
+                                                        }
+                                                    });
 
-										        //     };
+                                                }, function(err){
+                                                    // if any of the file processing produced an error, err would equal that error
+                                                    if( err ) {
+                                                        resToClient.json({message:"error during deleting students", err:err});
+                                                    } else {
+                                                        resToClient.json({message:"success"});
+                                                    }
+                                                });
 
-										        //     for (var i = 0; i < rows.length; i++) {
-										        //     	var curId = rows[i].id;
-							           //  	            if ((students.indexOf(curId)) !== -1) {
-	                 //                                        rows[i].del();
-	                 //                                        break;
-	                 //                                    }										            	
-										        //     };
 
-										        //     console.log((rows[0].del).toString());
+												// async.whilst(
+												//     function () { return (rowLastLastTime != rowLastTime); },
+												//     function (callback) {
+												        // sheet_info.worksheets[0].getRows( function( err, rows ){
+												        //     if (err) {
+												        //     	callback(err);
+												        //     } else {
+												        //     	var numOfRows = rows.length;
+                    //                                             console.log ("numOfRows");
+                    //                                             console.log (numOfRows);
+													       //      for (var i = 0; i < rows.length; i++) {
+													       //      	var curId = rows[i].id;
+										          //   	            if ((students.indexOf(curId)) !== -1) {
+				                //                                         rows[i].del();
+				                //                                         numOfRows--;
+				                //                                         break;
+				                //                                     }										            	
+													       //      };
 
-										        // });
-										    // })
+													       //      rowLastLastTime = rowLastTime;
+													       //      rowLastTime = numOfRows;
+													       //      callback();
+												        //     }
+												        // });
+												//     },
+												//     function (err) {
+												//         console.log("finish all");
+												//         resToClient.json({message:"finish all"});
+												//     }
+												// );
+
+
+										    })
 
 
 

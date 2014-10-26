@@ -196,12 +196,13 @@ app.get('/allStudents', helperFunction.getAllStudents);
 
 app.get('/MembersOfCCA', helperFunction.getMembersOfCCA);
 app.post('/MembersOfCCA', helperFunction.addMembersToCCA);
+app.delete('/MembersOfCCA', helperFunction.deleteMembersFromCCA);
 
 app.get('/participants', helperFunction.getParticipants);
 app.post('/participants', helperFunction.addParticipants);
 // app.delete('/participants', helperFunction.deleteParticipants);
 
-// app.delete('/MembersOfCCA', helperFunction.deleteMembersFromCCA);
+
 
 
 var server = app.listen(3000);
