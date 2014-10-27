@@ -15,16 +15,16 @@
   	<ion-list show-delete="isEditMode">
       <div class="item item-divider" ng-repeat-start="(initial, participants) in partViewModel">{{initial}}</div>
       <ion-item class="participants-row" ng-repeat="student in participants track by student.id" ng-if="student.isSelected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  ng-click="toggleStuInfoDisplay(student.id)">
-      <div class="col col-90 participants-row-inner">
         <ion-delete-button class="ion-minus-circled" ng-click="diselectParticipant(student.id)" ></ion-delete-button>
-        {{student.name}}
+        <p ng-class="{'highlighted' : selectedRow == student.id}">{{student.name}}</p>
         <div ng-show="selectedRow == student.id" class="item-animate">
             <br>
-            {{student.status}}
-            {{student.contactNumber}}<br>
-            {{student.address}}
+            <label>Class</label>
+            <p>{{student.class}}</p>
+            <hr>
+            <label>Tel</label>
+            <p>{{student.contactNumber}}</p>
         </div>
-      </div>
       </ion-item>
       <div ng-repeat-end></div>
   	</ion-list>
