@@ -201,8 +201,8 @@ app.get('/cca', function(request,response){
     }, function(err,res){
         async.each(res.items, function(item,callback){
             var cca = {};
-            cca.title = item.title;
             cca.id = item.id;
+            cca.title = item.title;
             ccaList.push(cca);
             callback();
         }, function(err){
@@ -215,34 +215,116 @@ app.get('/cca', function(request,response){
     });
 });
 
-app.post('/cca/:id/events', function(request,response){
-    gapi.googleDrive.files.insert({
-        resource: {
-            title: request.body.event_title,
-            mimeType: 'application/vnd.google-apps.spreadsheet',
-            parents: [{
-            "kind":"drive#fileLink",
-            "id":request.body.event_folder_id
-            }]
-        }
-    },  function(err,res){
-            googleSpreadsheet.load({
-                debug:true,
-                spreadsheetId:res.id,
-                worksheetId:'od6',
-                accessToken:{
-                    type:'Bearer',
-                    token:gapi.oauth2Client.credentials.access_token
-                }
-            },  function sheetReady(err, spreadsheet) {
-                    if(err) throw err;
-                    spreadsheet.add([['Name of Student','ID','Level','Class']]);
-                    spreadsheet.send(function(err) {
-                    if(err) throw err;
-                    console.log("created successfully");
+app.get('/cca/:cca_id/events', function(request,response){
+    var events = {};
+    gapi.googleDrive.files.get({
+        "fileId": request.params.cca_id
+    },
+    function(err,res){
+        async.series([
+            function(serialCallback){
+                gapi.googleDrive.files.list({
+                    'access_token':gapi.oauth2Client.credentials.access_token,
+                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
+                },  
+                function(err,res){
+                    googleSpreadsheet.load({
+                        debug:true,
+                        spreadsheetId:res.items[0].id,
+                        worksheetId:'od6',
+                        accessToken:{
+                            type:'Bearer',
+                            token:gapi.oauth2Client.credentials.access_token
+                        }
+                    },
+                    function sheetReady(err, spreadsheet) {
+                        if(err) throw err;
+                        spreadsheet.receive(function(err,rows,info){
+                            if (err) throw err;
+                            events.list_of_events = rows;
+                        });
+                    });
                 });
+                serialCallback(null,'get list of events');
+            },
+            function(serialCallback){
+                gapi.googleDrive.files.list({
+                    'access_token':gapi.oauth2Client.credentials.access_token,
+                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
+                },
+                function(err,res){
+                    gapi.googleDrive.files.list({
+                        'access_token':gapi.oauth2Client.credentials.access_token,
+                        'q':"'"+res.items[0].id+"' in parents"
+                    },
+                    function(err,res){
+                        var eventSpreadsheets = [];
+                        async.each(res.items, function(item,eachCallback){
+                            var evt = {};
+                            evt.id = item.id;
+                            evt.title = item.title;
+                            eventSpreadsheets.push(evt);
+                            eachCallback(null,'get each event spreadsheet ID');
+                        },
+                        function(err){
+                            if(err) throw err;
+                            events.spreadsheets = eventSpreadsheets;
+                            response.send(events);
+                        });
+                    });
+                });
+                serialCallback(null,'get event spreadsheet IDs');
+            }
+        ],
+        function(err,result){
+            if(err) throw err;
+        });
+    });
+});
+
+app.post('/cca/:cca_id/events', function(request,response){
+    var events = {};
+    gapi.googleDrive.files.get({
+        "fileId": request.params.cca_id
+    },
+    function(err,res){
+        console.log();
+        gapi.googleDrive.files.list({
+            'access_token':gapi.oauth2Client.credentials.access_token,
+            'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
+        },
+        function(err,res){
+            gapi.googleDrive.files.insert({
+                resource: {
+                    title: request.body.event_title,
+                    mimeType: 'application/vnd.google-apps.spreadsheet',
+                    parents: [{
+                    "kind":"drive#fileLink",
+                    "id":res.items[0].id
+                    }]
+                }
+            },
+            function(err,res){
+                googleSpreadsheet.load({
+                    debug:true,
+                    spreadsheetId:res.id,
+                    worksheetId:'od6',
+                    accessToken:{
+                        type:'Bearer',
+                        token:gapi.oauth2Client.credentials.access_token
+                    }
+                },
+                function sheetReady(err, spreadsheet) {
+                        if(err) throw err;
+                        spreadsheet.add([['Name of Student','ID','Level','Class']]);
+                        spreadsheet.send(function(err) {
+                        if(err) throw err;
+                        console.log("created successfully");
+                    });
+                });
+                response.send({"event_title":request.body.event_title,"event_spreadsheet_id":res.id});
             });
-        response.send({"event_title":request.body.event_title,"event_spreadsheet_id":res.id});
+        });
     });
 });
 
