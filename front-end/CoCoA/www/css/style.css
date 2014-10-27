@@ -1,6 +1,21 @@
 /*change apply to all pages*/
-.bar.bar-stable{
-	background-color: #E3AB10;
+.item{
+	border-color:#ccc;
+}
+
+.bar-stable .button.button-icon {
+	color:white;
+}
+
+.button-bar .button.button-stable {
+	background-color: orange;
+	color:white;
+	border-width: 2px 2px 2px 2px;
+	border-color:white;
+}
+
+.bar.bar-stable, .item-divider{
+	background-color: orange;
 	color:white;
 	border:0;
 }
@@ -9,7 +24,7 @@
 	color:white;
 }
 
-.bar.bar-stable .title, .bar-stable .button.button-clear{
+.bar.bar-stable .title, .bar-stable .button.button-clear, .button.button-stable {
 	color:white;
 	font-weight:bold;
 }
@@ -17,6 +32,7 @@
 #edit-btn span{
 	font-size:30px;
 }
+
 #divider span{
 	display: inline;
 }
@@ -44,15 +60,12 @@
 	height:120px;
 }
 
-#part-popover ion-item{
-}
-
 /*task side menu*/
 .selectedTask .item-content{
-	background-color: #E3AB10;
+	background-color: orange;
 	color:white;
 }
-
+/*#E3AB10*/
 /*check circle in each row */
 .ion-checkmark-circled, .ion-ios7-circle-outline{
 	font-size: 20px;
@@ -65,16 +78,17 @@
 	height:50px;
 	border-radius:20px;
 	color:#FFF;
-	background:#E3AB10;
+	background:orange;
 	position:fixed;
 	top: 200px;
 	left: -20px;
-	z-index: 10;
+	z-index: 2000;
 	display: table;
 	padding-left: 10px;
 	box-shadow: 0px 2px 2px #888888;
 	-webkit-transition: all 0.3s;
     transition: all 0.3s;
+    -webkit-transform: translateZ(0);
 }
 
 .participants-row, .task-row{
@@ -109,21 +123,49 @@
 	height: 50px;
 }
 
-
-
-
-/*event task*/
-#edit-participant-btn{
+.item .info-label{
 	font-weight: bold;
-	margin:60px auto;
-	font-size: 18px;
-	width: 70%;
-	border-width:0;
-	border-radius:10px;
 }
 
-.participants-row, .event-row{
-	padding-left: 10px;
+.item p{
+	font-size:16px;
+}
+
+.row p{
+	padding-top: 5px;
+}
+
+.row{
+	padding: 0;
+}
+
+/*event task*/
+#participants-btn{
+	margin-top: 0;
+	padding-top: 5px;
+}
+
+#participants-btn span.label {
+	padding-left: 40px;
+	position:absolute;
+	left:0px;
+	text-decoration: none;
+	font-size:16px;
+	font-weight: bold;
+	color:#5E79FF;
+}
+
+#participants-btn span.icon{
+	position: absolute;
+	right:20px;
+	bottom:-4px;
+	margin:0 0 3px 5px;
+	font-size: 24px;
+	color:grey;
+}
+
+.participants-row, .event-row, .item-stacked-label{
+	padding-left: 30px;
 }
 
 .participants-row .icon{
@@ -143,6 +185,14 @@
 }
 
 .squeezed-content{
-	margin-left: 20px;
+	margin-left: 0px;
 }
 
+
+/******input form*/
+.platform-ios input[type="datetime-local"], .platform-ios input[type="date"], .platform-ios input[type="month"],
+ .platform-ios input[type="time"], .platform-ios input[type="week"], .platform-android input[type="datetime-local"],
+  .platform-android input[type="date"], .platform-android input[type="month"], .platform-android input[type="time"],
+   .platform-android input[type="week"] {
+	padding-top: 0px;
+}

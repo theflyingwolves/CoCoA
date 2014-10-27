@@ -9,23 +9,23 @@
 
   <ion-side-menu side="left">
     <header class="bar bar-header bar-stable">
-    <a id="task-edit-btn" class="button button-clear button-positive" ng-click="toggleTaskEditMode()">Edit</a>
       <h1 class="title">Tasks</h1>
       <button class="button button-icon ion-plus" ng-click="newTask()"></button>
     </header>
-    <ion-content class="has-header">
-      <ion-list show-delete="isTaskEditMode">
-        <ion-item nav-clear menu-close href="#/event/detail/:{{event.id}}" ng-class="{selectedTask: selectedTaskIndex == -1}" ng-click="diselectTask()" >
+    <ion-content  class="has-header">
+      <ion-list>
+        <ion-item  nav-clear menu-close href="#/event/detail/:{{event.id}}" ng-class="{selectedTask: selectedTaskIndex == -1}" ng-click="diselectTask()" >
         Event Info
         </ion-item>
         <ion-item nav-clear menu-close class="task-row" ng-repeat="task in eventtasks" href="#/event/:{{event.id}}" ng-class="{selectedTask: $index==selectedTaskIndex}" ng-click="selectTask(task, $index)">
+          <div my-on-hold="onTaskRowHold(task)">
 
-          <ion-delete-button class="ion-minus-circled" ng-click="deleteTask(task.name)" stop-event></ion-delete-button>
-
-          <div class="task-row-inner">
-            {{task.name}}
-          </div>
+            <div class="task-row-inner">
+              {{task.name}}
+            </div>
+            <ion-option-button class="button-assertive" ng-click="deleteTask(task.name)">Delete</ion-option-button>
           <!-- <button class="red-signal" ng-click="deleteTask('name')"  ng-class="{shown: deletingTaskIndex == $index}"  stop-event><p>Delete</p></button> -->
+        </div>
         </ion-item>
       </ion-list>
     </ion-content>

@@ -205,15 +205,30 @@ angular.module('cocoa.controllers', [])
 
     getEventInfo:function(eventId){
       selectedEvent = getEventFromId(eventId);
+
+      var startDateFormat = new Date(selectedEvent.startDate);
+      var endDateFormat = new Date(selectedEvent.endDate);
+      var currentDate = new Date();
+      var isCurrentYear = true;
+      if( ( !isNaN(startDateFormat.getFullYear()) && startDateFormat.getFullYear() != currentDate.getFullYear()) ||
+        ( !isNaN(endDateFormat.getFullYear()) && endDateFormat.getFullYear() != currentDate.getFullYear() )){
+        isCurrentYear = false;
+      }
+
+
       return {
         title: selectedEvent.title,
         startDate: selectedEvent.startDate,
         endDate: selectedEvent.endDate,
+        isCurrentYear: isCurrentYear,
         time: selectedEvent.time,
         venue: selectedEvent.venue,
-        busTime: selectedEvent.busTime,
-        comment: selectedEvent.comment,
-        TO: selectedEvent.TO
+        comments: selectedEvent.comment,
+        TOIC:selectedEvent.TOIC,
+        studentsNeeded:selectedEvent.studentsNeeded,
+        reportTime:selectedEvent.reportTime,
+        reportVenue:selectedEvent.reportVenue,
+        id:selectedEvent.id
       }
     },
 
@@ -238,6 +253,11 @@ angular.module('cocoa.controllers', [])
             event.endDate = eventInfo.endDate;
             event.time = eventInfo.time;
             event.venue = eventInfo.venue;
+            event.studentsNeeded = eventInfo.studentsNeeded;
+            event.reportTime = eventInfo.reportTime;
+            event.reportVenue = eventInfo.reportVenue;
+            event.TOIC = eventInfo.TOIC;
+            event.comments = eventInfo.comments;
             break;
           }
         }
@@ -267,7 +287,8 @@ angular.module('cocoa.controllers', [])
     newTask: function(name){
       return {
         name:name,
-        status:[]
+        status:[],
+        viewModel:{}
       }
     },
 
@@ -388,7 +409,7 @@ angular.module('cocoa.controllers', [])
   });
 })
 
-.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, EventViewFactory){
+.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicPopup, $timeout, EventViewFactory){
   $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
   $scope.selectedTask = $scope.eventtasks[0];
   $scope.eventId = EventViewFactory.getEventId();
@@ -403,6 +424,7 @@ angular.module('cocoa.controllers', [])
     $scope.partEditModal = modal;
   });
 
+
   $scope.$on("modal.hidden",function(){
     console.log("hidden");
     for(var i=0; i<$scope.tempParticipants.length; i++){
@@ -413,6 +435,7 @@ angular.module('cocoa.controllers', [])
   var createTask = function(name){
     var task = EventViewFactory.newTask(name);
     task.status = EventViewFactory.getEventParticipants();
+    task.viewModel = generatePartModel(task.status);
     $scope.eventtasks.push(task);
     EventViewFactory.saveTask($scope.eventtasks);
     $scope.selectTask(task);
@@ -443,6 +466,7 @@ angular.module('cocoa.controllers', [])
           }
         }
       }
+      task.viewModel = generatePartModel(task.status);
     }
   };
 
@@ -467,6 +491,7 @@ angular.module('cocoa.controllers', [])
       return;
 
     var allParticipants = $scope.selectedTask.status;
+    $scope.selectedTask.viewModel = generatePartModel(allParticipants);
     for(var i=0; i<allParticipants.length; i++){
       var participant = allParticipants[i];
       if(participant.id == id){
@@ -522,8 +547,9 @@ angular.module('cocoa.controllers', [])
     if($("#edit-btn").text() == "Finish"){
       $("#edit-btn").text("Edit");
       EventViewFactory.saveEventInfo($scope.eventInfo);
-    } else
+    } else{
       $("#edit-btn").text("Finish");
+    }
   }
 
   $scope.toggleTaskEditMode = function(){
@@ -584,11 +610,39 @@ angular.module('cocoa.controllers', [])
       }
       result[firstLetter].push(sorted[i]);
     }
-    
+
+    console.log(angular.toJson(result));
     return result;
+  };
+
+  titleText = "eve";
+  destructiveText = "Delete";
+
+  $scope.onTaskRowHold = function (task) {
+
+    // An elaborate, custom popup
+   var confirmPopup = $ionicPopup.confirm({
+     title: 'Delete Task',
+     template: 'Are you sure you want to delete the task?'
+   });
+   confirmPopup.then(function(res) {
+     if(res) {
+        $scope.deleteTask(task.name);
+     } else {
+     }
+   });
+
   };
 })
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
   $scope.student = StudentInfoFactory.getStudent($stateParams.studentId);
+})
+
+.controller("welcomeCtrl",function($scope){
+  $scope.loginDetails = {};
+  $scope.isUsernameValid = true;
+  $scope.login = function(){
+    console.log("Logging in with username: "+$scope.loginDetails.username+" and password: "+$scope.loginDetails.password);
+  };
 })
