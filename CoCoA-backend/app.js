@@ -84,7 +84,7 @@ app.post('/cca', function(request,response){
         function(err,res){
             gapi.googleDrive.files.insert({
                 resource: {
-                    title: res.title+"-events",
+                    title: res.title+"-Events",
                     mimeType: 'application/vnd.google-apps.folder',
                     parents: [
                     {
@@ -188,9 +188,10 @@ app.post('/cca', function(request,response){
                     });
                 console.log("create students details spreadsheet successfully");
             });
+            response.send({"cca_title":request.body.cca_title,"cca_id":res.id});
+
             console.log("create a new folder under CCA-Admin");
     });
-    response.send("successful create cca");
 });
 
 app.get('/cca', function(request,response){
@@ -288,7 +289,41 @@ app.post('/cca/:cca_id/events', function(request,response){
         "fileId": request.params.cca_id
     },
     function(err,res){
-        console.log();
+        //insert a new line into List of Events spreadsheet
+        gapi.googleDrive.files.list({
+            'access_token':gapi.oauth2Client.credentials.access_token,
+            'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
+        },
+        function(err,res){
+            googleSpreadsheet.load({
+                debug:true,
+                spreadsheetId:res.items[0].id,
+                worksheetId:'od6',
+                accessToken:{
+                    type:'Bearer',
+                    token:gapi.oauth2Client.credentials.access_token
+                }
+            },
+            function sheetReady(err, spreadsheet) {
+                if(err) throw err;
+                spreadsheet.receive(function(err,rows,info){
+                    if(err) throw err;
+                    var data = {};
+                    data[info.nextRow] = [[request.body.event_title,request.body.students_needed,'',request.body.starting_date,
+                    request.body.end_date,request.body.event_time,request.body.event_Venue,request.body.student_reporting_time,
+                    request.body.bus_time,request.body.other_comments,request.body.to_taking_them]];
+                    JSON.stringify(data);
+                    spreadsheet.add(data);
+                    spreadsheet.send(function(err) {
+                        if(err) throw err;
+                         console.log("append successfully");
+                    });
+                });
+            });
+        });
+        //end of insert a new line into List of Events spreadsheet
+
+        //insert a new spreadsheet in Events folder
         gapi.googleDrive.files.list({
             'access_token':gapi.oauth2Client.credentials.access_token,
             'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
@@ -319,12 +354,13 @@ app.post('/cca/:cca_id/events', function(request,response){
                         spreadsheet.add([['Name of Student','ID','Level','Class']]);
                         spreadsheet.send(function(err) {
                         if(err) throw err;
-                        console.log("created successfully");
+                        console.log("event spreadsheet created successfully");
                     });
                 });
                 response.send({"event_title":request.body.event_title,"event_spreadsheet_id":res.id});
             });
         });
+        //end of insert a new spreadsheet in Events folder  
     });
 });
 
