@@ -171,6 +171,7 @@ exports.getAllStudents = function(req, res) {
     }    
 };
 
+// temporary no use
 exports.getAllStudentsV2 = function(req, res) {
 	var resToClient = res;
     var CCADirectoryID = rootFolderId;
@@ -696,6 +697,7 @@ exports.updateMembersOfCCA = function(req, res) {
 
 };
 
+// temporary no use
 // currently this method assume the spreadsheet doesnt contain duplicate students (which is reasonable)
 // it is slow since it has to delete the students one by one
 exports.deleteMembersFromCCA = function(req, res) {
@@ -796,8 +798,7 @@ url: /participants/
 
 *******************************************************************************************/
 
-// this function is no use at this point
-// consider removing it later
+// temporary no use
 exports.getParticipants = function(req, res) {
     var resToClient = res;
 
@@ -832,7 +833,7 @@ exports.getParticipants = function(req, res) {
     }); 
 }
 
-
+// temporary no use
 exports.addParticipants = function(req, res) {
 	var resToClient = res;
     var CCAName = req.body.CCAName;
@@ -889,7 +890,7 @@ exports.addParticipants = function(req, res) {
 }
 
 
-exports.updateMembersOfCCA = function(req, res) {
+exports.updateParticipants = function(req, res) {
     var resToClient = res;
     var CCAName = req.body.CCAName;
     var eventName = req.body.eventName;
