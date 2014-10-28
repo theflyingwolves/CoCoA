@@ -260,30 +260,163 @@ exports.getMembersOfCCA = function(req, res){
     if (!gapi.oauth2Client.credentials.access_token) {
         res.json({message: "please log in first"});
     } else {
-        var CCAName = req.params.CCAName
-        var fileName = CCAName+"-Student Details";
-        var q = "title = '" + fileName+"'";
+        // this waterfall function first read the target event participants
+        // then read all CCAMembers
+        // set the participants as selected = true
+        async.waterfall([
+            function(callback){ 
 
-        gapi.googleDrive.files.list({'q':q}, function(err, res){
-            if (err) {
-                resToClient.json({message: "error while finding the file by its name", err:err});
-            }else {
-                var items = res.items;
-                
-                if (items.length == 0) {
-                    var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
-                    resToClient.json({message: message});
-                } else if (items.length > 1) {
-                    var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
-                    resToClient.json({message: message});
-                } else {
-                    var item = items[0];
+                if (req.params.eventName) {
+                    console.log("has eventName");
+                    var CCAName = req.params.CCAName;
+                    var eventName = req.params.eventName;
+                    var selectedStudents = [];
 
-                    readStudentInfoFromASpreadSheetWithFileDetail(item, resToClient);
+                    var fileName = CCAName+"-events-"+eventName;
+                    var q = "title = '" + fileName+"'";
+
+                    gapi.googleDrive.files.list({'q':q}, function(err, res){
+                        if (err) {
+                            callback("error while finding the file by its name", []);
+                        }else {
+                            var items = res.items;
+
+                            // if item is trashed or parent is not right 
+                            // filter out the item
+                            async.filter(items, 
+                                function(item, callback){
+
+                                    if (!item.labels.trashed) {
+                                        var id = item.parents[0].id;
+                                        gapi.googleDrive.files.get({'fileId': id}, function(err,res){
+                                            if (err) {
+                                                callback(false);
+                                            } else {
+                                                var folderName = CCAName+"-Events";
+                                                if (res.title == folderName) {
+                                                    callback(true);
+                                                } else {
+                                                    callback(false);
+                                                }
+                                            }
+                                        });
+                                    }else {
+                                        callback(false);
+                                    }
+                                }, 
+                                function(results){
+                                    var items = results;
+                                    // console.log("finish filtering duplicate files");
+                                    // console.log(items.length);
+
+                                    if (items.length == 0) {
+                                        var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
+                                        callback(message, []);
+                                    } else if (items.length > 1) {
+                                        var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
+                                        // console.log(items);
+                                        callback(message, []);
+                                    } else {
+                                        var item = items[0];
+
+                                        readFromASpreadSheetWithFileDetail(item, [], callback);
+                                    }
+
+                                }
+                            );
+                        }
+                    }); 
+                }else {
+                    callback(null, [], []);
                 }
+            },
+            function(dummy, studentSelected, callback){
+                var CCAName = req.params.CCAName;
+                var fileName = CCAName+"-Student Details";
+                var q = "title = '" + fileName+"'";
+
+                gapi.googleDrive.files.list({'q':q}, function(err, res){
+                    if (err) {
+                        var message = "error while finding the file by its name";
+                        callback(message, []);
+                    }else {
+                        var items = res.items;
+
+                        // if item is trashed or parent is not right 
+                        // filter out the item
+                        async.filter(items, 
+                            function(item, callback){
+
+                                if (!item.labels.trashed) {
+                                    var id = item.parents[0].id;
+                                    gapi.googleDrive.files.get({'fileId': id}, function(err,res){
+                                        if (err) {
+                                            callback(false);
+                                        } else {
+                                            if (res.title == CCAName) {
+                                                callback(true);
+                                            } else {
+                                                callback(false);
+                                            }
+                                        }
+                                    });
+                                }else {
+                                    callback(false);
+                                }
+                            }, 
+                            function(results){
+                                var items = results;
+                                console.log("finish filtering duplicate files");
+                                console.log(items.length);
+
+                                if (items.length == 0) {
+                                    var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
+                                    callback(message, []);
+                                } else if (items.length > 1) {
+                                    var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
+                                    // console.log(items);
+                                    callback(message, []);
+                                } else {
+                                    var item = items[0];
+
+                                    readFromASpreadSheetWithFileDetail(item, studentSelected, callback);
+                                }
+
+                            }
+                        );
+                            
+                    }
+                });
+            },
+            function(studentSelected, allStudents, callback){
+                console.log("enter final process of students info");
+                for (var i = 0; i < allStudents.length; i++) {
+                    var selected = false;
+                    for (var j = 0; j < studentSelected.length; j++) {
+                        if (studentSelected[j].id == allStudents[i].id) {
+                            selected = true;
+                            break;
+                        };
+                    };
+                    if (selected) {
+                        allStudents[i].selected = true;
+                    } else {
+                        allStudents[i].selected = false;
+                    }
+                };
+
+                console.log("finish final process of students info");
+                callback(null, allStudents);
             }
-        });  
-    }
+        ], function (err, result) {
+           if (err) {
+                resToClient.json({message:err});
+           } else {
+                resToClient.json({message:"success", students:result})
+           }
+        });
+   
+    } 
 }
 
 

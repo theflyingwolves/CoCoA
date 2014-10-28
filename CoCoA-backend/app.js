@@ -377,7 +377,8 @@ app.get('/allStudents/:CCAName', helperFunction.getAllStudents);
 app.get('/allStudents', helperFunction.getAllStudents);
 
 
-app.get('/MembersOfCCA', helperFunction.getMembersOfCCA);
+app.get('/MembersOfCCA/:CCAName', helperFunction.getMembersOfCCA);
+app.get('/MembersOfCCA/:CCAName/:eventName', helperFunction.getMembersOfCCA);
 app.put('/MembersOfCCA', helperFunction.updateMembersOfCCA);
 // app.post('/MembersOfCCA', helperFunction.addMembersToCCA);
 // app.delete('/MembersOfCCA', helperFunction.deleteMembersFromCCA);
