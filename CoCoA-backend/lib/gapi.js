@@ -3,6 +3,7 @@ var google = require('googleapis'),
     client = '807229978561-auq7ocqi9e08busho2j3mjav94r39b94.apps.googleusercontent.com',
     secret = '0J7yQzy4i2j_9wuB4pEEfG2C',
     redirect = 'http://localhost:3000/oauth2callback',
+    //redirect = '54.169.89.65:3000/oauth2callback',
     calendar_auth_url = '',
     oauth2Client =new OAuth2(client, secret, redirect);
 

@@ -21,11 +21,37 @@ async = require('async'),
 gapi = require('./lib/gapi');
 var googleSpreadsheet = require('edit-google-spreadsheet');
 
-if ('development' == app.get('env')) {
-
-app.use(errorhandler());
-
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+    app.use(function(err, req, res, next) {
+        res.status(err.status || 500);
+        res.render('error', {
+            message: err.message,
+            error: err
+        });
+    });
 }
+
+// Add headers
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
+});
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -38,21 +64,27 @@ app.use(cookieParser());
 app.use(methodOverride());
 
 app.get('/', function(req, res) {
+    /*
     var locals = {
         title: 'This is my sample app',
         url: gapi.authUrl
     };
     res.render('index.jade', locals);
+    */
+    res.redirect(gapi.authUrl);
 });
 
 app.get('/oauth2callback', function(request, response) {
     var code = request.query.code;
     gapi.oauth2Client.getToken(code, function(err, tokens){
+        if(err) return next(err);
         gapi.oauth2Client.setCredentials(tokens);
         gapi.googleDrive.files.list({
             'access_token':gapi.oauth2Client.credentials.access_token,
             'q':"title = 'CCA-Admin'"
         }, function(err,res){
+            if(err) return next(err);
+            console.log(gapi.oauth2Client.credentials.access_token);
             if(res.items.length == 1){
                 rootFolderId = res.items[0].id;
                 console.log("root file's id is "+rootFolderId);
@@ -66,7 +98,9 @@ app.get('/oauth2callback', function(request, response) {
         title: 'What are you doing?',
         url: gapi.authUrl
     };
-    response.render('index.jade', locals);
+    //response.render('index.jade', locals);
+    response.redirect('http://ec2-54-169-115-238.ap-southeast-1.compute.amazonaws.com/www/index.html');
+
 });
 
 app.post('/cca', function(request,response){
@@ -81,116 +115,123 @@ app.post('/cca', function(request,response){
             }]
         }
     },
+    function(err,res){
+        gapi.googleDrive.files.insert({
+            resource: {
+                title: res.title+"-Events",
+                mimeType: 'application/vnd.google-apps.folder',
+                parents: [
+                {
+                "kind":"drive#fileLink",
+                "id":res.id
+                }]
+            }
+        },
         function(err,res){
-            gapi.googleDrive.files.insert({
-                resource: {
-                    title: res.title+"-Events",
-                    mimeType: 'application/vnd.google-apps.folder',
-                    parents: [
-                    {
-                    "kind":"drive#fileLink",
-                    "id":res.id
-                    }]
-                }
-            }, function(err,res){
-                console.log("create events folder successfully");
-            });
+            console.log("create events folder successfully");
+        });
 
-            gapi.googleDrive.files.insert({
-                resource: {
-                    title: res.title+"-CCA Record",
-                    mimeType: 'application/vnd.google-apps.spreadsheet',
-                    parents: [
-                    {
-                    "kind":"drive#fileLink",
-                    "id":res.id
-                    }]
+        gapi.googleDrive.files.insert({
+            resource: {
+                title: res.title+"-CCA Record",
+                mimeType: 'application/vnd.google-apps.spreadsheet',
+                parents: [
+                {
+                "kind":"drive#fileLink",
+                "id":res.id
+                }]
+            }
+        },
+        function(err,res){
+            googleSpreadsheet.load({
+                debug:true,
+                spreadsheetId:res.id,
+                worksheetId:'od6',
+                accessToken:{
+                    type:'Bearer',
+                    token:gapi.oauth2Client.credentials.access_token
                 }
-            },  function(err,res){
-                    googleSpreadsheet.load({
-                        debug:true,
-                        spreadsheetId:res.id,
-                        worksheetId:'od6',
-                        accessToken:{
-                            type:'Bearer',
-                            token:gapi.oauth2Client.credentials.access_token
-                        }
-                    },  function sheetReady(err, spreadsheet) {
-                            if(err) throw err;
-                            spreadsheet.add([['Name','ID','Level','Class']]);
-                            spreadsheet.send(function(err) {
-                            if(err) throw err;
-                            console.log("Updated successfully");
-                        });
-                    });
-                console.log("create cca-record spreadsheet successfully");
+            },  
+            function sheetReady(err, spreadsheet) {
+                if(err) throw err;
+                spreadsheet.add([['Name','ID','Level','Class']]);
+                spreadsheet.send(function(err) {
+                if(err) throw err;
+                console.log("Updated successfully");
+                });
             });
+            console.log("create cca-record spreadsheet successfully");
+        });
 
-            gapi.googleDrive.files.insert({
-                resource: {
-                    title: res.title+"-List of Events",
-                    mimeType: 'application/vnd.google-apps.spreadsheet',
-                    parents: [
-                    {
-                    "kind":"drive#fileLink",
-                    "id":res.id
-                    }]
+        gapi.googleDrive.files.insert({
+            resource: {
+                title: res.title+"-List of Events",
+                mimeType: 'application/vnd.google-apps.spreadsheet',
+                parents: [
+                {
+                "kind":"drive#fileLink",
+                "id":res.id
+                }]
+            }
+        },
+        function(err,res){
+            googleSpreadsheet.load({
+                debug:true,
+                spreadsheetId:res.id,
+                worksheetId:'od6',
+                accessToken:{
+                    type:'Bearer',
+                    token:gapi.oauth2Client.credentials.access_token
                 }
-            },  function(err,res){
-                    googleSpreadsheet.load({
-                        debug:true,
-                        spreadsheetId:res.id,
-                        worksheetId:'od6',
-                        accessToken:{
-                            type:'Bearer',
-                            token:gapi.oauth2Client.credentials.access_token
-                        }
-                    },  function sheetReady(err, spreadsheet) {
-                            if(err) throw err;
-                            spreadsheet.add([['Name of Event','Students Needed','Students Selected','Starting Date',
-                            'End Date','Event Time','Event Venue','Student Reporting Time + Venue',
-                            'Bus Timing','Other Comments','TO taking them']]);
-                            spreadsheet.send(function(err) {
-                            if(err) throw err;
-                            console.log("Updated successfully");
-                        });
-                    });
-                console.log("create list of events spreadsheet successfully");
+            },
+            function sheetReady(err, spreadsheet) {
+                if(err) throw err;
+                spreadsheet.add([['Name of Event','Students Needed','Students Selected','Starting Date',
+                    'End Date','Event Time','Event Venue','Student Reporting Time + Venue',
+                    'Bus Timing','Other Comments','TO taking them']]);
+                spreadsheet.send(function(err) {
+                    if(err) throw err;
+                    console.log("Updated successfully");
+                });
             });
+            console.log("create list of events spreadsheet successfully");
+        });
 
-            gapi.googleDrive.files.insert({
-                resource: {
-                    title: res.title+"-Student Details",
-                    mimeType: 'application/vnd.google-apps.spreadsheet',
-                    parents: [
-                    {
-                    "kind":"drive#fileLink",
-                    "id":res.id
-                    }]
+        gapi.googleDrive.files.insert({
+            resource: {
+                title: res.title+"-Student Details",
+                mimeType: 'application/vnd.google-apps.spreadsheet',
+                parents: [
+                {
+                "kind":"drive#fileLink",
+                "id":res.id
+                }]
+            }
+        }, 
+        function(err,res){
+            googleSpreadsheet.load({
+                debug:true,
+                spreadsheetId:res.id,
+                worksheetId:'od6',
+                accessToken:{
+                    type:'Bearer',
+                    token:gapi.oauth2Client.credentials.access_token
                 }
-            }, function(err,res){
-                    googleSpreadsheet.load({
-                        debug:true,
-                        spreadsheetId:res.id,
-                        worksheetId:'od6',
-                        accessToken:{
-                            type:'Bearer',
-                            token:gapi.oauth2Client.credentials.access_token
-                        }
-                    },  function sheetReady(err, spreadsheet) {
-                            if(err) throw err;
-                            spreadsheet.add([['Name','ID','Level','Class','Race','Nationality','Guardian Contact 1',
-                            'Guardian Contact 2','Guardian Contact 3','Medical Concern']]);
-                            spreadsheet.send(function(err) {
-                            if(err) throw err;
-                            console.log("Updated successfully");
-                        });
-                    });
-                console.log("create students details spreadsheet successfully");
+            },  
+            function sheetReady(err, spreadsheet) {
+                if(err) throw err;
+                spreadsheet.add([['Name','ID','Level','Class','Race','Nationality','Guardian Contact 1',
+                'Guardian Contact 2','Guardian Contact 3','Medical Concern']]);
+                spreadsheet.send(function(err) {
+                    if(err) throw err;
+                    console.log("Updated successfully");
+                });
             });
-            response.send({"cca_title":request.body.cca_title,"cca_id":res.id});
+        console.log("create students details spreadsheet successfully");
+        });
+        response.send({"cca_title":request.body.cca_title,"cca_id":res.id});
 
-            console.log("create a new folder under CCA-Admin");
+        console.log("create a new folder under CCA-Admin");
     });
 });
 
@@ -199,14 +240,16 @@ app.get('/cca', function(request,response){
     gapi.googleDrive.files.list({
         'access_token':gapi.oauth2Client.credentials.access_token,
         'q':"'"+rootFolderId+"' in parents"
-    }, function(err,res){
+    },
+    function(err,res){
         async.each(res.items, function(item,callback){
             var cca = {};
             cca.id = item.id;
             cca.title = item.title;
             ccaList.push(cca);
             callback();
-        }, function(err){
+        },
+        function(err){
             if(err){
                 console.log(err);
             } else{
@@ -270,7 +313,7 @@ app.get('/cca/:cca_id/events', function(request,response){
                         function(err){
                             if(err) throw err;
                             events.spreadsheets = eventSpreadsheets;
-                            response.send(events);
+                            if(events.list_of_events !== null) response.send(events);
                         });
                     });
                 });
@@ -309,9 +352,9 @@ app.post('/cca/:cca_id/events', function(request,response){
                 spreadsheet.receive(function(err,rows,info){
                     if(err) throw err;
                     var data = {};
-                    data[info.nextRow] = [[request.body.event_title,request.body.students_needed,'',request.body.starting_date,
-                    request.body.end_date,request.body.event_time,request.body.event_Venue,request.body.student_reporting_time,
-                    request.body.bus_time,request.body.other_comments,request.body.to_taking_them]];
+                    data[info.nextRow] = [[request.body.event_title,request.body.students_needed,'',request.body.start_date,
+                    request.body.end_date,request.body.event_time,request.body.event_venue,request.body.student_report_time,
+                    request.body.bus_time,request.body.notes,request.body.to_in_charge]];
                     JSON.stringify(data);
                     spreadsheet.add(data);
                     spreadsheet.send(function(err) {
@@ -363,7 +406,49 @@ app.post('/cca/:cca_id/events', function(request,response){
         //end of insert a new spreadsheet in Events folder  
     });
 });
-
+/*
+app.update('/cca/:cca_id/events/:event_id',function(request,response){
+    var events = {};
+    gapi.googleDrive.files.get({
+        "fileId": request.params.cca_id
+    },
+    function(err,res){
+        //insert a new line into List of Events spreadsheet
+        gapi.googleDrive.files.list({
+            'access_token':gapi.oauth2Client.credentials.access_token,
+            'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
+        },
+        function(err,res){
+            googleSpreadsheet.load({
+                debug:true,
+                spreadsheetId:res.items[0].id,
+                worksheetId:'od6',
+                accessToken:{
+                    type:'Bearer',
+                    token:gapi.oauth2Client.credentials.access_token
+                }
+            },
+            function sheetReady(err, spreadsheet) {
+                if(err) throw err;
+                spreadsheet.receive(function(err,rows,info){
+                    if(err) throw err;
+                    var data = {};
+                    data[info.nextRow] = [[request.body.event_title,request.body.students_needed,'',request.body.start_date,
+                    request.body.end_date,request.body.event_time,request.body.event_venue,request.body.student_report_time,
+                    request.body.bus_time,request.body.notes,request.body.to_in_charge]];
+                    JSON.stringify(data);
+                    spreadsheet.add(data);
+                    spreadsheet.send(function(err) {
+                        if(err) throw err;
+                         console.log("append successfully");
+                    });
+                });
+            });
+        });
+        //end of insert a new line into List of Events spreadsheet  
+    });
+});
+*/
 
 // get all student infomation
 app.get('/allStudents', function(req, res) {
@@ -638,6 +723,25 @@ app.post('/addMembersToCCA', function(req, res) {
     } else {
         resToClient.json({message:"cannot find CCA Admin folder in user google drive"});
     }
+});
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    console.log("catch error");
+    next(err);
+});
+// error handlers
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    // res.render('error', {
+    //     message: err.message,
+    //     error: {}
+    // });
+    res.send("err");
 });
 
 var server = app.listen(3000);
