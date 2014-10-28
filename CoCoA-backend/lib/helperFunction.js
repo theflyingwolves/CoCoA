@@ -440,37 +440,58 @@ exports.updateMembersOfCCA = function(req, res) {
                         } else {
                             console.log( sheet_info.title + ' is loaded' );
 
-                            async.eachSeries(studentsToDelete, function(student, callback) {
-
-                                sheet_info.worksheets[0].getRows( function( err, rows ){
-                                    if (err) {
-                                        callback(err);
-                                    } else {
-                                        var deleted = false;
-                                        for (var i = 0; i < rows.length; i++) {
-                                            var curId = rows[i].id;
-                                            if (curId == student.id) {
-                                                deleted = true;
-                                                rows[i].del(callback);
-                                                break;
-                                            }                                                       
-                                        };
-                                        if (!deleted) {
-                                            callback();
-                                        };
-                                        
-                                    }
-                                });
-
-                            }, function(err){
-                                // if any of the file processing produced an error, err would equal that error
-                                if( err ) {
-                                    callback(err, []);
+                            sheet_info.worksheets[0].getRows( function( err, rows ){
+                                if (err) {
+                                    callback(err);
                                 } else {
-                                    console.log("finish final process of students info");
-                                    callback(null, item, studentsToAdd, students);
+                                    for (var i = 0; i < rows.length; i++) {
+                                        var curId = rows[i].id;
+                                        var indexToDelete = -1;
+                                        
+                                        for (var j = 0; j < studentsToAdd.length; j++) {
+                                            if (studentsToAdd[j].id == curId) {
+                                                indexToDelete = j;
+                                                break;
+                                            };
+                                        };
+                                        if (indexToDelete != -1) {
+                                            studentsToAdd.splice(indexToDelete, 1);
+                                        };
+                                    };
+
+                                    async.eachSeries(studentsToDelete, function(student, callback) {
+
+                                        sheet_info.worksheets[0].getRows( function( err, rows ){
+                                                if (err) {
+                                                    callback(err);
+                                                } else {
+                                                    var deleted = false;
+                                                    for (var i = 0; i < rows.length; i++) {
+                                                        var curId = rows[i].id;
+                                                        if (curId == student.id) {
+                                                            deleted = true;
+                                                            rows[i].del(callback);
+                                                            break;
+                                                        }                                                       
+                                                    };
+                                                    if (!deleted) {
+                                                        callback();
+                                                    };
+                                                    
+                                                }
+                                            });
+
+                                        }, function(err){
+                                            // if any of the file processing produced an error, err would equal that error
+                                            if( err ) {
+                                                callback(err, []);
+                                            } else {
+                                                console.log("finish final process of students info");
+                                                callback(null, item, studentsToAdd, students);
+                                            }
+                                    }); 
                                 }
-                            });
+                            });             
                         }
                     });
 
@@ -1055,7 +1076,7 @@ function readFromASpreadSheetWithFileDetail(item, selected, callback){
 
                                     var curRow = []
                                     for (index2 in curStudent) {
-                                        curRow.push(curStudent[index]);
+                                        curRow.push(curStudent[index2]);
                                     };
 
                                     var curInfo = {name:curStudent['1'] , id:curStudent['2'], data:curRow }
