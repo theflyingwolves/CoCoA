@@ -796,7 +796,8 @@ url: /participants/
 
 *******************************************************************************************/
 
-
+// this function is no use at this point
+// consider removing it later
 exports.getParticipants = function(req, res) {
     var resToClient = res;
 
@@ -886,6 +887,230 @@ exports.addParticipants = function(req, res) {
         });  
     }
 }
+
+
+exports.updateMembersOfCCA = function(req, res) {
+    var resToClient = res;
+    var CCAName = req.body.CCAName;
+    var eventName = req.body.eventName;
+    var students = req.body.students;
+
+    async.waterfall([
+            function(callback){ 
+                var studentsToAdd = [];
+                var studentsToDelete = [];
+                for (var i = 0; i < students.length; i++) {
+                    if (students[i].selected) {
+                        studentsToAdd.push(students[i]);
+                    } else {
+                        studentsToDelete.push(students[i]);
+                    }
+                };
+
+                callback(null, studentsToAdd, studentsToDelete, students);
+
+            },
+            function(studentsToAdd, studentsToDelete, students, callback){
+                var fileName = CCAName+"-events-"+eventName;
+                var q = "title = '" + fileName+"'";
+
+                gapi.googleDrive.files.list({'q':q}, function(err, res){
+                    if (err) {
+                        var message = "error while finding the file by its name";
+                        callback(message, []);
+                    }else {
+                        var items = res.items;
+
+                        // if item is trashed or parent is not right 
+                        // filter out the item
+                        async.filter(items, 
+                            function(item, callback){
+
+                                if (!item.labels.trashed) {
+                                    var id = item.parents[0].id;
+                                    gapi.googleDrive.files.get({'fileId': id}, function(err,res){
+                                        if (err) {
+                                            callback(false);
+                                        } else {
+                                            var folderName = CCAName+"-Events";
+                                            if (res.title == folderName) {
+                                                callback(true);
+                                            } else {
+                                                callback(false);
+                                            }
+                                        }
+                                    });
+                                }else {
+                                    callback(false);
+                                }
+                            }, 
+                            function(results){
+                                var items = results;
+                                console.log("finish filtering duplicate files");
+                                console.log(items.length);
+
+                                if (items.length == 0) {
+                                    var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
+                                    callback(message, []);
+                                } else if (items.length > 1) {
+                                    var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
+                                    // console.log(items);
+                                    callback(message, []);
+                                } else {
+                                    var item = items[0];
+
+                                    callback(null, item, studentsToAdd, studentsToDelete, students);
+                                }
+
+                            }
+                        );
+                            
+                    }
+                });
+            },
+            function(item, studentsToAdd, studentsToDelete, students, callback){
+                console.log("enter final process of students info");
+
+                var id = item.id;
+
+                if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+                    var memberDetailsFileId = id;
+
+                    var auth = {
+                          type: 'Bearer',
+                          value: gapi.oauth2Client.credentials.access_token
+                    };
+                    var my_sheet = new googleSpreadsheetNew(memberDetailsFileId, auth);
+
+                    my_sheet.getInfo( function( err, sheet_info ){
+                        if (err) {
+                            var message = "error while loading spreadsheet '"+fileName+"'";
+                            callback(err, []);
+                        } else {
+                            console.log( sheet_info.title + ' is loaded' );
+
+                            sheet_info.worksheets[0].getRows( function( err, rows ){
+                                if (err) {
+                                    callback(err);
+                                } else {
+                                    for (var i = 0; i < rows.length; i++) {
+                                        var curId = rows[i].id;
+                                        var indexToDelete = -1;
+                                        
+                                        for (var j = 0; j < studentsToAdd.length; j++) {
+                                            if (studentsToAdd[j].id == curId) {
+                                                indexToDelete = j;
+                                                break;
+                                            };
+                                        };
+                                        if (indexToDelete != -1) {
+                                            studentsToAdd.splice(indexToDelete, 1);
+                                        };
+                                    };
+
+                                    async.eachSeries(studentsToDelete, function(student, callback) {
+
+                                        sheet_info.worksheets[0].getRows( function( err, rows ){
+                                                if (err) {
+                                                    callback(err);
+                                                } else {
+                                                    var deleted = false;
+                                                    for (var i = 0; i < rows.length; i++) {
+                                                        var curId = rows[i].id;
+                                                        if (curId == student.id) {
+                                                            deleted = true;
+                                                            rows[i].del(callback);
+                                                            break;
+                                                        }                                                       
+                                                    };
+                                                    if (!deleted) {
+                                                        callback();
+                                                    };
+                                                    
+                                                }
+                                            });
+
+                                        }, function(err){
+                                            // if any of the file processing produced an error, err would equal that error
+                                            if( err ) {
+                                                callback(err, []);
+                                            } else {
+                                                console.log("finish final process of students info");
+                                                callback(null, item, studentsToAdd, students);
+                                            }
+                                    }); 
+                                }
+                            });             
+                        }
+                    });
+
+                } else {
+                    var message = "the file '"+fileName+"'in your google drive is not a spreadsheet";
+                    callback(message, []);
+                }
+
+            }, 
+            function (item, studentsToAdd, students, callback){
+
+                if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+                    var memberDetailsFileId = item.id;
+
+                    var targetStudentDetails = [];
+                    for (var i = 0; i < studentsToAdd.length; i++) {
+                        targetStudentDetails.push(studentsToAdd[i].data);
+                    };
+
+                    googleSpreadsheet.load({
+                        debug: true,
+                        spreadsheetId: memberDetailsFileId,
+                        worksheetName: 'Sheet1',
+                        accessToken : {
+                          type: 'Bearer',
+                          token: gapi.oauth2Client.credentials.access_token
+                        }
+                        }, function sheetReady(err, spreadsheet) {
+                            if(err) {
+                                resToClient.json({message:"error when loading the spreadsheet", err:err});
+                            } else {
+                                spreadsheet.receive(function(err, rows, info) {
+                                  if(err){
+                                    throw err;
+                                  }else {
+                                    var numOfRows = info.totalRows;
+                                    var nextRow = info.nextRow;
+                                    // console.log(targetStudentDetails);
+                                    // console.log(numOfRows);
+
+                                    contents = {};
+                                    contents[nextRow] = targetStudentDetails;
+
+                                    spreadsheet.add(contents);
+                                    spreadsheet.send(function(err) {
+                                      if(err) {
+                                        callback(err, students);
+                                        // console.log("edit spreadsheet error");
+                                        // console.log(err);
+                                      } else {
+                                        callback(null, students);
+                                      }
+                                      
+                                    });
+                                  } 
+                                });
+                            }
+                        }
+                    );
+                }                
+            }
+        ], function (err, result) {
+           if (err) {
+                resToClient.json({message:err});
+           } else {
+                resToClient.json({message:"success", students:result})
+           }
+        });
+
+};
 
 
 /******************************************************************************************

@@ -380,14 +380,12 @@ app.get('/allStudents', helperFunction.getAllStudents);
 app.get('/MembersOfCCA/:CCAName', helperFunction.getMembersOfCCA);
 app.get('/MembersOfCCA/:CCAName/:eventName', helperFunction.getMembersOfCCA);
 app.put('/MembersOfCCA', helperFunction.updateMembersOfCCA);
-// app.post('/MembersOfCCA', helperFunction.addMembersToCCA);
-// app.delete('/MembersOfCCA', helperFunction.deleteMembersFromCCA);
 
-app.get('/participants', helperFunction.getParticipants);
-app.post('/participants', helperFunction.addParticipants);
-// app.delete('/participants', helperFunction.deleteParticipants);
 
-// app.get('/test/:filename', helperFunction.test);
+app.get('/participants/:CCAName/:eventName', helperFunction.getMembersOfCCA); //yes, they are just the same
+app.put('/participants', helperFunction.updateParticipants);
+
+
 
 
 
