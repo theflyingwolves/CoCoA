@@ -6,16 +6,16 @@ angular.module('cocoa.controllers', [])
           name:"Wang Kunzhen",
           status:false,
           isSelected:true,
-          contactNumber:"8888",
-          address:"NUS"
+          contactNumber:"99998888",
+          class:"s1-A1"
         },
         {
           id:"bbb",
           name:"Wang Yichao",
           status:true,
           isSelected:true,
-          contactNumber:"8888",
-          address:"NUS"
+          contactNumber:"99998888",
+          class:"s1-E2"
 
         },
         {
@@ -23,17 +23,17 @@ angular.module('cocoa.controllers', [])
           name:"Wu Lifu",
           status:true,
           isSelected:true,
-          contactNumber:"8888",
-          address:"NUS",
+          contactNumber:"77778888",
+          class:"s2-A2",
         },
         {
           id:"ddd",
           name:"Li Zhenshuo",
           status:false,
           isSelected:true,
-          contactNumber:"8888",
-          address:"NUS",
-          explain:"MC"
+          contactNumber:"88887777",
+          class:"s2-C2",
+          MC:"ASTHMA"
         }];
 
   var allSchoolStudents = [{
@@ -334,12 +334,26 @@ angular.module('cocoa.controllers', [])
   $scope.filterText = "";
   $scope.allSchoolStudents = Usergroups.allStudentsInSchool();
 
+
   $ionicModal.fromTemplateUrl('templates/CCAAddMemberModal.html',{
     scope:$scope,
     animation:'slide-in-up'
   }).then(function(modal){
     $scope.memberModal = modal;
   });
+
+  for(var i = 0 ; i < $scope.eventlist.length; i ++){
+      var selectedEvent = $scope.eventlist[i];
+      var startDateFormat = new Date(selectedEvent.startDate);
+      var endDateFormat = new Date(selectedEvent.endDate);
+      var currentDate = new Date();
+      var isCurrentYear = true;
+      if( ( !isNaN(startDateFormat.getFullYear()) && startDateFormat.getFullYear() != currentDate.getFullYear()) ||
+        ( !isNaN(endDateFormat.getFullYear()) && endDateFormat.getFullYear() != currentDate.getFullYear() )){
+        isCurrentYear = false;
+      }
+      $scope.eventlist[i].isCurrentYear = isCurrentYear;
+  }
 
   var createNewCCA = function(name){
     var newCCA = Usergroups.newCCA(name);
@@ -479,6 +493,7 @@ angular.module('cocoa.controllers', [])
   $scope.selectTask = function(task, index){
     $scope.selectedTask = task;
     $scope.selectedTaskIndex = index;
+    console.log($scope.selectedTask);
   };
 
   $scope.diselectTask = function(){

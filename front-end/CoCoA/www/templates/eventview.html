@@ -18,15 +18,22 @@
     <!--Participant rows-->
     <div class="item item-divider" ng-repeat-start="(initial, students) in selectedTask.viewModel">{{initial}}</div>
   		<ion-item class="participants-row"  ng-repeat="student in students track by student.id" ng-if="student.isSelected &&(!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1)" ng-click="toggleStuInfoDisplay(student.id)" ng-class="{'edit-mode': isEditMode}">
+
   			<div class="col col-90 task-row-inner">
   				<i class="icon ion-checkmark-circled" ng-click="selectStudent(student.id)" ng-if="student.status" stop-event></i>
           <i class="icon ion-ios7-circle-outline" ng-click="selectStudent(student.id)" ng-if="!student.status" stop-event></i>
   				{{student.name}}
           <div ng-show="selectedRow == student.id" class="item-animate" >
-            <br>
-            {{student.status}}
-            {{student.contactNumber}}<br>
-            {{student.address}}
+            <label class="editable" ng-if="student.MC">MC</label><br>
+            <span class="icon ion-edit"></span>
+            <input type="text" style="display:inline" placeholder="MC detail" ng-model="student.MC" stop-event>
+            <hr ng-if="student.MC">
+            <label>Class</label>
+            <p>{{student.class}}</p>
+            <hr>
+            <label>Tel</label>
+            <p>{{student.contactNumber}}</p>
+        </div>
           </div>
   			</div>
   		</ion-item>

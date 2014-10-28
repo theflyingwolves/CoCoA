@@ -9,7 +9,7 @@
     <div ng-if="isEditMode">
         <label class="item item-input item-stacked-label">
           <div class="row">
-            <div class="col col-33"><p class="info-label">Start Date</span></div>
+            <div class="col col-33"><p class="info-label">Start Date</p></div>
             <div class="col col-67">
               <input type="date" ng-model="eventInfo.startDate">
             </div>
@@ -18,7 +18,7 @@
 
         <label class="item item-input item-stacked-label">
           <div class="row">
-            <div class="col col-33"><p class="info-label">End Date</span></div>
+            <div class="col col-33"><p class="info-label">End Date</p></div>
             <div class="col col-67">
               <input type="date" ng-model="eventInfo.endDate">
             </div>
@@ -31,11 +31,12 @@
         <div class="row">
           <div class="col col-33"><p class="info-label">Duration</p></div>
           <div class="col col-67">
-            <p ng-if="eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} ~ {{eventInfo.endDate | date: 'MMM dd'}}</p>
-            <p ng-if="eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} ~ {{eventInfo.endDate | date: 'MMM dd, yyyy'}}</p>
+            <p ng-if="eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} - {{eventInfo.endDate | date: 'MMM dd'}}</p>
+            <p ng-if="eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} - {{eventInfo.endDate | date: 'MMM dd, yyyy'}}</p>
             <p ng-if="eventInfo.startDate && !eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} </p>
             <p ng-if="eventInfo.startDate && !eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} </p>
-            <p ng-if="!eventInfo.startDate && eventInfo.endDate">{{eventInfo.endDate}} </p>
+            <p ng-if="!eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.endDate} | date: 'MMM dd'} </p>
+            <p ng-if="!eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.endDate} | date: 'MMM dd, yyyy'} </p>
           </div>
         </div>
       </label>
