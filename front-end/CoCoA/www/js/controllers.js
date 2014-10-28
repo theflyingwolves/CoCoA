@@ -1,5 +1,13 @@
 angular.module('cocoa.controllers', [])
 
+.factory('ServerInfo',function(){
+  return {
+    serverUrl:function(){
+      return "http://ec2-54-169-89-65.ap-southeast-1.compute.amazonaws.com:3000";
+    }
+  };
+})
+
 .factory('Usergroups',function(){
   var allStudents = [{
           id:"aaa",
@@ -315,7 +323,7 @@ angular.module('cocoa.controllers', [])
   };
 })
 
-.controller('usergroupCtrl',function($scope, $timeout, $ionicSideMenuDelegate, $ionicModal, Usergroups){
+.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $ionicModal, ServerInfo, Usergroups){
   $scope.usergroups = Usergroups.all();
   $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
   $scope.eventlist = Usergroups.getEventList();
@@ -330,10 +338,36 @@ angular.module('cocoa.controllers', [])
   });
 
   var createNewCCA = function(name){
-    var newCCA = Usergroups.newCCA(name);
-    $scope.usergroups.push(newCCA);
-    Usergroups.save($scope.usergroups);
-    $scope.selectCCA(newCCA, $scope.usergroups.length - 1);
+    $http.post(ServerInfo.serverUrl()+"/cca",{
+      cca_title:name
+    })
+
+    .success(function(res){
+      var newCCA = Usergroups.newCCA(name);
+      $scope.usergroups.push(newCCA);
+      Usergroups.save($scope.usergroups);
+      $scope.selectCCA(newCCA, $scope.usergroups.length - 1);
+    })
+
+    .error(function(res){
+      console.log(angular.toJson(res));
+    });
+  };
+
+  $scope.loadDataFromServer = function(){
+    $http.get(ServerInfo.serverUrl()+"/cca")
+    .success(function(data, status){
+      while($scope.usergroups.length > 0){
+        $scope.usergroups.pop();
+      }
+
+      for(var i=0; i<data.length;i++){
+        $scope.usergroups.push(data[i]);
+      }
+    })
+    .error(function(data,status){
+      console.log("Error: loadDataFromServer");
+    });
   };
 
   $scope.newUserGroup = function(){
@@ -351,9 +385,19 @@ angular.module('cocoa.controllers', [])
   };
 
   var createNewEvent = function(name){
-    var newEvent = Usergroups.newEvent(name);
-    $scope.eventlist.push(newEvent);
-    Usergroups.saveEventList($scope.eventlist);
+    $http.post(ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events",{
+      event_title:name
+    })
+
+    .success(function(res, status){
+      console.log(angular.toJson(res));
+      // var newEvent = Usergroups.newEvent(name);
+      // $scope.eventlist.push(newEvent);
+      // Usergroups.saveEventList($scope.eventlist);
+    })
+    .error(function(res){
+      console.log("createNewEvent: "+angular.toJson(res));
+    });
   };
 
   $scope.newEvent = function(){
@@ -385,6 +429,7 @@ angular.module('cocoa.controllers', [])
   };
 
   $timeout(function() {
+    $scope.loadDataFromServer();
     if($scope.usergroups.length == 0) {
       while(true) {
         var ccaName = prompt('Your first CCA name:');
