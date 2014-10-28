@@ -360,7 +360,9 @@ app.post('/cca/:cca_id/events', function(request,response){
                 },
                 function sheetReady(err, spreadsheet) {
                         if(err) throw err;
-                        spreadsheet.add([['Name of Student','ID','Level','Class']]);
+                        // spreadsheet.add([['Name of Student','ID','Level','Class']]);
+                        spreadsheet.add([['Name','ID','Level','Class','Race','Nationality','Guardian Contact 1',
+                            'Guardian Contact 2','Guardian Contact 3','Medical Concern']]);
                         spreadsheet.send(function(err) {
                         if(err) throw err;
                         console.log("event spreadsheet created successfully");
