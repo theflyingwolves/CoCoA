@@ -18,20 +18,27 @@ methodOverride = require('method-override'),
 
 async = require('async'),
 
+domain = require('domain'),
+
 gapi = require('./lib/gapi');
 var googleSpreadsheet = require('edit-google-spreadsheet');
 
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
-    });
-}
+var createDomain = require('domain').create;
+
+app.use(function(req, res, next) {
+  var domain = createDomain();
+
+  domain.on('error', function(err) {
+    // alternative: next(err)
+    res.statusCode = 500;
+    res.end(err.message + '\n');
+
+    domain.dispose();
+  });
+
+  domain.enter();
+  next();
+});
 
 // Add headers
 app.use(function (req, res, next) {
@@ -52,6 +59,14 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
+
+
+
+if ('development' == app.get('env')) {
+
+app.use(errorhandler());
+
+}
 
 app.use(bodyParser.json());
 app.use(cookieParser());
@@ -77,13 +92,11 @@ app.get('/', function(req, res) {
 app.get('/oauth2callback', function(request, response) {
     var code = request.query.code;
     gapi.oauth2Client.getToken(code, function(err, tokens){
-        if(err) return next(err);
         gapi.oauth2Client.setCredentials(tokens);
         gapi.googleDrive.files.list({
             'access_token':gapi.oauth2Client.credentials.access_token,
             'q':"title = 'CCA-Admin'"
         }, function(err,res){
-            if(err) return next(err);
             console.log(gapi.oauth2Client.credentials.access_token);
             if(res.items.length == 1){
                 rootFolderId = res.items[0].id;
@@ -94,13 +107,14 @@ app.get('/oauth2callback', function(request, response) {
             }
         });
     });
+    /*
     var locals = {
         title: 'What are you doing?',
         url: gapi.authUrl
     };
-    //response.render('index.jade', locals);
+    response.render('index.jade', locals);
+    */
     response.redirect('http://ec2-54-169-115-238.ap-southeast-1.compute.amazonaws.com/www/index.html');
-
 });
 
 app.post('/cca', function(request,response){
@@ -239,7 +253,7 @@ app.get('/cca', function(request,response){
     var ccaList = [];
     gapi.googleDrive.files.list({
         'access_token':gapi.oauth2Client.credentials.access_token,
-        'q':"'"+rootFolderId+"' in parents"
+        'q':"'"+rootFolderId+"' in parents and trashed = false"
     },
     function(err,res){
         async.each(res.items, function(item,callback){
@@ -253,12 +267,12 @@ app.get('/cca', function(request,response){
             if(err){
                 console.log(err);
             } else{
-                response.send(JSON.stringify(ccaList,null,4));
+                response.send(ccaList);
             }
         });
     });
 });
-
+/*
 app.get('/cca/:cca_id/events', function(request,response){
     var events = {};
     gapi.googleDrive.files.get({
@@ -313,7 +327,7 @@ app.get('/cca/:cca_id/events', function(request,response){
                         function(err){
                             if(err) throw err;
                             events.spreadsheets = eventSpreadsheets;
-                            if(events.list_of_events !== null) response.send(events);
+                            response.send(events);
                         });
                     });
                 });
@@ -322,6 +336,70 @@ app.get('/cca/:cca_id/events', function(request,response){
         ],
         function(err,result){
             if(err) throw err;
+        });
+    });
+});
+*/
+app.get('/cca/:cca_id/events', function(request,response){
+    var events = {};
+    gapi.googleDrive.files.get({
+        "fileId": request.params.cca_id
+    },
+    function(err,res){
+        if(err) throw err;
+        gapi.googleDrive.files.list({
+            'access_token':gapi.oauth2Client.credentials.access_token,
+            'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
+        },
+        function(err,res){
+            googleSpreadsheet.load({
+                debug:true,
+                spreadsheetId:res.items[0].id,
+                worksheetId:'od6',
+                accessToken:{
+                    type:'Bearer',
+                    token:gapi.oauth2Client.credentials.access_token
+                }
+            },
+            function sheetReady(err, spreadsheet) {
+                if(err) throw err;
+                spreadsheet.receive(function(err,rows,info){
+                    if (err) throw err;
+                    list_of_events = [];
+                    //refactor rows
+                    var i = 1;
+                    for(var key in rows){
+                        var obj = rows[key];
+                        var j =1;
+                        var evt = {};
+                        for(var prop in obj){
+                            if(i != 1 && obj.hasOwnProperty(prop)){
+                                switch(j){
+                                    case 1:evt.title = obj[prop]; break;
+                                    case 2:evt.studentsNeeded = obj[prop]; break;
+                                    case 3:break;
+                                    case 4:evt.startDate = obj[prop]; break;
+                                    case 5:evt.endDate = obj[prop]; break;
+                                    case 6:evt.time = obj[prop]; break;
+                                    case 7:evt.venue = obj[prop]; break;
+                                    case 8:evt.reportTime = obj[prop]; break;
+                                    case 9:evt.busTime = obj[prop]; break;
+                                    case 10:evt.comments = obj[prop]; break;
+                                    case 11:evt.title = obj[prop]; break;
+                                    default: break;
+                                }
+                                j++;
+                            }
+                        }
+                        list_of_events.push(evt);
+                        i++;
+                    }
+                    //end of rafactor rows
+                    list_of_events.shift(); //remove the first empty object
+                    events.list_of_events = list_of_events;
+                    response.send(events);
+                });
+            });
         });
     });
 });
@@ -724,6 +802,7 @@ app.post('/addMembersToCCA', function(req, res) {
         resToClient.json({message:"cannot find CCA Admin folder in user google drive"});
     }
 });
+/*
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
@@ -731,19 +810,20 @@ app.use(function(req, res, next) {
     console.log("catch error");
     next(err);
 });
-// error handlers
+*/
 
 // production error handler
 // no stacktraces leaked to user
+/*
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    // res.render('error', {
-    //     message: err.message,
-    //     error: {}
-    // });
-    res.send("err");
-});
+    res.render('error', {
+        message: err.message,
+        error: {}
+    });
 
+});
+*/
 var server = app.listen(3000);
 
 console.log('Express server started on port %s', server.address().port);
