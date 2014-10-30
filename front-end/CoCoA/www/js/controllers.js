@@ -147,7 +147,13 @@ angular.module('cocoa.controllers', [])
 
 
     getLastActiveIndex: function(){
-      return parseInt(window.localStorage['lastActiveProject']) || 0;
+      var lastActiveIndex = parseInt(window.localStorage['lastActiveProject']);
+      var allgroups = angular.fromJson(window.localStorage['usergroups']);
+
+      if(lastActiveIndex == undefined || lastActiveIndex >= allgroups.length){
+        lastActiveIndex = 0;
+      }
+      return  lastActiveIndex;
     },
 
     setLastActiveIndex: function(index) {
@@ -326,7 +332,8 @@ angular.module('cocoa.controllers', [])
 .controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $ionicModal, ServerInfo, Usergroups){
   $scope.usergroups = Usergroups.all();
   $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
-  $scope.eventlist = Usergroups.getEventList();
+  // $scope.eventlist = Usergroups.getEventList();
+  $scope.eventlist = [];
   $scope.filterText = "";
   $scope.allSchoolStudents = Usergroups.allStudentsInSchool();
 
@@ -357,12 +364,22 @@ angular.module('cocoa.controllers', [])
   $scope.loadDataFromServer = function(){
     $http.get(ServerInfo.serverUrl()+"/cca")
     .success(function(data, status){
+      console.log(angular.toJson(data));
       while($scope.usergroups.length > 0){
         $scope.usergroups.pop();
       }
 
       for(var i=0; i<data.length;i++){
         $scope.usergroups.push(data[i]);
+      }
+
+      if($scope.usergroups.length == 0){
+        while($scope.usergroups.length = 0){
+          var name = prompt("Name for New CCA");
+          createNewCCA(name);
+        }
+      }else{
+        $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
       }
     })
     .error(function(data,status){
@@ -430,15 +447,15 @@ angular.module('cocoa.controllers', [])
 
   $timeout(function() {
     $scope.loadDataFromServer();
-    if($scope.usergroups.length == 0) {
-      while(true) {
-        var ccaName = prompt('Your first CCA name:');
-        if(ccaName && ccaName.trim() != "") {
-          createNewCCA(ccaName);
-          break;
-        }
-      }
-    }
+    // if($scope.usergroups.length == 0) {
+    //   while(true) {
+    //     var ccaName = prompt('Your first CCA name:');
+    //     if(ccaName && ccaName.trim() != "") {
+    //       createNewCCA(ccaName);
+    //       break;
+    //     }
+    //   }
+    // }
   });
 })
 
