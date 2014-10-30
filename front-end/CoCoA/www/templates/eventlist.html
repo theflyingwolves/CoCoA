@@ -20,9 +20,12 @@
         <p><span><i class="icon ion-ios7-location" ng-if="event.venue"></i>{{event.venue}}</span>
           <span class="location-date-divider" ng-if="event.venue && (event.startDate || event.endDate)">|</span>
           <span><i class="icon ion-calendar" ng-if="event.startDate || evnet.endDate"></i></span>
-          <span ng-if="event.startDate && event.endDate">{{event.startDate}} - {{event.endDate}}</span>
-          <span ng-if="event.startDate && !event.endDate">{{event.startDate}}</span>
-          <span ng-if="!event.startDate && event.endDate">{{event.endDate}}</span>
+          <span ng-if="event.startDate && event.endDate && event.isCurrentYear">{{event.startDate | date: 'MMM dd'}} - {{event.endDate | date: 'MMM dd'}}</span>
+          <span ng-if="event.startDate && event.endDate && !event.isCurrentYear">{{event.startDate | date: 'MMM dd, yyyy'}} - {{event.endDate | date: 'MMM dd, yyyy'}}</span>
+          <span ng-if="event.startDate && !event.endDate && event.isCurrentYear">{{event.startDate | date: 'MMM dd'}} </span>
+          <span ng-if="event.startDate && !event.endDate && !event.isCurrentYear">{{event.startDate | date: 'MMM dd, yyyy'}} </span>
+          <span ng-if="!event.startDate && event.endDate && event.isCurrentYear">{{event.endDate} | date: 'MMM dd'} </span>
+          <span ng-if="!event.startDate && event.endDate && !event.isCurrentYear">{{event.endDate} | date: 'MMM dd, yyyy'} </span>
         </p>
       </ion-item>
   </ion-list>
