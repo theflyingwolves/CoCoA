@@ -14,7 +14,7 @@
   </form>
 
 	<ion-list>
-      <ion-item class="event-row" ng-repeat="event in eventlist" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/detail/:{{event.id}}" ng-click="enterEvent(event.id)">
+      <ion-item class="event-row" ng-repeat="event in eventlist track by $index" ng-if="event.title.toLowerCase().indexOf(filterText.toLowerCase()) > -1" href="#/event/detail/:{{event.id}}" ng-click="enterEvent(event.id)">
         <h2>{{event.title}}</h2>
 
         <p><span><i class="icon ion-ios7-location" ng-if="event.venue"></i>{{event.venue}}</span>

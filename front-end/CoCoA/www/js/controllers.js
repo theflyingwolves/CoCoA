@@ -147,13 +147,7 @@ angular.module('cocoa.controllers', [])
 
 
     getLastActiveIndex: function(){
-      var lastActiveIndex = parseInt(window.localStorage['lastActiveProject']);
-      var allgroups = angular.fromJson(window.localStorage['usergroups']);
-
-      if(lastActiveIndex == undefined || lastActiveIndex >= allgroups.length){
-        lastActiveIndex = 0;
-      }
-      return  lastActiveIndex;
+      return parseInt(window.localStorage['lastActiveProject']) || 0;
     },
 
     setLastActiveIndex: function(index) {
@@ -362,9 +356,11 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.loadDataFromServer = function(){
+    console.log("loading");
     $http.get(ServerInfo.serverUrl()+"/cca")
     .success(function(data, status){
       console.log(angular.toJson(data));
+
       while($scope.usergroups.length > 0){
         $scope.usergroups.pop();
       }
@@ -373,15 +369,9 @@ angular.module('cocoa.controllers', [])
         $scope.usergroups.push(data[i]);
       }
 
-      if($scope.usergroups.length == 0){
-        while($scope.usergroups.length = 0){
-          var name = prompt("Name for New CCA");
-          createNewCCA(name);
-        }
-      }else{
-        $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
-      }
+      $scope.selectCCA($scope.usergroups[0],0);
     })
+
     .error(function(data,status){
       console.log("Error: loadDataFromServer");
     });
@@ -395,13 +385,28 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.selectCCA = function(cca, index){
+    console.log("Selecting CCA at index "+index);
     $scope.activeGroup = cca;
     Usergroups.setLastActiveIndex(index);
-    $scope.eventlist = Usergroups.getEventList();
     $ionicSideMenuDelegate.toggleLeft(false);
+
+    $http.get(ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events")
+    .success(function(data){
+      console.log("Event list: "+angular.toJson(data));
+      console.log("Stamp");
+      while($scope.eventlist.length >0 ){
+        $scope.eventlist.pop();
+      }
+
+      for(var i=0; i<data.list_of_events.length; i++){
+        console.log("Pushing "+angular.toJson(data.list_of_events[i]));
+        $scope.eventlist.push(data.list_of_events[i]);
+      }
+    });
   };
 
   var createNewEvent = function(name){
+    console.log("Create Event: Posting to "+ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events");
     $http.post(ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events",{
       event_title:name
     })
@@ -446,6 +451,7 @@ angular.module('cocoa.controllers', [])
   };
 
   $timeout(function() {
+    console.log("Logging");
     $scope.loadDataFromServer();
     // if($scope.usergroups.length == 0) {
     //   while(true) {
