@@ -16,6 +16,8 @@
     "method-override": "*",
     "async": "*",
     "googleapis": "*",
-    "edit-google-spreadsheet": "*"
+    "edit-google-spreadsheet": "*",
+    "mongodb":"*",
+    "mongoskin":"*"
   }
 }
