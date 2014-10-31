@@ -8,6 +8,17 @@ angular.module('cocoa.controllers', [])
   };
 })
 
+.factory('AccountManagement',function(){
+  return {
+    saveUserId:function(id){
+      window.localStorage['userid'] = id;
+    },
+    getUserId: function(){
+      return window.localStorage['userid'];
+    }
+  }
+})
+
 .factory('Usergroups',function(){
   var allStudents = [{
           id:"aaa",
@@ -460,7 +471,15 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.showMemberModal = function(title){
-    console.log("Clicked");
+    // console.log("Retrieving All Stident Data: ");
+    // $http.get(ServerInfo.serverUrl()+"/membersOfCCA/"+title.substring(0,title.length))
+    // .success(function(data){
+    //   console.log("All Student Data Received: "+angular.toJson(data));
+    // })
+    // .error(function(err){
+    //   console.log("Error Retrieving Student Info in CCA Group Menu: "+angular.toJson(err));
+    // });
+
     $scope.memberModal.show();
   };
 
