@@ -8,7 +8,7 @@ angular.module('cocoa.controllers', [])
   };
 })
 
-.factory('AccountManagement',function(){
+.factory('AccountManager',function(){
   return {
     saveUserId:function(id){
       window.localStorage['userid'] = id;
@@ -396,7 +396,7 @@ angular.module('cocoa.controllers', [])
     console.log("loading");
     $http.get(ServerInfo.serverUrl()+"/cca")
     .success(function(data, status){
-      console.log(angular.toJson(data));
+      console.log("All User Groups: "+angular.toJson(data));
 
       while($scope.usergroups.length > 0){
         $scope.usergroups.pop();
@@ -430,13 +430,12 @@ angular.module('cocoa.controllers', [])
     $http.get(ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events")
     .success(function(data){
       console.log("Event list: "+angular.toJson(data));
-      console.log("Stamp");
       while($scope.eventlist.length >0 ){
         $scope.eventlist.pop();
       }
 
       for(var i=0; i<data.list_of_events.length; i++){
-        console.log("Pushing "+angular.toJson(data.list_of_events[i]));
+        console.log("Select CCA: Pushing "+angular.toJson(data.list_of_events[i]));
         $scope.eventlist.push(data.list_of_events[i]);
       }
     });
@@ -467,6 +466,14 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.enterEvent = function(id){
+    // $http.get(ServerInfo.serverUrl()+"Some Url")
+    // .success(function(data){
+    //   console.log("Event Entered with response: "+angular.toJson(data));
+    // })
+    // .error(function(err){
+    //   console.log("enterEvent Error: "+angular.toJson(err));
+    // });
+
     Usergroups.enterEvent(id);
   };
 
@@ -629,8 +636,6 @@ angular.module('cocoa.controllers', [])
   $scope.selectDeletingTaskIndex = function(index){
     $scope.deletingTaskIndex = index;
   }
-
-
 
   $scope.toggleStuInfoDisplay = function(rowIndex){
     $scope.selectedRow = $scope.selectedRow == rowIndex? -1 : rowIndex;
