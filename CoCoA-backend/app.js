@@ -379,9 +379,9 @@ app.get('/allStudents/:CCAName', helperFunction.getAllStudents);
 app.get('/allStudents', helperFunction.getAllStudents);
 
 
-app.get('/MembersOfCCA/:CCAName', helperFunction.getMembersOfCCA);
-app.get('/MembersOfCCA/:CCAName/:eventName', helperFunction.getMembersOfCCA);
-app.put('/MembersOfCCA', helperFunction.updateMembersOfCCA);
+app.get('/membersOfCCA/:CCAName', helperFunction.getMembersOfCCA);
+app.get('/membersOfCCA/:CCAName/:eventName', helperFunction.getMembersOfCCA);
+app.put('/membersOfCCA', helperFunction.updateMembersOfCCA);
 
 
 app.get('/participants/:CCAName/:eventName', helperFunction.getMembersOfCCA); //yes, they are just the same
