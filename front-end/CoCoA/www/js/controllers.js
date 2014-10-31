@@ -11,6 +11,7 @@ angular.module('cocoa.controllers', [])
 .factory('AccountManager',function(){
   return {
     saveUserId:function(id){
+      console.log("Saving id "+id);
       window.localStorage['userid'] = id;
     },
     getUserId: function(){
@@ -346,14 +347,14 @@ angular.module('cocoa.controllers', [])
   };
 })
 
-.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $ionicModal, ServerInfo, Usergroups){
+.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $stateParams, $ionicModal, ServerInfo, Usergroups, AccountManager){
+  // AccountManager.saveUserId($stateParams.googleId);
   $scope.usergroups = Usergroups.all();
   $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
   // $scope.eventlist = Usergroups.getEventList();
   $scope.eventlist = [];
   $scope.filterText = "";
   $scope.allSchoolStudents = Usergroups.allStudentsInSchool();
-
 
   $ionicModal.fromTemplateUrl('templates/CCAAddMemberModal.html',{
     scope:$scope,
@@ -393,10 +394,11 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.loadDataFromServer = function(){
-    console.log("loading");
-    $http.get(ServerInfo.serverUrl()+"/cca")
+    console.log("loading user id: "+AccountManager.getUserId());
+    $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca")
+
     .success(function(data, status){
-      console.log("All User Groups: "+angular.toJson(data));
+      console.log(angular.toJson(data));
 
       while($scope.usergroups.length > 0){
         $scope.usergroups.pop();
@@ -430,12 +432,13 @@ angular.module('cocoa.controllers', [])
     $http.get(ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events")
     .success(function(data){
       console.log("Event list: "+angular.toJson(data));
+      console.log("Stamp");
       while($scope.eventlist.length >0 ){
         $scope.eventlist.pop();
       }
 
       for(var i=0; i<data.list_of_events.length; i++){
-        console.log("Select CCA: Pushing "+angular.toJson(data.list_of_events[i]));
+        console.log("Pushing "+angular.toJson(data.list_of_events[i]));
         $scope.eventlist.push(data.list_of_events[i]);
       }
     });
@@ -466,26 +469,18 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.enterEvent = function(id){
-    // $http.get(ServerInfo.serverUrl()+"Some Url")
-    // .success(function(data){
-    //   console.log("Event Entered with response: "+angular.toJson(data));
-    // })
-    // .error(function(err){
-    //   console.log("enterEvent Error: "+angular.toJson(err));
-    // });
-
     Usergroups.enterEvent(id);
   };
 
   $scope.showMemberModal = function(title){
-    // console.log("Retrieving All Stident Data: ");
-    // $http.get(ServerInfo.serverUrl()+"/membersOfCCA/"+title.substring(0,title.length))
-    // .success(function(data){
-    //   console.log("All Student Data Received: "+angular.toJson(data));
-    // })
-    // .error(function(err){
-    //   console.log("Error Retrieving Student Info in CCA Group Menu: "+angular.toJson(err));
-    // });
+    console.log("Retrieving All Stident Data: ");
+    $http.get(ServerInfo.serverUrl()+"/membersOfCCA/"+title.substring(0,title.length))
+    .success(function(data){
+      console.log("All Student Data Received: "+angular.toJson(data));
+    })
+    .error(function(err){
+      console.log("Error Retrieving Student Info in CCA Group Menu: "+angular.toJson(err));
+    });
 
     $scope.memberModal.show();
   };
@@ -637,6 +632,8 @@ angular.module('cocoa.controllers', [])
     $scope.deletingTaskIndex = index;
   }
 
+
+
   $scope.toggleStuInfoDisplay = function(rowIndex){
     $scope.selectedRow = $scope.selectedRow == rowIndex? -1 : rowIndex;
   }
@@ -744,6 +741,10 @@ angular.module('cocoa.controllers', [])
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
   $scope.student = StudentInfoFactory.getStudent($stateParams.studentId);
+})
+
+.controller("eventlistCtrl",function($scope, $stateParams, AccountManager){
+  AccountManager.saveUserId($stateParams.googleId);
 })
 
 .controller("welcomeCtrl",function($scope){
