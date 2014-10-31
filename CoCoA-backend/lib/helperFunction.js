@@ -1556,12 +1556,13 @@ exports.createTask = function(req, res){
         }
     },
     function(err, results) {
-        // results is now equals to: {one: 1, two: 2}
+        if (err) {
+            resToClient.json({message:err})
+        } else {
+            var task = results.UpdateParticipantList;
+            resToClient.json({message:"success", task:task});
+        }
     });
-
-
-
-            
 
 }
 
@@ -1578,12 +1579,15 @@ url: //taskStatus//
 
 // finish but haven't tested...
 exports.changeTaskStatus = function(req, res){
+    var resToClient = res;
 
-    var CCAName = req.CCAName;
-    var eventName = req.eventName;
-    var taskName = req.task.taskName;
-    var students = req.task.status;
+    var CCAName = req.body.CCAName;
+    var eventName = req.body.eventName;
+    var taskName = req.body.task.taskName;
+    var students = req.body.task.status;
 
+    // console.log("status");
+    // console.log(req.body.task.status);
 
     async.waterfall([
             function(callback){
@@ -1682,50 +1686,48 @@ exports.changeTaskStatus = function(req, res){
                                         };
                                         
                                         if (isTaskColumnFound) {
+                                            for (key in rows) {
+                                                if (key != '1') {
+                                                    var curId = rows[key]['2'];
+                                                    var hasDone = false;
+                                                    if (rows[key][columnCount] == "yes") {
+                                                        hasDone = true;
+                                                    }
 
+                                                    for (var i = 0; i < students.length; i++) {
+                                                        if (students[i].id == curId) {
+                                                            if (students[i].status && !hasDone) {
+                                                                var columnContent = {};
+                                                                columnContent[columnCount] = "yes";
+                                                                var rowContents = {};
+                                                                rowContents[key] = columnContent;
+                                                                spreadsheet.add(rowContents);
+                                                            } else if (!students[i].status && hasDone){
+                                                                var columnContent = {};
+                                                                columnContent[columnCount] = "no";
+                                                                var rowContents = {};
+                                                                rowContents[key] = columnContent;
+                                                                spreadsheet.add(rowContents);
+                                                            }
+                                                        }   
+                                                    };
+                                                };
+                                            };
+
+                                            spreadsheet.send(function(err) {
+                                              if(err) {
+                                                console.log(err);
+                                                callback(err, []);
+                                              } else {
+                                                console.log("finish editing");
+                                                callback(null, students);
+                                              }
+                                              
+                                            });
                                         } else {
                                             callback("cannot find the corresponding task", []);
                                         }
 
-                                        var students = [];
-                                        for (key in rows) {
-                                            if (key != '1') {
-                                                var curId = rows[key]['2'];
-                                                var hasDone = false;
-                                                if (rows[key][columnCount] == "yes") {
-                                                    hasDone = true;
-                                                }
-
-                                                for (var i = 0; i < students.length; i++) {
-                                                    if (students[i].id == curId) {
-                                                        if (students[i].status && !hasDone) {
-                                                            var columnContent = {};
-                                                            columnContent[columnCount] = "yes";
-                                                            var rowContents = {};
-                                                            rowContents[key] = columnContent;
-                                                            spreadsheet.add(rowContents);
-                                                        } else if (!students[i].status && hasDone){
-                                                            var columnContent = {};
-                                                            columnContent[columnCount] = "no";
-                                                            var rowContents = {};
-                                                            rowContents[key] = columnContent;
-                                                            spreadsheet.add(rowContents);
-                                                        }
-                                                    }   
-                                                };
-                                            };
-                                        };
-
-                                        spreadsheet.send(function(err) {
-                                          if(err) {
-                                            console.log(err);
-                                            callback(err, []);
-                                          } else {
-                                            console.log("finish editing");
-                                            callback(null, students);
-                                          }
-                                          
-                                        });
 
                                     } else {
                                         callback("spreadsheet has no first row defining the fields", []);

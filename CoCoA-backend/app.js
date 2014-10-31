@@ -557,7 +557,7 @@ app.put('/membersOfCCA', helperFunction.updateMembersOfCCA);
 
 app.post('/tasks', helperFunction.createTask);
 
-// app.put('/taskStatus', helperFunction.changeTaskStatus);
+app.put('/taskStatus', helperFunction.changeTaskStatus);
 
 /*
 // catch 404 and forward to error handler
