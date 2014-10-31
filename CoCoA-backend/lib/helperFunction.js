@@ -1272,161 +1272,296 @@ exports.createTask = function(req, res){
     var eventName = req.body.eventName;
     var taskName = req.body.newTaskName;
 
-    async.waterfall([
-            function(callback){
-                var fileName = CCAName+"-events-"+eventName;
-                var q = "title = '" + fileName+"'";
 
-                gapi.googleDrive.files.list({'q':q}, function(err, res){
-                    if (err) {
-                        var message = "error while finding the file by its name";
-                        callback(message, []);
-                    }else {
-                        var items = res.items;
+    async.parallel({
+        updateEventList: function(callback){
+            // find the file
+            // find the row
+            // find the cell
+            // update the cell
 
-                        // if item is trashed or parent is not right 
-                        // filter out the item
-                        async.filter(items, 
-                            function(item, callback){
+            async.waterfall([
+                    function(callback){
+                        var fileName = CCAName+"-List of Events";
+                        var q = "title = '" + fileName+"'";
 
-                                if (!item.labels.trashed) {
-                                    var id = item.parents[0].id;
-                                    gapi.googleDrive.files.get({'fileId': id}, function(err,res){
-                                        if (err) {
+                        gapi.googleDrive.files.list({'q':q}, function(err, res){
+                            if (err) {
+                                var message = "error while finding the file by its name";
+                                callback(message, []);
+                            }else {
+                                var items = res.items;
+
+                                // if item is trashed or parent is not right 
+                                // filter out the item
+                                async.filter(items, 
+                                    function(item, callback){
+
+                                        if (!item.labels.trashed) {
+                                            var id = item.parents[0].id;
+                                            gapi.googleDrive.files.get({'fileId': id}, function(err,res){
+                                                if (err) {
+                                                    callback(false);
+                                                } else {
+                                                    var folderName = CCAName;
+                                                    if (res.title == folderName) {
+                                                        callback(true);
+                                                    } else {
+                                                        callback(false);
+                                                    }
+                                                }
+                                            });
+                                        }else {
                                             callback(false);
+                                        }
+                                    }, 
+                                    function(results){
+                                        var items = results;
+                                        console.log("finish filtering duplicate files");
+                                        console.log(items.length);
+
+                                        if (items.length == 0) {
+                                            var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
+                                            callback(message, []);
+                                        } else if (items.length > 1) {
+                                            var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
+                                            // console.log(items);
+                                            callback(message, []);
                                         } else {
-                                            var folderName = CCAName+"-Events";
-                                            if (res.title == folderName) {
-                                                callback(true);
-                                            } else {
-                                                callback(false);
-                                            }
+                                            var item = items[0];
+
+                                            callback(null, item);
+                                        }
+
+                                    }
+                                );
+                                    
+                            }
+                        });
+                    },
+                    function(item, callback){ //find the row for this event and update the task cell
+
+                        var id = item.id;
+
+                        if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+                            
+                            var targetFileId = id;
+                                
+                            var auth = {
+                                  type: 'Bearer',
+                                  value: gapi.oauth2Client.credentials.access_token
+                            };
+                            var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
+
+                            my_sheet.getInfo( function( err, sheet_info ){
+                                if (err) {
+                                    callback(err, []);
+                                } else {
+                                    // console.log(sheet_info);
+                                    // console.log( sheet_info.title + ' is loaded' );
+                                    sheet_info.worksheets[0].getRows( function( err, rows ){
+                                        if (err) {
+                                            callback(err, []);
+                                        }else {
+                                            // console.log(rows[0]);
+                                            for (var i = 0; i < rows.length; i++) {
+                                                // hardcoded
+                                                if (rows[i].nameofevent == eventName) {
+                                                    if (rows[i].studenttasks != "") {
+                                                        rows[i].studenttasks+= ", ";
+                                                    };
+                                                    rows[i].studenttasks += taskName;
+                                                    rows[i].save();
+                                                }
+                                            };
+                                            callback(null, []);
                                         }
                                     });
-                                }else {
-                                    callback(false);
                                 }
-                            }, 
-                            function(results){
-                                var items = results;
-                                console.log("finish filtering duplicate files");
-                                console.log(items.length);
-
-                                if (items.length == 0) {
-                                    var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
-                                    callback(message, []);
-                                } else if (items.length > 1) {
-                                    var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
-                                    // console.log(items);
-                                    callback(message, []);
-                                } else {
-                                    var item = items[0];
-
-                                    callback(null, item);
-                                }
-
-                            }
-                        );
-                            
-                    }
-                });
-            },
-            function(item, callback){
-                console.log("enter final process of students info");
-
-                var id = item.id;
-
-                if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
-                    var memberDetailsFileId = id;
-
-                    googleSpreadsheet.load({
-                        debug: true,
-                        spreadsheetId: memberDetailsFileId,
-                        worksheetName: 'Sheet1',
-                        accessToken : {
-                          type: 'Bearer',
-                          token: gapi.oauth2Client.credentials.access_token
+                            })
+                        } else {
+                            var message = "the file '"+fileName+"'in your google drive is not a spreadsheet";
+                            callback(message, []);
                         }
-                        }, function sheetReady(err, spreadsheet) {
-                            if(err) {
-                                resToClient.json({message:"error when loading the spreadsheet", err:err});
-                            } else {
-                                spreadsheet.receive(function(err, rows, info) {
-                                  if(err){
-                                    throw err;
-                                  }else {
-                                    console.log(info);
-                                    // console.log(rows);
 
-                                    if (rows['1']) {
-                                        // var fields = [];
-                                        var columnCount = 0;
-                                        for (key in rows['1']) {
-                                            // fields.push(rows['1'].key);
-                                            columnCount++;
-                                        };
-                                        columnCount++;
-                                        // columnContent+="";
+                    }], function (err, result) {
+                       if (err) {
+                            callback(err, result);
+                       } else {
+                            callback(null, result);
+                       }
+                    }
+            );
+        },
+        UpdateParticipantList: function(callback){
+            async.waterfall([
+                    function(callback){
+                        var fileName = CCAName+"-events-"+eventName;
+                        var q = "title = '" + fileName+"'";
 
-                                        var columnContent = {};
-                                        columnContent[columnCount] = taskName;
-                                        var rowContents = {};
-                                        rowContents['1'] = columnContent;
+                        gapi.googleDrive.files.list({'q':q}, function(err, res){
+                            if (err) {
+                                var message = "error while finding the file by its name";
+                                callback(message, []);
+                            }else {
+                                var items = res.items;
 
-                                        spreadsheet.add(rowContents);
+                                // if item is trashed or parent is not right 
+                                // filter out the item
+                                async.filter(items, 
+                                    function(item, callback){
 
-                                        var students = [];
-                                        for (key in rows) {
-                                            if (key != '1') {
-                                                var student = {};
-                                                student.name = rows[key]['1'];
-                                                student.id = rows[key]['2'];
-                                                student.status = false;
-                                                students.push(student);
+                                        if (!item.labels.trashed) {
+                                            var id = item.parents[0].id;
+                                            gapi.googleDrive.files.get({'fileId': id}, function(err,res){
+                                                if (err) {
+                                                    callback(false);
+                                                } else {
+                                                    var folderName = CCAName+"-Events";
+                                                    if (res.title == folderName) {
+                                                        callback(true);
+                                                    } else {
+                                                        callback(false);
+                                                    }
+                                                }
+                                            });
+                                        }else {
+                                            callback(false);
+                                        }
+                                    }, 
+                                    function(results){
+                                        var items = results;
+                                        console.log("finish filtering duplicate files");
+                                        console.log(items.length);
+
+                                        if (items.length == 0) {
+                                            var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
+                                            callback(message, []);
+                                        } else if (items.length > 1) {
+                                            var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
+                                            // console.log(items);
+                                            callback(message, []);
+                                        } else {
+                                            var item = items[0];
+
+                                            callback(null, item);
+                                        }
+
+                                    }
+                                );
+                                    
+                            }
+                        });
+                    },
+                    function(item, callback){
+                        console.log("enter final process of students info");
+
+                        var id = item.id;
+
+                        if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+                            var memberDetailsFileId = id;
+
+                            googleSpreadsheet.load({
+                                debug: true,
+                                spreadsheetId: memberDetailsFileId,
+                                worksheetName: 'Sheet1',
+                                accessToken : {
+                                  type: 'Bearer',
+                                  token: gapi.oauth2Client.credentials.access_token
+                                }
+                                }, function sheetReady(err, spreadsheet) {
+                                    if(err) {
+                                        resToClient.json({message:"error when loading the spreadsheet", err:err});
+                                    } else {
+                                        spreadsheet.receive(function(err, rows, info) {
+                                          if(err){
+                                            throw err;
+                                          }else {
+                                            console.log(info);
+                                            // console.log(rows);
+
+                                            if (rows['1']) {
+                                                // var fields = [];
+                                                var columnCount = 0;
+                                                for (key in rows['1']) {
+                                                    // fields.push(rows['1'].key);
+                                                    columnCount++;
+                                                };
+                                                columnCount++;
+                                                // columnContent+="";
 
                                                 var columnContent = {};
-                                                columnContent[columnCount] = "no";
+                                                columnContent[columnCount] = taskName;
                                                 var rowContents = {};
-                                                rowContents[key] = columnContent;
+                                                rowContents['1'] = columnContent;
 
                                                 spreadsheet.add(rowContents);
-                                            };
-                                        };
 
-                                        spreadsheet.send(function(err) {
-                                          if(err) {
-                                            console.log(err);
-                                            callback(err, []);
-                                          } else {
-                                            console.log("finish editing");
-                                            callback(null, students);
-                                          }
-                                          
+                                                var students = [];
+                                                for (key in rows) {
+                                                    if (key != '1') {
+                                                        var student = {};
+                                                        student.name = rows[key]['1'];
+                                                        student.id = rows[key]['2'];
+                                                        student.status = false;
+                                                        students.push(student);
+
+                                                        var columnContent = {};
+                                                        columnContent[columnCount] = "no";
+                                                        var rowContents = {};
+                                                        rowContents[key] = columnContent;
+
+                                                        spreadsheet.add(rowContents);
+                                                    };
+                                                };
+
+                                                spreadsheet.send(function(err) {
+                                                  if(err) {
+                                                    console.log(err);
+                                                    callback(err, []);
+                                                  } else {
+                                                    console.log("finish editing");
+                                                    callback(null, students);
+                                                  }
+                                                  
+                                                });
+
+                                            } else {
+                                                callback("spreadsheet has no first row defining the fields", []);
+                                            }
+                                          } 
                                         });
-
-                                    } else {
-                                        callback("spreadsheet has no first row defining the fields", []);
                                     }
-                                  } 
-                                });
-                            }
+                                }
+                            );
+
+                        } else {
+                            var message = "the file '"+fileName+"'in your google drive is not a spreadsheet";
+                            callback(message, []);
                         }
-                    );
 
-                } else {
-                    var message = "the file '"+fileName+"'in your google drive is not a spreadsheet";
-                    callback(message, []);
-                }
+                    }], function (err, result) {
+                       if (err) {
+                            callback(err, result);
+                            // resToClient.json({message:err});
+                       } else {
+                            var task = {taskName:taskName, status:result};
+                            // resToClient.json({message:"success", task:task})
+                            callback(null, task);
+                       }
+                    }
+            );
 
-            }], function (err, result) {
-               if (err) {
-                    resToClient.json({message:err});
-               } else {
-                    var task = {taskName:taskName, status:result};
-                    resToClient.json({message:"success", task:task})
-               }
-            }
-    );
+
+        }
+    },
+    function(err, results) {
+        // results is now equals to: {one: 1, two: 2}
+    });
+
+
+
+            
 
 }
 

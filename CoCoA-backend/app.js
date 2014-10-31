@@ -209,7 +209,7 @@ app.post('/cca', function(request,response){
                 if(err) throw err;
                 spreadsheet.add([['Name of Event','Students Needed','Students Selected','Starting Date',
                     'End Date','Event Time','Event Venue','Student Reporting Time + Venue',
-                    'Bus Timing','Other Comments','TO taking them']]);
+                    'Bus Timing','Other Comments','TO taking them', 'Student Tasks']]);
                 spreadsheet.send(function(err) {
                     if(err) throw err;
                     console.log("Updated successfully");
@@ -393,6 +393,7 @@ app.get('/cca/:cca_id/events', function(request,response){
                                     case 9:evt.busTime = obj[prop]; break;
                                     case 10:evt.comments = obj[prop]; break;
                                     case 11:evt.title = obj[prop]; break;
+                                    case 12:evt.studentTasks = obj[prop]; break;
                                     default: break;
                                 }
                                 j++;
@@ -420,6 +421,7 @@ app.post('/cca/:cca_id/events', function(request,response){
     function(err,res){
         //insert a new line into List of Events spreadsheet
         console.log(err);
+        var CCAName = res.title;
         gapi.googleDrive.files.list({
             'access_token':gapi.oauth2Client.credentials.access_token,
             'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
@@ -441,7 +443,7 @@ app.post('/cca/:cca_id/events', function(request,response){
                     var data = {};
                     data[info.nextRow] = [[request.body.event_title,request.body.students_needed,'',request.body.start_date,
                     request.body.end_date,request.body.event_time,request.body.event_venue,request.body.student_report_time,
-                    request.body.bus_time,request.body.notes,request.body.to_in_charge]];
+                    request.body.bus_time,request.body.notes,request.body.to_in_charge, ""]];
                     JSON.stringify(data);
                     spreadsheet.add(data);
                     spreadsheet.send(function(err) {
@@ -459,9 +461,10 @@ app.post('/cca/:cca_id/events', function(request,response){
             'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
         },
         function(err,res){
+            var titleForThisEvent = CCAName+"-events-"+request.body.event_title;
             gapi.googleDrive.files.insert({
                 resource: {
-                    title: request.body.event_title,
+                    title: titleForThisEvent,
                     mimeType: 'application/vnd.google-apps.spreadsheet',
                     parents: [{
                     "kind":"drive#fileLink",
@@ -552,7 +555,7 @@ app.put('/membersOfCCA', helperFunction.updateMembersOfCCA);
 // app.get('/participants/:CCAName/:eventName/:taskName', helperFunction.getParticipants); //API changed,remember to update
 // app.put('/participants', helperFunction.updateParticipants);
 
-// app.post('/tasks', helperFunction.createTask);
+app.post('/tasks', helperFunction.createTask);
 
 // app.put('/taskStatus', helperFunction.changeTaskStatus);
 
