@@ -31,10 +31,11 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
     })
 
     .state('app.events',{
-      url:"/eventlist",
+      url:"/eventlist/:googleId",
       views:{
         content:{
-          templateUrl:"templates/eventlist.html"
+          templateUrl:"templates/eventlist.html",
+          controller:'eventlistCtrl'
         }
       }
     })
@@ -79,7 +80,7 @@ angular.module('cocoa', ['ionic', 'cocoa.controllers'])
       controller:"studentDetailsViewCtrl"
     })
   
-  $urlRouterProvider.otherwise('/app/eventlist');
+  $urlRouterProvider.otherwise('/welcome');
 })
 
 .directive('stopEvent', function () {
