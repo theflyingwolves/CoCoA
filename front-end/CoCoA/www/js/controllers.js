@@ -20,6 +20,24 @@ angular.module('cocoa.controllers', [])
   }
 })
 
+.factory('StatusTracker',function(){
+  return {
+    selectCCA: function(CCA){
+      console.log("StatusTracker: selecting CCA "+angular.toJson(CCA));
+      window.localStorage['currCCA'] = angular.toJson(CCA);
+    },
+    getCurrCCA: function(){
+      console.log("StatusTracker: getting currCCA ");
+      var cca = window.localStorage['currCCA'];
+      if(cca){
+        return angular.fromJson(cca);
+      }else{
+        return {};
+      }
+    }
+  }
+})
+
 .factory('Usergroups',function(){
   return {
     allStudentsInSchool:function(){
@@ -37,6 +55,7 @@ angular.module('cocoa.controllers', [])
     },
 
     save: function(groups){
+      console.log("Saving User Groups: "+groups);
       window.localStorage['usergroups'] = angular.toJson(groups);
     },
 
@@ -58,26 +77,6 @@ angular.module('cocoa.controllers', [])
       }
     },
 
-    getEventList: function(){
-      var allgroups = angular.fromJson(window.localStorage['usergroups']);
-      if(allgroups){
-        var activeIndex = parseInt(window.localStorage['lastActiveProject']) || 0;
-        var activeGroup = allgroups[activeIndex];
-        return activeGroup.events;
-      }else{
-        return [];
-      }
-    },
-
-    saveEventList: function(events){
-        var allgroups = angular.fromJson(window.localStorage['usergroups']);
-        var activeIndex = parseInt(window.localStorage['lastActiveProject']) || 0;
-        var activeGroup = allgroups[activeIndex];
-        activeGroup.events = events;
-        window.localStorage['usergroups'] = angular.toJson(allgroups);
-    },
-
-
     getLastActiveIndex: function(){
       return parseInt(window.localStorage['lastActiveProject']) || 0;
     },
@@ -86,25 +85,8 @@ angular.module('cocoa.controllers', [])
       window.localStorage['lastActiveProject'] = index;
     },
 
-    enterEvent: function(id){
-      var selectedEvent = {
-        title: "Skating",
-        startDate: "03/03/2014",
-        endDate: "04/03/2014",
-        time: "13:00",
-        venue: "COM 1",
-        comments: "Bring Matric Card",
-        TOIC:"Yanjie",
-        studentsNeeded:"2 Sec 2s",
-        reportTime:"12:30",
-        reportVenue:"Bus Stop",
-        tasks:[],
-        participants:[]
-      };
-
-      console.log("Selecting Event: "+angular.toJson(selectedEvent));
-      window.localStorage['selectedEvent'] = angular.toJson(selectedEvent);
-      window.localStorage['eventId'] = id;
+    enterEvent: function(event){
+      window.localStorage['selectedEvent'] = angular.toJson(event);
     },
 
     generateRandomId: function(){
@@ -121,7 +103,11 @@ angular.module('cocoa.controllers', [])
 })
 
 .factory('EventViewFactory',function(){
-  var selectedEvent = angular.fromJson(window.localStorage['selectedEvent']);
+  var selectedEvent = angular.fromJson(window.localStorage['selectedEvent']).event_details;
+
+  var updateSelectedEvent = function(){
+    selectedEvent = angular.fromJson(window.localStorage['selectedEvent']).event_details;
+  }
 
   return {
     allTasks:function(){
@@ -131,17 +117,21 @@ angular.module('cocoa.controllers', [])
       // }else{
       //   return [];
       // }
-      return selectedEvent.tasks;
+      if(selectedEvent.tasks){
+        return selectedEvent.tasks;
+      }else{
+        selectedEvent.tasks = [];
+        return selectedEvent.tasks;
+      }
     },
 
     getEventInfo:function(){
       // selectedEvent = getEventFromId(eventId);
-
+      updateSelectedEvent();
       var startDateFormat = new Date(selectedEvent.startDate);
       var endDateFormat = new Date(selectedEvent.endDate);
       var currentDate = new Date();
       var isCurrentYear = true;
-      console.log("Full Year is "+startDateFormat.getFullYear());
       if( ( !isNaN(startDateFormat.getFullYear()) && startDateFormat.getFullYear() != currentDate.getFullYear()) ||
         ( !isNaN(endDateFormat.getFullYear()) && endDateFormat.getFullYear() != currentDate.getFullYear() )){
         isCurrentYear = false;
@@ -158,12 +148,14 @@ angular.module('cocoa.controllers', [])
         TOIC:selectedEvent.TOIC,
         studentsNeeded:selectedEvent.studentsNeeded,
         reportTime:selectedEvent.reportTime,
-        reportVenue:selectedEvent.reportVenue
+        reportVenue:selectedEvent.reportVenue,
+        id:selectedEvent.id
       }
     },
 
     getEventParticipants:function(){
       // return selectedEvent.participants;
+      updateSelectedEvent();
       if(selectedEvent.participants.length > 0){
         return selectedEvent.participants;
       }else{
@@ -222,10 +214,9 @@ angular.module('cocoa.controllers', [])
   };
 })
 
-.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $stateParams, $ionicModal, ServerInfo, Usergroups, AccountManager){
+.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $stateParams, $ionicModal,$window ,ServerInfo, Usergroups, AccountManager, StatusTracker){
   // AccountManager.saveUserId($stateParams.googleId);
   $scope.usergroups = Usergroups.all();
-  $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
   // $scope.eventlist = Usergroups.getEventList();
   $scope.eventlist = [];
   $scope.filterText = "";
@@ -302,16 +293,16 @@ angular.module('cocoa.controllers', [])
     console.log("Selecting CCA at index "+index);
     $scope.activeGroup = cca;
     Usergroups.setLastActiveIndex(index);
+    StatusTracker.selectCCA(cca);
     $ionicSideMenuDelegate.toggleLeft(false);
+
 
     $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+$scope.activeGroup.id+"/events")
     .success(function(data){
       console.log("Event list: "+angular.toJson(data));
-      console.log("Stamp");
       while($scope.eventlist.length >0 ){
         $scope.eventlist.pop();
       }
-
       for(var i=0; i<data.list_of_events.length; i++){
         console.log("Pushing "+angular.toJson(data.list_of_events[i]));
         $scope.eventlist.push(data.list_of_events[i]);
@@ -328,7 +319,7 @@ angular.module('cocoa.controllers', [])
     .success(function(res, status){
       console.log(angular.toJson(res));
       // var newEvent = Usergroups.newEvent(name);
-      // $scope.eventlist.push(newEvent);
+      $scope.eventlist.push(newEvent);
       // Usergroups.saveEventList($scope.eventlist);
     })
     .error(function(res){
@@ -344,8 +335,20 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.enterEvent = function(id){
+    var currCCA = StatusTracker.getCurrCCA();
+    console.log("Get: Event Details at "+ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+currCCA.id+"/events/"+id);
 
-    Usergroups.enterEvent(id);
+    $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+currCCA.id+"/events/"+id)
+    
+    .success(function(data){
+      console.log("Event Details Received: "+angular.toJson(data));
+      Usergroups.enterEvent(data);
+      $window.location.href = "#/event/detail/"+id;
+    })
+
+    .error(function(err){
+      console.log("Error: Enter Event "+angular.toJson(err));
+    });
   };
 
   $scope.showMemberModal = function(title){
@@ -613,10 +616,8 @@ angular.module('cocoa.controllers', [])
   AccountManager.saveUserId($stateParams.googleId);
 })
 
-.controller("welcomeCtrl",function($scope){
-  $scope.loginDetails = {};
-  $scope.isUsernameValid = true;
+.controller("welcomeCtrl",function($scope, $window){
   $scope.login = function(){
-    console.log("Logging in with username: "+$scope.loginDetails.username+" and password: "+$scope.loginDetails.password);
+    $window.location.href='http://54.169.89.65:3000';
   };
 })
