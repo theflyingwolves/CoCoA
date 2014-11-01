@@ -21,86 +21,6 @@ angular.module('cocoa.controllers', [])
 })
 
 .factory('Usergroups',function(){
-  var allStudents = [{
-          id:"aaa",
-          name:"Wang Kunzhen",
-          status:false,
-          isSelected:true,
-          contactNumber:"99998888",
-          class:"s1-A1"
-        },
-        {
-          id:"bbb",
-          name:"Wang Yichao",
-          status:true,
-          isSelected:true,
-          contactNumber:"99998888",
-          class:"s1-E2"
-
-        },
-        {
-          id:"ccc",
-          name:"Wu Lifu",
-          status:true,
-          isSelected:true,
-          contactNumber:"77778888",
-          class:"s2-A2",
-        },
-        {
-          id:"ddd",
-          name:"Li Zhenshuo",
-          status:false,
-          isSelected:true,
-          contactNumber:"88887777",
-          class:"s2-C2",
-          MC:"ASTHMA"
-        }];
-
-  var allSchoolStudents = [{
-    id:"aaa",
-    name:"Wang Kunzhen",
-    isMember:false
-  },
-  {
-    id:"bbb",
-    name:"Wang Yichao",
-    isMember:false
-  },
-  {
-    id:"ccc",
-    name:"Wu Lifu",
-    isMember:false
-  },
-  {
-    id:"ddd",
-    name:"Li Zhenshuo",
-    isMember:false
-  },
-  {
-    id:"eee",
-    name:"Wei Wenbo",
-    isMember:false
-  },
-  {
-    id:"fff",
-    name:"Chen Hao",
-    isMember:false
-  },
-  {
-    id:"ggg",
-    name:"Wen Yiran",
-    isMember:false
-  }];
-
-  var allCCA
-
-  var allEvent = [{
-
-  }]
-
-  window.localStorage['allStudents'] = angular.toJson(allStudents);
-  window.localStorage['allSchoolStudents'] = angular.toJson(allSchoolStudents);
-  
   return {
     allStudentsInSchool:function(){
       var allSchoolStudents = angular.fromJson(window.localStorage['allSchoolStudents']);
@@ -167,6 +87,23 @@ angular.module('cocoa.controllers', [])
     },
 
     enterEvent: function(id){
+      var selectedEvent = {
+        title: "Skating",
+        startDate: "03/03/2014",
+        endDate: "04/03/2014",
+        time: "13:00",
+        venue: "COM 1",
+        comments: "Bring Matric Card",
+        TOIC:"Yanjie",
+        studentsNeeded:"2 Sec 2s",
+        reportTime:"12:30",
+        reportVenue:"Bus Stop",
+        tasks:[],
+        participants:[]
+      };
+
+      console.log("Selecting Event: "+angular.toJson(selectedEvent));
+      window.localStorage['selectedEvent'] = angular.toJson(selectedEvent);
       window.localStorage['eventId'] = id;
     },
 
@@ -184,57 +121,31 @@ angular.module('cocoa.controllers', [])
 })
 
 .factory('EventViewFactory',function(){
-  var selectedEvent = undefined;
-
-  var getEventFromId = function(id){
-    var allgroups = window.localStorage['usergroups'];
-    if(allgroups){
-      var groups = angular.fromJson(allgroups);
-      var selectedEvent = undefined;
-      for(var i=0; i<groups.length; i++){
-        var CCA = groups[i];
-        var events = CCA.events;
-        for(var j=0; j<events.length; j++){
-          var event = events[j];
-          if(event.id == id){
-            selectedEvent = event;
-          }
-        }
-      }
-
-      return selectedEvent;
-    }else{
-      return undefined;
-    }
-  };
+  var selectedEvent = angular.fromJson(window.localStorage['selectedEvent']);
 
   return {
-    allTasks:function(eventId){
-      selectedEvent = getEventFromId(eventId);
-      if(selectedEvent){
-        return selectedEvent.tasks;
-      }else{
-        return [];
-      }
+    allTasks:function(){
+      // selectedEvent = getEventFromId(eventId);
+      // if(selectedEvent){
+      //   return selectedEvent.tasks;
+      // }else{
+      //   return [];
+      // }
+      return selectedEvent.tasks;
     },
 
-    getEventId:function(){
-      return window.localStorage['eventId'];
-    },
-
-
-    getEventInfo:function(eventId){
-      selectedEvent = getEventFromId(eventId);
+    getEventInfo:function(){
+      // selectedEvent = getEventFromId(eventId);
 
       var startDateFormat = new Date(selectedEvent.startDate);
       var endDateFormat = new Date(selectedEvent.endDate);
       var currentDate = new Date();
       var isCurrentYear = true;
+      console.log("Full Year is "+startDateFormat.getFullYear());
       if( ( !isNaN(startDateFormat.getFullYear()) && startDateFormat.getFullYear() != currentDate.getFullYear()) ||
         ( !isNaN(endDateFormat.getFullYear()) && endDateFormat.getFullYear() != currentDate.getFullYear() )){
         isCurrentYear = false;
       }
-
 
       return {
         title: selectedEvent.title,
@@ -243,12 +154,11 @@ angular.module('cocoa.controllers', [])
         isCurrentYear: isCurrentYear,
         time: selectedEvent.time,
         venue: selectedEvent.venue,
-        comments: selectedEvent.comment,
+        comments: selectedEvent.comments,
         TOIC:selectedEvent.TOIC,
         studentsNeeded:selectedEvent.studentsNeeded,
         reportTime:selectedEvent.reportTime,
-        reportVenue:selectedEvent.reportVenue,
-        id:selectedEvent.id
+        reportVenue:selectedEvent.reportVenue
       }
     },
 
@@ -262,46 +172,22 @@ angular.module('cocoa.controllers', [])
     },
 
     saveEventInfo:function(eventInfo){
+      selectedEvent.startDate = eventInfo.startDate;
+      selectedEvent.endDate = eventInfo.endDate;
+      selectedEvent.time = eventInfo.time;
+      selectedEvent.venue = eventInfo.venue;
+      selectedEvent.studentsNeeded = eventInfo.studentsNeeded;
+      selectedEvent.reportTime = eventInfo.reportTime;
+      selectedEvent.reportVenue = eventInfo.reportVenue;
+      selectedEvent.TOIC = eventInfo.TOIC;
+      selectedEvent.comments = eventInfo.comments;
 
-      var groups = angular.fromJson(window.localStorage['usergroups']);
-      for(var i=0; i<groups.length; i++){
-        var events = groups[i].events;
-        for(var j=0; j<events.length; j++){
-          var event = events[j];
-          if(event.id == selectedEvent.id){
-            event.startDate = eventInfo.startDate;
-            event.endDate = eventInfo.endDate;
-            event.time = eventInfo.time;
-            event.venue = eventInfo.venue;
-            event.studentsNeeded = eventInfo.studentsNeeded;
-            event.reportTime = eventInfo.reportTime;
-            event.reportVenue = eventInfo.reportVenue;
-            event.TOIC = eventInfo.TOIC;
-            event.comments = eventInfo.comments;
-            break;
-          }
-        }
-      }
-
-      window.localStorage['usergroups'] = angular.toJson(groups);
+      window.localStorage['selectedEvent'] = angular.toJson(selectedEvent);
     },
 
     saveEventParticipants:function(participants){
       selectedEvent.participants = participants;
-
-      var groups = angular.fromJson(window.localStorage['usergroups']);
-      for(var i=0; i<groups.length; i++){
-        var events = groups[i].events;
-        for(var j=0; j<events.length; j++){
-          var event = events[j];
-          if(event.id == selectedEvent.id){
-            event.participants = participants;
-            break;
-          }
-        }
-      }
-
-      window.localStorage['usergroups'] = angular.toJson(groups);
+      window.localStorage["selectedEvent"] = angular.toJson(selectedEvent);
     },
 
     newTask: function(name){
@@ -314,18 +200,7 @@ angular.module('cocoa.controllers', [])
 
     saveTask:function(tasks){
       selectedEvent.tasks = tasks;
-      var groups = angular.fromJson(window.localStorage['usergroups']);
-      for(var i=0; i<groups.length; i++){
-        var CCA = groups[i];
-        var events = CCA.events;
-        for(var j=0; j<events.length; j++){
-          var event = events[j];
-          if(event.id == selectedEvent.id){
-            event.tasks = selectedEvent.tasks;
-          }
-        }
-      }
-      window.localStorage['usergroups'] = angular.toJson(groups);
+      window.localStorage["selectedEvent"] = angular.toJson(selectedEvent);
     }
 
   };
@@ -377,7 +252,7 @@ angular.module('cocoa.controllers', [])
   }
 
   var createNewCCA = function(name){
-    $http.post(ServerInfo.serverUrl()+"/cca",{
+    $http.post(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca",{
       cca_title:name
     })
 
@@ -429,7 +304,7 @@ angular.module('cocoa.controllers', [])
     Usergroups.setLastActiveIndex(index);
     $ionicSideMenuDelegate.toggleLeft(false);
 
-    $http.get(ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events")
+    $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+$scope.activeGroup.id+"/events")
     .success(function(data){
       console.log("Event list: "+angular.toJson(data));
       console.log("Stamp");
@@ -445,8 +320,8 @@ angular.module('cocoa.controllers', [])
   };
 
   var createNewEvent = function(name){
-    console.log("Create Event: Posting to "+ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events");
-    $http.post(ServerInfo.serverUrl()+"/cca/"+$scope.activeGroup.id+"/events",{
+    console.log("Create Event: Posting to "+ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+$scope.activeGroup.id+"/events");
+    $http.post(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+$scope.activeGroup.id+"/events",{
       event_title:name
     })
 
@@ -469,12 +344,13 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.enterEvent = function(id){
+
     Usergroups.enterEvent(id);
   };
 
   $scope.showMemberModal = function(title){
     console.log("Retrieving All Stident Data: ");
-    $http.get(ServerInfo.serverUrl()+"/membersOfCCA/"+title.substring(0,title.length))
+    $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/membersOfCCA/"+title.substring(0,title.length))
     .success(function(data){
       console.log("All Student Data Received: "+angular.toJson(data));
     })
@@ -500,23 +376,13 @@ angular.module('cocoa.controllers', [])
   $timeout(function() {
     console.log("Logging");
     $scope.loadDataFromServer();
-    // if($scope.usergroups.length == 0) {
-    //   while(true) {
-    //     var ccaName = prompt('Your first CCA name:');
-    //     if(ccaName && ccaName.trim() != "") {
-    //       createNewCCA(ccaName);
-    //       break;
-    //     }
-    //   }
-    // }
   });
 })
 
 .controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicPopup, $timeout, EventViewFactory){
-  $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks(EventViewFactory.getEventId());
+  $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks();
   $scope.selectedTask = $scope.eventtasks[0];
-  $scope.eventId = EventViewFactory.getEventId();
-  $scope.eventInfo = EventViewFactory.getEventInfo($scope.eventId);
+  $scope.eventInfo = EventViewFactory.getEventInfo();
   $scope.selectedTaskIndex = -1;
   $scope.deletingTaskIndex = -1;
 
@@ -526,7 +392,6 @@ angular.module('cocoa.controllers', [])
   }).then(function(modal){
     $scope.partEditModal = modal;
   });
-
 
   $scope.$on("modal.hidden",function(){
     console.log("hidden");
@@ -686,7 +551,8 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.eventDetailsView = function(){
-    $scope.eventParticipants = EventViewFactory.getEventParticipants();
+    // $scope.eventParticipants = EventViewFactory.getEventParticipants();
+    $scope.eventParticipants = [];
     $scope.partViewModel = generatePartModel($scope.eventParticipants);
     $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
     $scope.participantsEditModel = generatePartModel($scope.tempParticipants);
