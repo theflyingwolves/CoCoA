@@ -693,9 +693,9 @@ app.get('/:user_id/participants/:CCAName/:eventName', helperFunction.getParticip
 app.get('/:user_id/participants/:CCAName/:eventName/:taskName', helperFunction.getParticipants); //API changed,remember to update
 app.put('/:user_id/participants', helperFunction.updateParticipants);
 
-app.post('/:user_id/tasks', helperFunction.createTask);
+// app.post('/:user_id/tasks', helperFunction.createTask);
 
-app.put('/:user_id/taskStatus', helperFunction.changeTaskStatus);
+// app.put('/:user_id/taskStatus', helperFunction.changeTaskStatus);
 
 /*
 // catch 404 and forward to error handler
