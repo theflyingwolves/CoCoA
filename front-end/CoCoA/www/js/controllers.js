@@ -8,6 +8,18 @@ angular.module('cocoa.controllers', [])
   };
 })
 
+.factory('AccountManager',function(){
+  return {
+    saveUserId:function(id){
+      console.log("Saving id "+id);
+      window.localStorage['userid'] = id;
+    },
+    getUserId: function(){
+      return window.localStorage['userid'];
+    }
+  }
+})
+
 .factory('Usergroups',function(){
   var allStudents = [{
           id:"aaa",
@@ -335,14 +347,14 @@ angular.module('cocoa.controllers', [])
   };
 })
 
-.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $ionicModal, ServerInfo, Usergroups){
+.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $stateParams, $ionicModal, ServerInfo, Usergroups, AccountManager){
+  // AccountManager.saveUserId($stateParams.googleId);
   $scope.usergroups = Usergroups.all();
   $scope.activeGroup = $scope.usergroups[Usergroups.getLastActiveIndex()];
   // $scope.eventlist = Usergroups.getEventList();
   $scope.eventlist = [];
   $scope.filterText = "";
   $scope.allSchoolStudents = Usergroups.allStudentsInSchool();
-
 
   $ionicModal.fromTemplateUrl('templates/CCAAddMemberModal.html',{
     scope:$scope,
@@ -382,8 +394,9 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.loadDataFromServer = function(){
-    console.log("loading");
-    $http.get(ServerInfo.serverUrl()+"/cca")
+    console.log("loading user id: "+AccountManager.getUserId());
+    $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca")
+
     .success(function(data, status){
       console.log(angular.toJson(data));
 
@@ -460,7 +473,15 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.showMemberModal = function(title){
-    console.log("Clicked");
+    console.log("Retrieving All Stident Data: ");
+    $http.get(ServerInfo.serverUrl()+"/membersOfCCA/"+title.substring(0,title.length))
+    .success(function(data){
+      console.log("All Student Data Received: "+angular.toJson(data));
+    })
+    .error(function(err){
+      console.log("Error Retrieving Student Info in CCA Group Menu: "+angular.toJson(err));
+    });
+
     $scope.memberModal.show();
   };
 
@@ -720,6 +741,10 @@ angular.module('cocoa.controllers', [])
 
 .controller("studentDetailsViewCtrl",function($scope, $stateParams, StudentInfoFactory){
   $scope.student = StudentInfoFactory.getStudent($stateParams.studentId);
+})
+
+.controller("eventlistCtrl",function($scope, $stateParams, AccountManager){
+  AccountManager.saveUserId($stateParams.googleId);
 })
 
 .controller("welcomeCtrl",function($scope){
