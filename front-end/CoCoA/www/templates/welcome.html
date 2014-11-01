@@ -1,36 +1,7 @@
-<ion-view>
-	<ion-header>
-		<div class="bar bar-header bar-stable">
-			<h1 class="title">CoCoA</h1>
-		</div>
-	</ion-header>
-
-	<ion-content class="has-header">
-
-		<div class="card" style="margin-top:90px;">
-
-			<div class="item-divider">
-				<p style="text-align:center;">Login with Google</p>
-			</div>
-
-			<div class="item row">
-				<div class="col col-33"><b>Username:</b></div>
-				<div class="col col-67">
-					<input type="text" ng-model="loginDetails.username">
-				</div>
-			</div>
-
-			<div class="item row">
-				<div class="col col-33"><b>Password:</b></div>
-				<div class="col col-67">
-					<input type="password" ng-model="loginDetails.password">
-				</div>
-			</div>
-
-			<div class="item">
-				<a href="http://54.169.89.65:3000"><button class="button button-block">Login with Google</button></a>
-			</div>
-
-		</div>
-	</ion-content>
+<ion-view id="welcome-page">
+	<div id="welcome-center">
+		<img src="img/cocoa_logo_glow.png"></img>
+		<h1 id="welcome-title">CoCoA</h1>
+		<button class="button button-block" id="login-btn" ng-click="login()">Google Login</button>
+	</div>
 </ion-view>

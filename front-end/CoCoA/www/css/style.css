@@ -51,6 +51,50 @@
 	font-size: 20px;
 }
 
+
+/*welcome page*/
+#welcome-center{
+	position: relative;
+	top:15%;
+}
+
+#welcome-center img{
+	height:100px;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#welcome-title{
+	color:white;
+	font-family: 'Roboto', sans-serif;	font-size: 30px;
+	text-align: center;
+	padding-bottom:80px; 
+
+}
+
+#login-btn {
+	background-color: orange;
+	color: white;
+	font-size: 18px;
+	font-weight: bold;
+	border:0;
+	width:90%;
+	max-width:300px;
+	border-radius: 6px;
+	margin-left: auto;
+	margin-right: auto;
+	/*box-shadow: 0px 1px 10px #AAA;*/
+}	
+
+#welcome-page{
+	/*background-color: orange;*/
+	background-image: url('../img/cooperate_blur2.jpg');
+	background-position: center;
+	background-size: 170%;
+}
+
+
 /*event list view*/
 .event-row .icon.ion-ios7-location{
 	padding-right: 5px;
