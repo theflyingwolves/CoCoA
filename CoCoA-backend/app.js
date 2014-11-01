@@ -551,9 +551,9 @@ app.get('/membersOfCCA/:CCAName/:eventName', helperFunction.getMembersOfCCA);
 app.put('/membersOfCCA', helperFunction.updateMembersOfCCA);
 
 
-// app.get('/participants/:CCAName/:eventName', helperFunction.getParticipants); //API changed,remember to update
-// app.get('/participants/:CCAName/:eventName/:taskName', helperFunction.getParticipants); //API changed,remember to update
-// app.put('/participants', helperFunction.updateParticipants);
+app.get('/participants/:CCAName/:eventName', helperFunction.getParticipants); //API changed,remember to update
+app.get('/participants/:CCAName/:eventName/:taskName', helperFunction.getParticipants); //API changed,remember to update
+app.put('/participants', helperFunction.updateParticipants);
 
 app.post('/tasks', helperFunction.createTask);
 

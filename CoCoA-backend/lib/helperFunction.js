@@ -639,11 +639,7 @@ exports.updateMembersOfCCA = function(req, res) {
 
                 if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
                     var memberDetailsFileId = item.id;
-
-                    var targetStudentDetails = [];
-                    for (var i = 0; i < studentsToAdd.length; i++) {
-                        targetStudentDetails.push(studentsToAdd[i].data);
-                    };
+                  
 
                     googleSpreadsheet.load({
                         debug: true,
@@ -655,7 +651,7 @@ exports.updateMembersOfCCA = function(req, res) {
                         }
                         }, function sheetReady(err, spreadsheet) {
                             if(err) {
-                                resToClient.json({message:"error when loading the spreadsheet", err:err});
+                                callback(err, []);
                             } else {
                                 spreadsheet.receive(function(err, rows, info) {
                                   if(err){
@@ -663,23 +659,64 @@ exports.updateMembersOfCCA = function(req, res) {
                                   }else {
                                     var numOfRows = info.totalRows;
                                     var nextRow = info.nextRow;
-                                    // console.log(targetStudentDetails);
-                                    // console.log(numOfRows);
+                                    
 
-                                    contents = {};
-                                    contents[nextRow] = targetStudentDetails;
 
-                                    spreadsheet.add(contents);
-                                    spreadsheet.send(function(err) {
-                                      if(err) {
-                                        callback(err, students);
-                                        // console.log("edit spreadsheet error");
-                                        // console.log(err);
-                                      } else {
-                                        callback(null, students);
-                                      }
-                                      
-                                    });
+                                    if (numOfRows > 0 ) {
+                                        var fieldNames = [];
+
+                                        for (key in rows['1']) {
+                                            var fieldName = rows['1'][key].replace(" ", "");
+                                            fieldName = fieldName.toLowerCase();
+                                            fieldNames.push(fieldName);
+                                        };
+
+                                        var targetStudentDetails = [];
+                                        for (var i = 0; i < studentsToAdd.length; i++) {
+                                            var curDetail = [studentsToAdd[i].name, studentsToAdd[i].id];
+
+
+                                            for (key in studentsToAdd[i].data){
+                                                curDetail.push((studentsToAdd[i].data)[key]);
+                                            }
+
+
+                                            // for (var j = 0; j < fieldNames.length; j++) {
+                                            //     var curValue = "";
+                                            //     if (fieldNames[j] == "id") {
+                                            //         curValue = studentsToAdd[i].id;
+                                            //     } else if (fieldNames[j] == "name") {
+                                            //         curValue = studentsToAdd[i].name;
+                                            //     } else {
+                                            //         if ((studentsToAdd[i].data)[fieldNames[j]]) {
+                                            //             curValue = (studentsToAdd[i].data)[fieldNames[j]];
+                                            //         } 
+                                            //     }
+                                            //     curDetail.push(curValue);
+                                            // };
+
+                                            targetStudentDetails.push(curDetail);
+                                        }; 
+
+                                        contents = {};
+                                        contents[nextRow] = targetStudentDetails;
+
+                                        spreadsheet.add(contents);
+                                        spreadsheet.send(function(err) {
+                                          if(err) {
+                                            callback(err, students);
+                                            // console.log("edit spreadsheet error");
+                                            // console.log(err);
+                                          } else {
+                                            callback(null, students);
+                                          }
+                                          
+                                        });
+
+                                    } else {
+                                        var message = "the first row of spreadsheet " + item.title + " is not initialised";
+                                        callback(message, []);
+                                    }                
                                   } 
                                 });
                             }
@@ -806,89 +843,18 @@ exports.getParticipants = function(req, res) {
     var eventName = req.params.eventName;
     var taskName = req.params.taskName;
 
-
     if (!gapi.oauth2Client.credentials.access_token) {
         res.json({message: "please log in first"});
     } else {
-        // this waterfall function first read the target event participants
-        // then read all CCAMembers
-        // set the participants as selected = true
         async.waterfall([
             function(callback){ 
 
-                if (req.params.eventName) {
-                    console.log("has eventName");
-                    var CCAName = req.params.CCAName;
-                    var eventName = req.params.eventName;
-                    var selectedStudents = [];
-
-                    var fileName = CCAName+"-events-"+eventName;
-                    var q = "title = '" + fileName+"'";
-
-                    gapi.googleDrive.files.list({'q':q}, function(err, res){
-                        if (err) {
-                            callback("error while finding the file by its name", []);
-                        }else {
-                            var items = res.items;
-
-                            // if item is trashed or parent is not right 
-                            // filter out the item
-                            async.filter(items, 
-                                function(item, callback){
-
-                                    if (!item.labels.trashed) {
-                                        var id = item.parents[0].id;
-                                        gapi.googleDrive.files.get({'fileId': id}, function(err,res){
-                                            if (err) {
-                                                callback(false);
-                                            } else {
-                                                var folderName = CCAName+"-Events";
-                                                if (res.title == folderName) {
-                                                    callback(true);
-                                                } else {
-                                                    callback(false);
-                                                }
-                                            }
-                                        });
-                                    }else {
-                                        callback(false);
-                                    }
-                                }, 
-                                function(results){
-                                    var items = results;
-                                    // console.log("finish filtering duplicate files");
-                                    // console.log(items.length);
-
-                                    if (items.length == 0) {
-                                        var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
-                                        callback(message, []);
-                                    } else if (items.length > 1) {
-                                        var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
-                                        // console.log(items);
-                                        callback(message, []);
-                                    } else {
-                                        var item = items[0];
-
-                                        readFromASpreadSheetWithFileDetail(item, [], callback);
-                                    }
-
-                                }
-                            );
-                        }
-                    }); 
-                }else {
-                    callback(null, [], []);
-                }
-            },
-            function(dummy, studentSelected, callback){
-                var CCAName = req.params.CCAName;
-                var fileName = CCAName+"-Student Details";
+                var fileName = CCAName+"-events-"+eventName;
                 var q = "title = '" + fileName+"'";
 
                 gapi.googleDrive.files.list({'q':q}, function(err, res){
                     if (err) {
-                        var message = "error while finding the file by its name";
-                        callback(message, []);
+                        callback("error while finding the file by its name", []);
                     }else {
                         var items = res.items;
 
@@ -903,7 +869,8 @@ exports.getParticipants = function(req, res) {
                                         if (err) {
                                             callback(false);
                                         } else {
-                                            if (res.title == CCAName) {
+                                            var folderName = CCAName+"-Events";
+                                            if (res.title == folderName) {
                                                 callback(true);
                                             } else {
                                                 callback(false);
@@ -916,8 +883,8 @@ exports.getParticipants = function(req, res) {
                             }, 
                             function(results){
                                 var items = results;
-                                console.log("finish filtering duplicate files");
-                                console.log(items.length);
+                                // console.log("finish filtering duplicate files");
+                                // console.log(items.length);
 
                                 if (items.length == 0) {
                                     var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
@@ -929,34 +896,99 @@ exports.getParticipants = function(req, res) {
                                 } else {
                                     var item = items[0];
 
-                                    readFromASpreadSheetWithFileDetail(item, studentSelected, callback);
+                                    callback(null, item);
                                 }
 
                             }
                         );
-                            
                     }
-                });
+                }); 
             },
-            function(studentSelected, allStudents, callback){
-                console.log("enter final process of students info");
-                for (var i = 0; i < allStudents.length; i++) {
-                    var selected = false;
-                    for (var j = 0; j < studentSelected.length; j++) {
-                        if (studentSelected[j].id == allStudents[i].id) {
-                            selected = true;
-                            break;
-                        };
-                    };
-                    if (selected) {
-                        allStudents[i].selected = true;
+            function(item, callback){
+                var studentSelected = [];
+
+                if (taskName) {
+
+                    if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+                        var memberDetailsFileId = item.id;
+                      
+                        googleSpreadsheet.load({
+                            debug: true,
+                            spreadsheetId: memberDetailsFileId,
+                            worksheetName: 'Sheet1',
+                            accessToken : {
+                              type: 'Bearer',
+                              token: gapi.oauth2Client.credentials.access_token
+                            }
+                            }, function sheetReady(err, spreadsheet) {
+                                if(err) {
+                                    callback(err, []);
+                                } else {
+                                    spreadsheet.receive(function(err, rows, info) {
+                                      if(err){
+                                        throw err;
+                                      }else {
+                                        var numOfRows = info.totalRows;
+                                        
+                                        if (numOfRows > 0 ) {
+                                            var columnCount = 1;
+                                            var hasFound = false;
+
+                                            for (key in rows['1']) {
+                                                var fieldName = rows['1'][key];
+                                                if (fieldName == taskName) {
+                                                    hasFound = true;
+                                                    break;
+                                                }
+                                                columnCount++;
+                                            };
+                                            var property = ""+columnCount;
+
+
+                                            if (hasFound) {
+                                                for (key in rows){
+                                                    if (key != '1') {
+                                                        console.log(rows[key]);
+                                                        //hardcode
+                                                        if (rows[key].hasOwnProperty(property) && rows[key][property] == "yes") {
+                                                            studentSelected.push(rows[key]['2']);
+                                                        };
+                                                    };
+                                                }
+                                            };
+
+                                            readFromASpreadSheetWithFileDetail(item, studentSelected, callback);
+
+                                        } else {
+                                            var message = "the first row of spreadsheet " + item.title + " is not initialised";
+                                            callback(message, []);
+                                        }                
+                                      } 
+                                    });
+                                }
+                            }
+                        );
+                    } 
+
+
+                } else {
+                    readFromASpreadSheetWithFileDetail(item, studentSelected, callback);
+                }
+
+
+            },
+            function(studentSelected, studentInfo, callback){
+
+                for (var i = 0; i < studentInfo.length; i++) {
+
+                    if (studentSelected.indexOf(studentInfo[i].id) != -1) {
+                        studentInfo[i].status = true;
                     } else {
-                        allStudents[i].selected = false;
+                        studentInfo[i].status = false;
                     }
                 };
 
-                console.log("finish final process of students info");
-                callback(null, allStudents);
+                callback(null, studentInfo);
             }
         ], function (err, result) {
            if (err) {
@@ -965,11 +997,7 @@ exports.getParticipants = function(req, res) {
                 resToClient.json({message:"success", students:result})
            }
         });
-   
     } 
-
-
-
 }
 
 // temporary no use
@@ -1193,13 +1221,9 @@ exports.updateParticipants = function(req, res) {
             function (item, studentsToAdd, students, callback){
 
                 if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+                    
                     var memberDetailsFileId = item.id;
-
-                    var targetStudentDetails = [];
-                    for (var i = 0; i < studentsToAdd.length; i++) {
-                        targetStudentDetails.push(studentsToAdd[i].data);
-                    };
-
+                  
                     googleSpreadsheet.load({
                         debug: true,
                         spreadsheetId: memberDetailsFileId,
@@ -1210,7 +1234,7 @@ exports.updateParticipants = function(req, res) {
                         }
                         }, function sheetReady(err, spreadsheet) {
                             if(err) {
-                                resToClient.json({message:"error when loading the spreadsheet", err:err});
+                                callback(err, []);
                             } else {
                                 spreadsheet.receive(function(err, rows, info) {
                                   if(err){
@@ -1218,28 +1242,68 @@ exports.updateParticipants = function(req, res) {
                                   }else {
                                     var numOfRows = info.totalRows;
                                     var nextRow = info.nextRow;
-                                    // console.log(targetStudentDetails);
-                                    // console.log(numOfRows);
+                                    
 
-                                    contents = {};
-                                    contents[nextRow] = targetStudentDetails;
 
-                                    spreadsheet.add(contents);
-                                    spreadsheet.send(function(err) {
-                                      if(err) {
-                                        callback(err, students);
-                                        // console.log("edit spreadsheet error");
-                                        // console.log(err);
-                                      } else {
-                                        callback(null, students);
-                                      }
-                                      
-                                    });
+                                    if (numOfRows > 0 ) {
+                                        var fieldNames = [];
+
+                                        for (key in rows['1']) {
+                                            var fieldName = rows['1'][key].replace(" ", "");
+                                            fieldName = fieldName.toLowerCase();
+                                            fieldNames.push(fieldName);
+                                        };
+
+                                        var targetStudentDetails = [];
+                                        for (var i = 0; i < studentsToAdd.length; i++) {
+                                            var curDetail = [studentsToAdd[i].name, studentsToAdd[i].id];
+
+                                            for (key in studentsToAdd[i].data){
+                                                curDetail.push((studentsToAdd[i].data)[key]);
+                                            }
+
+                                            // for (var j = 0; j < fieldNames.length; j++) {
+                                            //     var curValue = "";
+                                            //     if (fieldNames[j] == "id") {
+                                            //         curValue = studentsToAdd[i].id;
+                                            //     } else if (fieldNames[j] == "name") {
+                                            //         curValue = studentsToAdd[i].name;
+                                            //     } else {
+                                            //         if ((studentsToAdd[i].data)[fieldNames[j]]) {
+                                            //             curValue = (studentsToAdd[i].data)[fieldNames[j]];
+                                            //         } 
+                                            //     }
+                                            //     curDetail.push(curValue);
+                                            // };
+
+                                            targetStudentDetails.push(curDetail);
+                                        }; 
+
+                                        contents = {};
+                                        contents[nextRow] = targetStudentDetails;
+
+                                        spreadsheet.add(contents);
+                                        spreadsheet.send(function(err) {
+                                          if(err) {
+                                            callback(err, students);
+                                            // console.log("edit spreadsheet error");
+                                            // console.log(err);
+                                          } else {
+                                            callback(null, students);
+                                          }
+                                          
+                                        });
+
+                                    } else {
+                                        var message = "the first row of spreadsheet " + item.title + " is not initialised";
+                                        callback(message, []);
+                                    }                
                                   } 
                                 });
                             }
                         }
                     );
+
                 }                
             }
         ], function (err, result) {
@@ -1824,7 +1888,6 @@ function copySelectedInfoBetweensheetsWithFileDetail(item1, item2, selected, res
                             curRow.push(rows['1'][index]);
                         };
                         targetStudentDetails.push(curRow);
-                        // targetStudentDetails.push(rows['1']);
 
                         for (var i = 2; i < numOfRows+1; i++) {
                             var index = '' + i;
@@ -2044,53 +2107,119 @@ function readFromASpreadSheetWithFileDetail(item, selected, callback){
         if (item) {
 
             if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+                
                 var targetFileId = item.id;
-
-                console.log("trying to reading spreadsheet " + item.title);
-
-                googleSpreadsheet.load({
-                    debug: true,
-                    spreadsheetId: targetFileId,
-                    worksheetName: 'Sheet1',
-                    accessToken : {
+                    
+                var auth = {
                       type: 'Bearer',
-                      token: gapi.oauth2Client.credentials.access_token
-                    }
-                    }, function sheetReady(err, spreadsheet) {
-                        if(err) {
-                            var message = "error when loading the spreadsheet";
-                            callback(message, []);
-                        } else {
-                            spreadsheet.receive(function(err, rows, info) {
-                                // console.log(JSON.stringify(spreadsheet));
-                              if(err){
-                                var message = "error while reading spreadsheet";
-                                callback(message, []);
-                              }else {
-                                var numOfRows = info.totalRows;
+                      value: gapi.oauth2Client.credentials.access_token
+                };
+                var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
+
+                my_sheet.getInfo( function( err, sheet_info ){
+                    if (err) {
+                        callback(err, []);
+                    } else {
+                        // console.log(sheet_info);
+                        // console.log( sheet_info.title + ' is loaded' );
+                        sheet_info.worksheets[0].getRows( function( err, rows ){
+                            if (err) {
+                                callback(err, []);
+                            }else {
                                 var studentInfo = [];
+                                var excludedFileds = ["_xml", "name", "id", "title", "content", "_links", "save", "del"];
 
-                                for (var i = 2; i < numOfRows+1; i++) {
-                                    var index = '' + i;
-                                    var curStudent = rows[index];
-
-                                    var curRow = []
-                                    for (index2 in curStudent) {
-                                        curRow.push(curStudent[index2]);
-                                    };
-
-                                    var curInfo = {name:curStudent['1'] , id:curStudent['2'], data:curRow }
-                                    studentInfo.push(curInfo);
+                                for (var i = 0; i < rows.length; i++) {
+                                    // hardcoded
+                                    var row = rows[i];
+                                    var student = {};
+                                    student.id = row.id;
+                                    student.name = row.name;
+                                    var data = {};
+                                    for (key in row){
+                                        if (excludedFileds.indexOf(key) == -1) {
+                                            data[key] = row[key];
+                                        };
+                                    }
+                                    student.data = data;
+                                    studentInfo.push(student);
                                 };
-
-                                console.log("finish reading spreadsheet " + item.title);
                                 callback(null, selected, studentInfo);
-                              } 
-                            });
-                        }
-
+                            }
+                        });
                     }
-                );
+                });
+
+
+
+
+
+
+                // var targetFileId = item.id;
+
+                // console.log("trying to reading spreadsheet " + item.title);
+
+                // googleSpreadsheet.load({
+                //     debug: true,
+                //     spreadsheetId: targetFileId,
+                //     worksheetName: 'Sheet1',
+                //     accessToken : {
+                //       type: 'Bearer',
+                //       token: gapi.oauth2Client.credentials.access_token
+                //     }
+                //     }, function sheetReady(err, spreadsheet) {
+                //         if(err) {
+                //             var message = "error when loading the spreadsheet";
+                //             callback(message, []);
+                //         } else {
+                //             spreadsheet.receive(function(err, rows, info) {
+                //                 // console.log(JSON.stringify(spreadsheet));
+                //               if(err){
+                //                 var message = "error while reading spreadsheet";
+                //                 callback(message, []);
+                //               }else {
+                //                 var numOfRows = info.totalRows;
+                //                 var studentInfo = [];
+
+                //                 if (numOfRows <= 0) {
+                //                     var message = "first row of spreadsheet " +  item.title + " is not initialised";
+                //                     callback(message, []);
+
+
+                //                 } else {
+                //                     var fieldNames = [];
+                //                     for (key in rows['1']){
+                //                         fieldNames.push(rows['1'][key]);
+                //                     }
+
+
+                //                     for (var i = 2; i < numOfRows+1; i++) {
+                //                         var index = '' + i;
+                //                         var curStudent = rows[index];
+                //                         console.log(curStudent);
+
+                //                         var curRow = {};
+                //                         // var curRow = [];
+                //                         var fieldCount = 0;
+                //                         for (index2 in curStudent) {
+                //                             curRow[fieldNames[fieldCount]] = curStudent[index2];
+                //                             fieldCount++;
+                //                             // curRow.push(curStudent[index2]);
+                //                         };
+
+                //                         var curInfo = {name:curStudent['1'] , id:curStudent['2'], data:curRow }
+                //                         studentInfo.push(curInfo);
+                //                     };
+
+                //                     console.log("finish reading spreadsheet " + item.title);
+                //                     callback(null, selected, studentInfo);
+                //                 }
+                //               } 
+                //             });
+                //         }
+
+                //     }
+                // );
 
             } else {
                 var message = "unknown type error of student detail file: " + res.mimeType;
