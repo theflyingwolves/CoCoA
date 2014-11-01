@@ -2176,19 +2176,17 @@ function appendRowsToSheet(sheet2Id, targetStudentDetails, resToClient){
 // this function read the student details from a spreadsheet
 // then pass back selected and the newly found student details back to the callback function
 function readFromASpreadSheetWithFileDetail(item, selected, callback, user){
-    if (!gapi.oauth2Client.credentials.access_token) {
-        var message = "please log in first";
-        callback(message, []);
-    } else {
-        if (item) {
-
+    db.collection('users').find({google_id:req.params.user_id}).toArray(function(err, user) {
+        if (err) {
+            callback(err, []);
+        } else {
             if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
                 
                 var targetFileId = item.id;
                     
                 var auth = {
                       type: 'Bearer',
-                      value: gapi.oauth2Client.credentials.access_token
+                      value: user[0].credentials.access_token
                 };
                 var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
 
@@ -2301,11 +2299,8 @@ function readFromASpreadSheetWithFileDetail(item, selected, callback, user){
                 var message = "unknown type error of student detail file: " + res.mimeType;
                 callback(message, []);
             }
-        }else {
-            var message = "no target spreadsheet id is received";
-            callback(message, []);
-        }
-    }
+        } 
+    });
 }
 
 function readStudentInfoFromASpreadSheetWithFileDetail(item, resToClient){
