@@ -31,7 +31,7 @@ gapis = {};
 var gapiArray = [];
 
 var googleSpreadsheet = require('edit-google-spreadsheet');
-var helperFunction = require('./lib/helperFunction')
+var helperFunction = require('./lib/helperFunction');
 
 var createDomain = require('domain').create;
 
@@ -172,6 +172,11 @@ app.get('/oauth2callback', function(request, response) {
             function(err, googleId){
                 if(err) throw err;
                 console.log("auth callback googleId: "+googleId);
+                // var locals = {
+                //     title: 'What are you doing?',
+                //     url: gapi.authUrl
+                // };
+                // response.render('index.jade', locals);
                 response.redirect('http://ec2-54-169-115-238.ap-southeast-1.compute.amazonaws.com/www/index.html#/app/eventlist/'+googleId);
             });
     });
@@ -693,9 +698,9 @@ app.get('/:user_id/participants/:CCAName/:eventName', helperFunction.getParticip
 app.get('/:user_id/participants/:CCAName/:eventName/:taskName', helperFunction.getParticipants); //API changed,remember to update
 app.put('/:user_id/participants', helperFunction.updateParticipants);
 
-// app.post('/:user_id/tasks', helperFunction.createTask);
+app.post('/:user_id/tasks', helperFunction.createTask);
 
-// app.put('/:user_id/taskStatus', helperFunction.changeTaskStatus);
+app.put('/:user_id/taskStatus', helperFunction.changeTaskStatus);
 
 /*
 // catch 404 and forward to error handler
@@ -709,17 +714,18 @@ app.use(function(req, res, next) {
 
 // production error handler
 // no stacktraces leaked to user
-/*
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
 
-app.use(errorhandler());
+// app.use(function(err, req, res, next) {
+//     res.status(err.status || 500);
+//     res.render('error', {
+//         message: err.message,
+//         error: {}
+//     });
 
-}
+// app.use(errorhandler());
+
+// }
+
 var server = app.listen(3000);
 
 console.log('Express server started on port %s', server.address().port);

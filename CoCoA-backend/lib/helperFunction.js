@@ -3,7 +3,7 @@ var googleSpreadsheet = require('edit-google-spreadsheet');
 var googleSpreadsheetNew = require('google-spreadsheet');
 var async = require('async');
 var mongoskin = require('mongoskin'),
-var db = mongoskin.db('mongodb://localhost:27017/cocoa?auto_reconnect', {safe:true});
+db = mongoskin.db('mongodb://localhost:27017/cocoa?auto_reconnect', {safe:true});
 
 var studentDetailsFilename = "Student Details";
 var memberDetailsFilename = "Student Details";
@@ -1828,7 +1828,7 @@ exports.changeTaskStatus = function(req, res){
                                 } else {
                                     var item = items[0];
 
-                                    callback(null, item， user);
+                                    callback(null, item, user);
                                 }
 
                             }
@@ -1981,6 +1981,7 @@ function findFileIdByName(fileName, resToClient){
     });    
 }
 
+// temporary no use
 function copySelectedInfoBetweensheetsWithFileDetail(item1, item2, selected, resToClient){   
     if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
@@ -2041,6 +2042,7 @@ function copySelectedInfoBetweensheetsWithFileDetail(item1, item2, selected, res
     }
 }
 
+// temporary no use
 function copySelectedInfoBetweensheets(sheet1Id, sheet2Id, selected, resToClient){   
     if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
@@ -2108,6 +2110,7 @@ function copySelectedInfoBetweensheets(sheet1Id, sheet2Id, selected, resToClient
     });
 }
 
+// temporary no use
 function appendRowsToSheetWithDetails(item, targetStudentDetails, resToClient){
     if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
@@ -2162,6 +2165,7 @@ function appendRowsToSheetWithDetails(item, targetStudentDetails, resToClient){
     }
 }
 
+// temporary no use
 function appendRowsToSheet(sheet2Id, targetStudentDetails, resToClient){
 	if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
@@ -2225,133 +2229,128 @@ function appendRowsToSheet(sheet2Id, targetStudentDetails, resToClient){
 // this function read the student details from a spreadsheet
 // then pass back selected and the newly found student details back to the callback function
 function readFromASpreadSheetWithFileDetail(item, selected, callback, user){
-    db.collection('users').find({google_id:req.params.user_id}).toArray(function(err, user) {
-        if (err) {
-            callback(err, []);
-        } else {
-            if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
-                
-                var targetFileId = item.id;
-                    
-                var auth = {
-                      type: 'Bearer',
-                      value: user[0].credentials.access_token
-                };
-                var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
+    if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
+        
+        var targetFileId = item.id;
+            
+        var auth = {
+              type: 'Bearer',
+              value: user[0].credentials.access_token
+        };
+        var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
 
-                my_sheet.getInfo( function( err, sheet_info ){
+        my_sheet.getInfo( function( err, sheet_info ){
+            if (err) {
+                callback(err, []);
+            } else {
+                // console.log(sheet_info);
+                // console.log( sheet_info.title + ' is loaded' );
+                sheet_info.worksheets[0].getRows( function( err, rows ){
                     if (err) {
                         callback(err, []);
-                    } else {
-                        // console.log(sheet_info);
-                        // console.log( sheet_info.title + ' is loaded' );
-                        sheet_info.worksheets[0].getRows( function( err, rows ){
-                            if (err) {
-                                callback(err, []);
-                            }else {
-                                var studentInfo = [];
-                                var excludedFileds = ["_xml", "name", "id", "title", "content", "_links", "save", "del"];
+                    }else {
+                        var studentInfo = [];
+                        var excludedFileds = ["_xml", "name", "id", "title", "content", "_links", "save", "del"];
 
-                                for (var i = 0; i < rows.length; i++) {
-                                    // hardcoded
-                                    var row = rows[i];
-                                    var student = {};
-                                    student.id = row.id;
-                                    student.name = row.name;
-                                    var data = {};
-                                    for (key in row){
-                                        if (excludedFileds.indexOf(key) == -1) {
-                                            data[key] = row[key];
-                                        };
-                                    }
-                                    student.data = data;
-                                    studentInfo.push(student);
+                        for (var i = 0; i < rows.length; i++) {
+                            // hardcoded
+                            var row = rows[i];
+                            var student = {};
+                            student.id = row.id;
+                            student.name = row.name;
+                            var data = {};
+                            for (key in row){
+                                if (excludedFileds.indexOf(key) == -1) {
+                                    data[key] = row[key];
                                 };
-                                callback(null, selected, studentInfo, user);
                             }
-                        });
+                            student.data = data;
+                            studentInfo.push(student);
+                        };
+                        callback(null, selected, studentInfo, user);
                     }
                 });
-
-
-
-
-
-
-                // var targetFileId = item.id;
-
-                // console.log("trying to reading spreadsheet " + item.title);
-
-                // googleSpreadsheet.load({
-                //     debug: true,
-                //     spreadsheetId: targetFileId,
-                //     worksheetName: 'Sheet1',
-                //     accessToken : {
-                //       type: 'Bearer',
-                //       token: gapi.oauth2Client.credentials.access_token
-                //     }
-                //     }, function sheetReady(err, spreadsheet) {
-                //         if(err) {
-                //             var message = "error when loading the spreadsheet";
-                //             callback(message, []);
-                //         } else {
-                //             spreadsheet.receive(function(err, rows, info) {
-                //                 // console.log(JSON.stringify(spreadsheet));
-                //               if(err){
-                //                 var message = "error while reading spreadsheet";
-                //                 callback(message, []);
-                //               }else {
-                //                 var numOfRows = info.totalRows;
-                //                 var studentInfo = [];
-
-                //                 if (numOfRows <= 0) {
-                //                     var message = "first row of spreadsheet " +  item.title + " is not initialised";
-                //                     callback(message, []);
-
-
-                //                 } else {
-                //                     var fieldNames = [];
-                //                     for (key in rows['1']){
-                //                         fieldNames.push(rows['1'][key]);
-                //                     }
-
-
-                //                     for (var i = 2; i < numOfRows+1; i++) {
-                //                         var index = '' + i;
-                //                         var curStudent = rows[index];
-                //                         console.log(curStudent);
-
-                //                         var curRow = {};
-                //                         // var curRow = [];
-                //                         var fieldCount = 0;
-                //                         for (index2 in curStudent) {
-                //                             curRow[fieldNames[fieldCount]] = curStudent[index2];
-                //                             fieldCount++;
-                //                             // curRow.push(curStudent[index2]);
-                //                         };
-
-                //                         var curInfo = {name:curStudent['1'] , id:curStudent['2'], data:curRow }
-                //                         studentInfo.push(curInfo);
-                //                     };
-
-                //                     console.log("finish reading spreadsheet " + item.title);
-                //                     callback(null, selected, studentInfo);
-                //                 }
-                //               } 
-                //             });
-                //         }
-
-                //     }
-                // );
-
-            } else {
-                var message = "unknown type error of student detail file: " + res.mimeType;
-                callback(message, []);
             }
-        } 
-    });
+        });
+
+
+
+
+
+
+        // var targetFileId = item.id;
+
+        // console.log("trying to reading spreadsheet " + item.title);
+
+        // googleSpreadsheet.load({
+        //     debug: true,
+        //     spreadsheetId: targetFileId,
+        //     worksheetName: 'Sheet1',
+        //     accessToken : {
+        //       type: 'Bearer',
+        //       token: gapi.oauth2Client.credentials.access_token
+        //     }
+        //     }, function sheetReady(err, spreadsheet) {
+        //         if(err) {
+        //             var message = "error when loading the spreadsheet";
+        //             callback(message, []);
+        //         } else {
+        //             spreadsheet.receive(function(err, rows, info) {
+        //                 // console.log(JSON.stringify(spreadsheet));
+        //               if(err){
+        //                 var message = "error while reading spreadsheet";
+        //                 callback(message, []);
+        //               }else {
+        //                 var numOfRows = info.totalRows;
+        //                 var studentInfo = [];
+
+        //                 if (numOfRows <= 0) {
+        //                     var message = "first row of spreadsheet " +  item.title + " is not initialised";
+        //                     callback(message, []);
+
+
+        //                 } else {
+        //                     var fieldNames = [];
+        //                     for (key in rows['1']){
+        //                         fieldNames.push(rows['1'][key]);
+        //                     }
+
+
+        //                     for (var i = 2; i < numOfRows+1; i++) {
+        //                         var index = '' + i;
+        //                         var curStudent = rows[index];
+        //                         console.log(curStudent);
+
+        //                         var curRow = {};
+        //                         // var curRow = [];
+        //                         var fieldCount = 0;
+        //                         for (index2 in curStudent) {
+        //                             curRow[fieldNames[fieldCount]] = curStudent[index2];
+        //                             fieldCount++;
+        //                             // curRow.push(curStudent[index2]);
+        //                         };
+
+        //                         var curInfo = {name:curStudent['1'] , id:curStudent['2'], data:curRow }
+        //                         studentInfo.push(curInfo);
+        //                     };
+
+        //                     console.log("finish reading spreadsheet " + item.title);
+        //                     callback(null, selected, studentInfo);
+        //                 }
+        //               } 
+        //             });
+        //         }
+
+        //     }
+        // );
+
+    } else {
+        var message = "unknown type error of student detail file: " + res.mimeType;
+        callback(message, []);
+    }
 }
 
+// temporary no use
 function readStudentInfoFromASpreadSheetWithFileDetail(item, resToClient){
     if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
@@ -2408,6 +2407,7 @@ function readStudentInfoFromASpreadSheetWithFileDetail(item, resToClient){
 
 
 // this function read the target spreadsheet from row 2 and return all name and id
+// temporary no use
 function readStudentInfoFromASpreadSheet(sheetId, resToClient){
 	if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
@@ -2474,6 +2474,7 @@ function readStudentInfoFromASpreadSheet(sheetId, resToClient){
 
 
 // assuming that CCADirectoryID is not null
+// temporary no use
 function appendStudentDetailsToOneCCA(CCADirectoryID, CCAName, targetStudentDetails, resToClient){
 
 	gapi.googleDrive.children.list({'folderId': CCADirectoryID}, function(err,res){
