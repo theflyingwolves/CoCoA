@@ -16,7 +16,7 @@
     "method-override": "*",
     "async": "*",
     "googleapis": "*",
-    "google-spreadsheet":"*"
+    "google-spreadsheet":"*",
     "edit-google-spreadsheet": "*",
     "mongodb":"*",
     "mongoskin":"*"
