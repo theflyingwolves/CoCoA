@@ -509,10 +509,12 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                 "fileId": request.params.cca_id
             },
             function(err,res){
+                var cca_title = res.title;
+                var event_title = request.body.event_title;
                 //insert a new line into List of Events spreadsheet
                 gapi.googleDrive.files.list({
                     'access_token':user[0].credentials.access_token,
-                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events' and trashed = false"
+                    'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-List of Events' and trashed = false"
                 },
                 function(err,res){
                     googleSpreadsheet.load({
@@ -532,7 +534,7 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                             // data[info.nextRow] = [[request.body.title,request.body.studentsNeeded,'',request.body.startDate,
                             // request.body.endDate,request.body.time,request.body.venue,request.body.reportTime,
                             // request.body.busTime,request.body.comments,request.body.TOIC]];
-                            data[info.nextRow] = [[request.body.event_title]];
+                            data[info.nextRow] = [[event_title]];
                             JSON.stringify(data);
                             spreadsheet.add(data);
                             spreadsheet.send(function(err) {
@@ -547,12 +549,12 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                 //insert a new spreadsheet in Events folder
                 gapi.googleDrive.files.list({
                     'access_token':user[0].credentials.access_token,
-                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events' and trashed = false"
+                    'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-Events' and trashed = false"
                 },
                 function(err,res){
                     gapi.googleDrive.files.insert({
                         resource: {
-                            title: request.body.event_title,
+                            title: cca_title+"-events-"+event_title,
                             mimeType: 'application/vnd.google-apps.spreadsheet',
                             parents: [{
                             "kind":"drive#fileLink",
@@ -661,7 +663,6 @@ app.put('/:user_id/cca/:cca_id/events',function(request,response){
         }
     ],
     function(err,result){
-
     });
 });
 
@@ -678,16 +679,26 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                 waterfallCallback(null,user);
             });
         },
-        //get event title and members by event id
+        //get event title, cca_title and members by event id
         function(user,waterfallCallback){
+            var spreadsheet_title;
+            var cca_title;
             var event_title;
             gapi.oauth2Client.setCredentials(user[0].credentials);
             gapi.googleDrive.files.get({
                 "fileId": request.params.event_id
             },
             function(err,res){
-                event_title= res.title;
-                console.log("first res: "+res.title);
+                spreadsheet_title= res.title;
+                console.log("spreadsheet title: "+spreadsheet_title);
+                var n = spreadsheet_title.search("-");
+                cca_title = spreadsheet_title.substr(0,n);
+                var sub_spreadsheet_title = spreadsheet_title.substr(n+1);
+                var m = sub_spreadsheet_title.search("-");
+                event_title = sub_spreadsheet_title.substr(m+1);
+                console.log("cca title: "+cca_title);
+                console.log("event title: "+event_title);
+
                 googleSpreadsheet.load({
                         debug:true,
                         spreadsheetId:res.id,
@@ -725,23 +736,10 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                             //end of rafactor rows
                             event_members.shift(); //remove the first empty object
                             //event.cca_members = cca_members;
-                            waterfallCallback(null,user,event_title,event_members);
+                            waterfallCallback(null,user,event_title,event_members,cca_title);
                         });
                     }
                 );
-            });
-        },
-        //get cca title
-        function(user,event_title,event_members,waterfallCallback){
-            var cca_title;
-            gapi.googleDrive.files.get({
-                "fileId": request.params.cca_id
-            },
-            function(err,res){
-                cca_title = res.title;
-                console.log("second res"+res.title);
-
-                waterfallCallback(null,user,event_title,event_members,cca_title);
             });
         },
         //get event details
