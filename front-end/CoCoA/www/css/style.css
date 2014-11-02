@@ -27,9 +27,14 @@
 	color:white;
 }
 
+
 .bar.bar-stable .title, .bar-stable .button.button-clear, .button.button-stable, .bar-stable .button.button-icon {
 	color: orange;
 	font-weight:bold;
+}
+
+.bar-stable .button.button-clear:active{
+	color:;
 }
 
 #edit-btn span{
@@ -148,6 +153,31 @@
 /*.participants-row, .task-row{
 	padding: 0;
 }*/
+.participants-divider{
+	border-width: 0;
+	padding: 0 0 0 0;
+	background-color: #222;
+}
+
+
+button.participants-btn{
+	font-weight: bold;
+	border-width:0;
+	background-color: #222;
+	color:orange;
+	width: 48%;
+	height: 45px;
+	border-width: 0 0 5px 0;
+	border-color:transparent;
+}
+
+
+button.participants-btn.active{
+	color: #FFCE6D;
+	border-style: solid;
+	border-color: #FFCE6D; 
+
+}
 
 .participants-row .highlighted{
 	font-weight: bold;
@@ -222,6 +252,14 @@
 .row{
 	padding: 0;
 }
+
+.item-input.search{
+	background-color: #DDD;
+	border-radius: 5px;
+	margin: 4px 8px 4px 8px;
+	padding: 0 5px 0 25px;
+}
+
 
 /*event task*/
 #participants-btn{

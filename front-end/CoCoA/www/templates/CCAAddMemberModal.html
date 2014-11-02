@@ -12,8 +12,8 @@
 		<ion-list>
 			<ion-item ng-repeat="student in allSchoolStudents" ng-click="selectMember(student)">
 			  <div class="col col-90 task-row-inner">
-    			<i class="icon ion-checkmark-circled" ng-if="student.isMember"></i>
-          <i class="icon ion-ios7-circle-outline" ng-if="!student.isMember"></i>
+    			<i class="icon ion-checkmark-circled" ng-if="student.selected"></i>
+          <i class="icon ion-ios7-circle-outline" ng-if="!student.selected"></i>
           {{student.name}}
         </div>
 			</ion-item>

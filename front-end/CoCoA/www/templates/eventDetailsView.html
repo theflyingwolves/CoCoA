@@ -1,4 +1,4 @@
-<ion-view data-ng-init="eventDetailsView()">
+<ion-view data-ng-init="eventDetailsView()" hide-back-button="isEditMode">
   <ion-nav-buttons side="left">
     <h1 class="title">{{eventInfo.title}} Info</h1>
     <a id="edit-btn" class="button button-clear button-positive" ng-click="toggleEventDetailEditMode()">Edit</a>
@@ -132,10 +132,53 @@
         <p class="col">{{eventInfo.comments}}</p>
       </div>
     </label>
-    <div class="item item-divider" ng-if="!isEditMode"></div>
-    <a id="participants-btn" href="#/event/participants/:{{eventId}}" class="button button-block button-light" ng-if="!isEditMode"><span class="label">View Participants</span><span class="icon ion-ios7-arrow-forward"></span></a>
-        
-  </div>
 
-  <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
+    <div ng-if="!isEditMode">
+
+        <div class="item item-divider"></div>
+            
+        <div class="item participants-divider">
+          <button class="participants-btn" ng-class="{active: !isParticipantEditMode}" ng-click="setParticipantEditMode(false)">View participants</button>
+          <span>|</span>
+          <button class="participants-btn" ng-class="{active: isParticipantEditMode}" ng-click="setParticipantEditMode(true)">Choose participants</button>
+        </div>
+        <form>
+          <label class="item item-input search">
+            <i class='icon ion-search placeholder-icon'></i>
+            <input type="text" ng-model="stdNameFilter" placeholder="Search">     
+          </input>
+          </label>
+        </form>
+        <ion-list ng-if="!isParticipantEditMode">
+          <div class="item item-divider" ng-repeat-start="(initial, participants) in partViewModel">{{initial}}</div>
+          <ion-item class="participants-row" ng-repeat="student in participants track by student.id" ng-if="student.isSelected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  ng-click="toggleStuInfoDisplay(student.id)">
+            <p ng-class="{'highlighted' : selectedRow == student.id}">{{student.name}}</p>
+            <div ng-show="selectedRow == student.id" class="item-animate">
+                <br>
+                <label>Class</label>
+                <p>{{student.class}}</p>
+                <hr>
+                <label>Tel</label>
+                <p>{{student.contactNumber}}</p>
+            </div>
+          </ion-item>
+          <div ng-repeat-end></div>
+        </ion-list>
+
+        <ion-list ng-if="isParticipantEditMode">
+          <div class="item item-divider" ng-repeat-start="(initial, participants) in participantsEditModel">{{initial}}</div>
+          <ion-item class="participants-row" ng-repeat="student in participants" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1"  >
+            <div class="col col-90 task-row-inner">
+              <i class="icon ion-checkmark-circled" ng-click="chooseParticipant(student.id)" ng-if="student.isSelected" stop-event></i>
+              <i class="icon ion-ios7-circle-outline" ng-click="chooseParticipant(student.id)" ng-if="!student.isSelected" stop-event></i>
+                  {{student.name}}
+            </div>
+          </ion-item>
+          <div ng-repeat-end></div>
+        </ion-list>
+      </div>
+    </div>
+  </ion-content>
+        <button menu-toggle="left"  id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
+
 </ion-view>

@@ -34,6 +34,28 @@ angular.module('cocoa.controllers', [])
       }else{
         return {};
       }
+    },
+    enterEvent:function(event){
+      window.localStorage['selectedEvent'] = angular.toJson(event);
+    },
+    getCurrEvent:function(){
+      var event = window.localStorage['selectedEvent'];
+      if(event){
+        return angular.fromJson(event);
+      }else{
+        return {};
+      }
+    },
+    saveCurrCCAForMemberEdit:function(ccaTitle){
+      window.localStorage['currCCAForMemberEdit'] = angular.toJson(ccaTitle);
+    },
+    getCurrCCAForMemberEdit:function(cca){
+      var ccaTitle = window.localStorage['currCCAForMemberEdit'];
+      if(ccaTitle){
+        return angular.fromJson(ccaTitle);
+      }else{
+        return "";
+      }
     }
   }
 })
@@ -104,6 +126,8 @@ angular.module('cocoa.controllers', [])
 
 .factory('EventViewFactory',function(){
   var selectedEvent = angular.fromJson(window.localStorage['selectedEvent']).event_details;
+  console.log("selectedEvent: "+angular.toJson(selectedEvent));
+  console.log("All Event Data: "+window.localStorage['selectedEvent']);
 
   var updateSelectedEvent = function(){
     selectedEvent = angular.fromJson(window.localStorage['selectedEvent']).event_details;
@@ -111,12 +135,6 @@ angular.module('cocoa.controllers', [])
 
   return {
     allTasks:function(){
-      // selectedEvent = getEventFromId(eventId);
-      // if(selectedEvent){
-      //   return selectedEvent.tasks;
-      // }else{
-      //   return [];
-      // }
       if(selectedEvent.tasks){
         return selectedEvent.tasks;
       }else{
@@ -126,7 +144,6 @@ angular.module('cocoa.controllers', [])
     },
 
     getEventInfo:function(){
-      // selectedEvent = getEventFromId(eventId);
       updateSelectedEvent();
       var startDateFormat = new Date(selectedEvent.startDate);
       var endDateFormat = new Date(selectedEvent.endDate);
@@ -156,11 +173,23 @@ angular.module('cocoa.controllers', [])
     getEventParticipants:function(){
       // return selectedEvent.participants;
       updateSelectedEvent();
-      if(selectedEvent.participants.length > 0){
-        return selectedEvent.participants;
-      }else{
-        return angular.fromJson(window.localStorage['allStudents']);
+      var cca_members = angular.fromJson(window.localStorage['selectedEvent']).cca_members;
+      var eventParticipants = [];
+      for(var i=0; i<cca_members.length; i++){
+        var student = cca_members[i];
+        if(student.isSelected){
+          eventParticipants.push(student);
+        }
       }
+
+      console.log("CCA Members Length: "+cca_members.length+" Event Participants Length: "+eventParticipants.length);
+      return eventParticipants;
+    },
+
+    getCCAMembersForEvent:function(){
+      updateSelectedEvent();
+      var cca_members = angular.fromJson(window.localStorage['selectedEvent']).cca_members;
+      return cca_members;
     },
 
     saveEventInfo:function(eventInfo){
@@ -319,7 +348,7 @@ angular.module('cocoa.controllers', [])
     .success(function(res, status){
       console.log(angular.toJson(res));
       // var newEvent = Usergroups.newEvent(name);
-      $scope.eventlist.push(newEvent);
+      $scope.eventlist.push(res);
       // Usergroups.saveEventList($scope.eventlist);
     })
     .error(function(res){
@@ -336,13 +365,11 @@ angular.module('cocoa.controllers', [])
 
   $scope.enterEvent = function(id){
     var currCCA = StatusTracker.getCurrCCA();
-    console.log("Get: Event Details at "+ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+currCCA.id+"/events/"+id);
 
     $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+currCCA.id+"/events/"+id)
     
     .success(function(data){
-      console.log("Event Details Received: "+angular.toJson(data));
-      Usergroups.enterEvent(data);
+      StatusTracker.enterEvent(data);
       $window.location.href = "#/event/detail/"+id;
     })
 
@@ -352,16 +379,15 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.showMemberModal = function(title){
-    console.log("Retrieving All Stident Data: ");
-    $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/membersOfCCA/"+title.substring(0,title.length))
+    StatusTracker.saveCurrCCAForMemberEdit(title);
+    $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/allStudents/"+title)
     .success(function(data){
-      console.log("All Student Data Received: "+angular.toJson(data));
+      $scope.allSchoolStudents = data.students;
+      $scope.memberModal.show();
     })
     .error(function(err){
       console.log("Error Retrieving Student Info in CCA Group Menu: "+angular.toJson(err));
     });
-
-    $scope.memberModal.show();
   };
 
   $scope.cancel = function(){
@@ -369,11 +395,23 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.confirm = function(){
-    // send back to server
+    var title = StatusTracker.getCurrCCAForMemberEdit();
+    $http.put(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/membersOfCCA",{
+      CCAName: title,
+      students:$scope.allSchoolStudents
+    })
+
+    .success(function(data){
+      $scope.memberModal.hide();
+      console.log("Successful: CCA Member Info Update - "+angular.toJson(data));
+    })
+    .error(function(err){
+      console.log("Failed: CCA Member Info Update - "+angular.toJson(err));
+    });
   };
 
   $scope.selectMember = function(student){
-    student.isMember = !student.isMember
+    student.selected = !student.selected;
   };
 
   $timeout(function() {
@@ -382,12 +420,13 @@ angular.module('cocoa.controllers', [])
   });
 })
 
-.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicPopup, $timeout, EventViewFactory){
+.controller('eventTaskMenuCtrl',function($scope, $stateParams, $ionicSideMenuDelegate, $ionicModal, $ionicGesture, $ionicPopup,$http, $timeout, EventViewFactory, AccountManager, ServerInfo, StatusTracker){
   $scope.eventtasks = $scope.eventtasks || EventViewFactory.allTasks();
   $scope.selectedTask = $scope.eventtasks[0];
   $scope.eventInfo = EventViewFactory.getEventInfo();
   $scope.selectedTaskIndex = -1;
   $scope.deletingTaskIndex = -1;
+  $scope.isParticipantEditMode = false;
 
   $ionicModal.fromTemplateUrl('templates/eventEditParticipant.html',{
     scope:$scope,
@@ -518,7 +557,20 @@ angular.module('cocoa.controllers', [])
     $scope.isEditMode = !$scope.isEditMode;
     if($("#edit-btn").text() == "Finish"){
       $("#edit-btn").text("Edit");
-      EventViewFactory.saveEventInfo($scope.eventInfo);
+      var currCCA = StatusTracker.getCurrCCA();
+      var currEventDetails = StatusTracker.getCurrEvent().event_details;
+      console.log("Updating Event Info Using Data: "+angular.toJson($scope.eventInfo));
+      $http.put(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+currCCA.id+"/events",$scope.eventInfo)
+
+      .success(function(data){
+        EventViewFactory.saveEventInfo($scope.eventInfo);
+        console.log("Successful: Update Event Info "+angular.toJson(data));
+      })
+
+      .error(function(err){
+        console.log("Error: Update Event Info");
+      });
+
     } else{
       $("#edit-btn").text("Finish");
     }
@@ -541,6 +593,10 @@ angular.module('cocoa.controllers', [])
     //   $("#addParticipantBtn").text("Finish");
   }
 
+  $scope.setParticipantEditMode = function(isSet){
+    $scope.isParticipantEditMode = isSet;
+  }
+
   $scope.cancel = function(){
     $scope.partEditModal.hide();
   };
@@ -554,10 +610,10 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.eventDetailsView = function(){
-    // $scope.eventParticipants = EventViewFactory.getEventParticipants();
-    $scope.eventParticipants = [];
+    console.log("Entering Event Details View");
+    $scope.eventParticipants = EventViewFactory.getEventParticipants();
     $scope.partViewModel = generatePartModel($scope.eventParticipants);
-    $scope.tempParticipants = angular.fromJson(angular.toJson($scope.eventParticipants));
+    $scope.tempParticipants = EventViewFactory.getCCAMembersForEvent();
     $scope.participantsEditModel = generatePartModel($scope.tempParticipants);
   };
 
