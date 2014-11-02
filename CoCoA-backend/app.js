@@ -31,6 +31,7 @@ gapis = {};
 var gapiArray = [];
 
 var googleSpreadsheet = require('edit-google-spreadsheet');
+var helperFunction = require('./lib/helperFunction');
 
 var createDomain = require('domain').create;
 
@@ -216,7 +217,7 @@ app.get('/:user_id/cca', function(request,response){
     });
 });
 
-app.post('/cca', function(request,response){
+app.post('/:user_id/cca', function(request,response){
     async.waterfall([
         function(waterfallCallback){
              db.collection('users').find({google_id:request.params.user_id}).toArray(function(err, user) {
@@ -237,6 +238,7 @@ app.post('/cca', function(request,response){
                 }
             },
             function(err,res){
+                var cca_id = res.id;
                 gapi.googleDrive.files.insert({
                     resource: {
                         title: res.title+"-Events",
@@ -347,10 +349,10 @@ app.post('/cca', function(request,response){
                             if(err) throw err;
                             console.log("Updated successfully");
                         });
+                        response.send({"cca_title":request.body.cca_title,"cca_id":cca_id});
                     });
                 console.log("create students details spreadsheet successfully");
                 });
-                response.send({"cca_title":request.body.cca_title,"cca_id":res.id});
 
                 console.log("create a new folder under CCA-Admin");
             });
@@ -374,6 +376,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
             console.log(request.cookies);
             var returnJSON = {};
             var list_of_events = [];
+            var list_of_event_ids = [];
             var list_of_students = [];
             gapi.oauth2Client.setCredentials(user[0].credentials);
             gapi.googleDrive.files.get({
@@ -433,7 +436,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                                     }
                                     //end of rafactor rows
                                     list_of_events.shift(); //remove the first empty object
-                                    returnJSON.list_of_events = list_of_events;
+                                    //returnJSON.list_of_events = list_of_events;
                                     callback();
                                 });
                             });
@@ -443,57 +446,40 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                     function(callback){
                         gapi.googleDrive.files.list({
                             'access_token':user[0].credentials.access_token,
-                            'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Student Details'"
+                            'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
                         },
                         function(err,res){
-                            googleSpreadsheet.load({
-                                debug:true,
-                                spreadsheetId:res.items[0].id,
-                                worksheetId:'od6',
-                                accessToken:{
-                                    type:'Bearer',
-                                    token:user[0].credentials.access_token
-                                }
+                            gapi.googleDrive.files.list({
+                                'access_token':user[0].credentials.access_token,
+                                'q':"'"+res.items[0].id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.spreadsheet'"
                             },
-                            function sheetReady(err, spreadsheet) {
-                                if(err) throw err;
-                                spreadsheet.receive(function(err,rows,info){
-                                    if (err) throw err;
-                                    //refactor rows
-                                    var i = 1;
-                                    for(var key in rows){
-                                        var obj = rows[key];
-                                        var j =1;
-                                        var student = {};
-                                        for(var prop in obj){
-                                            if(i != 1 && obj.hasOwnProperty(prop)){
-                                                var col = parseInt(prop);
-                                                switch(col){
-                                                    case 1:student.name = obj[prop]; break;
-                                                    case 2:student.id = obj[prop]; break;
-                                                    case 3:student.level = obj[prop]; break;
-                                                    case 4:student.class = obj[prop]; break;
-                                                    case 5:student.race = obj[prop]; break;
-                                                    case 6:student.nationality = obj[prop]; break;
-                                                    case 7:student.guardian_contact_phone = obj[prop]; break;
-                                                    case 8:student.guardian_contact_mobile = obj[prop]; break;
-                                                    case 9:student.guardian_contact_other = obj[prop]; break;
-                                                    case 10:student.medical_concern = obj[prop]; break;
-                                                    default: break;
+                            function(err,res){
+                                async.each(res.items, function(item,eachCallback){
+                                    var event = {};
+                                    event.id = item.id;
+                                    event.title = item.title;
+                                    list_of_event_ids.push(event);
+                                    eachCallback();
+                                },
+                                function(err){
+                                    if(err){
+                                        console.log(err);
+                                    } else{
+                                        //add id in list of events
+                                        for(var i = 0;i<list_of_events.length;i++){
+                                            var event_title = list_of_events[i].title;
+                                            for (var j = 0;j<list_of_event_ids.length;j++){
+                                                if(event_title == list_of_event_ids[j].title){
+                                                    list_of_events[i]["id"] = list_of_event_ids[j].id;
                                                 }
-                                                j++;
                                             }
                                         }
-                                        list_of_students.push(student);
-                                        i++;
+                                        returnJSON.list_of_events = list_of_events;
+                                        response.send(returnJSON);
                                     }
-                                    //end of rafactor rows
-                                    list_of_students.shift(); //remove the first empty object
-                                    returnJSON.list_of_students = list_of_students;
-                                    response.send(returnJSON);
-                                    callback();
                                 });
                             });
+
                         });
                     }
                 ],
@@ -526,7 +512,7 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                 //insert a new line into List of Events spreadsheet
                 gapi.googleDrive.files.list({
                     'access_token':user[0].credentials.access_token,
-                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
+                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events' and trashed = false"
                 },
                 function(err,res){
                     googleSpreadsheet.load({
@@ -543,9 +529,10 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                         spreadsheet.receive(function(err,rows,info){
                             if(err) throw err;
                             var data = {};
-                            data[info.nextRow] = [[request.body.title,request.body.studentsNeeded,'',request.body.startDate,
-                            request.body.endDate,request.body.time,request.body.venue,request.body.reportTime,
-                            request.body.busTime,request.body.comments,request.body.TOIC]];
+                            // data[info.nextRow] = [[request.body.title,request.body.studentsNeeded,'',request.body.startDate,
+                            // request.body.endDate,request.body.time,request.body.venue,request.body.reportTime,
+                            // request.body.busTime,request.body.comments,request.body.TOIC]];
+                            data[info.nextRow] = [[request.body.event_title]];
                             JSON.stringify(data);
                             spreadsheet.add(data);
                             spreadsheet.send(function(err) {
@@ -560,12 +547,12 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                 //insert a new spreadsheet in Events folder
                 gapi.googleDrive.files.list({
                     'access_token':user[0].credentials.access_token,
-                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
+                    'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events' and trashed = false"
                 },
                 function(err,res){
                     gapi.googleDrive.files.insert({
                         resource: {
-                            title: request.body.title,
+                            title: request.body.event_title,
                             mimeType: 'application/vnd.google-apps.spreadsheet',
                             parents: [{
                             "kind":"drive#fileLink",
@@ -591,7 +578,7 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                                 console.log("event spreadsheet created successfully");
                             });
                         });
-                        response.send({"title":request.body.title,"event_spreadsheet_id":res.id});
+                        response.send({"title":request.body.event_title,"event_spreadsheet_id":res.id});
                     });
                 });
                 //end of insert a new spreadsheet in Events folder  
@@ -678,282 +665,232 @@ app.put('/:user_id/cca/:cca_id/events',function(request,response){
     });
 });
 
-app.get('/');
-
-// get all student infomation
-app.get('/allStudents', function(req, res) {
-    var resToClient = res;
-    var CCADirectoryID = rootFolderId;
-    var fileName = "Student Details";
-    // var fileName = "testSheet";
-    // console.log("test access_token");
-    if (!gapi.oauth2Client.credentials.access_token) {
-        resToClient.json({message: "please log in first"});
-    }
-
-    if (CCADirectoryID !== "") {
-        gapi.googleDrive.children.list({'folderId': CCADirectoryID}, function(err,res){
-            if (res) {
-                var studentDetailsFound = false;
-                var numOfChildren = res.items.length;
-
-                for (var i = 0; i < numOfChildren; i++) {
-                    var id = res.items[i].id;
-                    gapi.googleDrive.files.get({'fileId': id}, function(err,res){
-                        if (err) {
-                            resToClient.json({message:"error when checking a file", err:err});
+app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
+    var event ={};
+    var event_details = {};
+    var event_members = [];
+    var cca_members = [];
+    async.waterfall([
+        //get user info
+        function(waterfallCallback){
+            db.collection('users').find({google_id:request.params.user_id}).toArray(function(err, user) {
+                if (err) throw err;
+                waterfallCallback(null,user);
+            });
+        },
+        //get event title and members by event id
+        function(user,waterfallCallback){
+            var event_title;
+            gapi.oauth2Client.setCredentials(user[0].credentials);
+            gapi.googleDrive.files.get({
+                "fileId": request.params.event_id
+            },
+            function(err,res){
+                event_title= res.title;
+                console.log("first res: "+res.title);
+                googleSpreadsheet.load({
+                        debug:true,
+                        spreadsheetId:res.id,
+                        worksheetId:'od6',
+                        accessToken:{
+                            type:'Bearer',
+                            token:user[0].credentials.access_token
                         }
-
-                        if (res.title === studentDetailsFilename) {
-                            studentDetailsFound = true;
-
-                            if (res.mimeType == "application/vnd.google-apps.spreadsheet") {
-                                var targetFileId = res.id;
-
-                                googleSpreadsheet.load({
-                                    debug: true,
-                                    spreadsheetId: targetFileId,
-                                    worksheetName: 'Sheet1',
-                                    accessToken : {
-                                      type: 'Bearer',
-                                      token: gapi.oauth2Client.credentials.access_token
-                                    }
-                                    }, function sheetReady(err, spreadsheet) {
-                                        if(err) {
-                                            resToClient.json({message:"error when loading the spreadsheet", err:err});
-                                        } else {
-                                            googleSpreadsheet.receive(function(err, rows, info) {
-                                              if(err){
-                                                throw err;
-                                              }else {
-                                                var numOfRows = info.totalRows;
-                                                var studentInfo = [];
-
-                                                for (var i = 2; i < numOfRows+1; i++) {
-                                                    var index = '' + i;
-                                                    var curStudent = rows[index];
-                                                    var curInfo = {name:curStudent['1'] , id:curStudent['2'] }
-                                                    studentInfo.push(curInfo);
-                                                };
-
-                                                // console.log(studentInfo);
-                                                resToClient.json({message:"success", students: studentInfo});
-                                                // console.log("Found rows:", rows['1']);  
-                                              } 
-                                            });
+                    },
+                    function sheetReady(err, spreadsheet) {
+                        spreadsheet.receive(function(err,rows,info){
+                            if (err) throw err;
+                            //refactor rows
+                            var i = 1;
+                            for(var key in rows){
+                                var obj = rows[key];
+                                var j =1;
+                                var student = {};
+                                for(var prop in obj){
+                                    if(i != 1 && obj.hasOwnProperty(prop)){
+                                        var col = parseInt(prop);
+                                        switch(col){
+                                            case 1:student.name = obj[prop]; break;
+                                            case 2:student.id = obj[prop]; break;
+                                            case 3:student.level = obj[prop]; break;
+                                            case 4:student.class = obj[prop]; break;
+                                            default: break;
                                         }
-
+                                        j++;
                                     }
-                                );
-
-                            } else {
-                                var message = "unknown type error of student detail file: " + res.mimeType;
-                                resToClient.json({message:message});
+                                }
+                                event_members.push(student);
+                                i++;
                             }
-                        };
+                            //end of rafactor rows
+                            event_members.shift(); //remove the first empty object
+                            //event.cca_members = cca_members;
+                            waterfallCallback(null,user,event_title,event_members);
+                        });
+                    }
+                );
+            });
+        },
+        //get cca title
+        function(user,event_title,event_members,waterfallCallback){
+            var cca_title;
+            gapi.googleDrive.files.get({
+                "fileId": request.params.cca_id
+            },
+            function(err,res){
+                cca_title = res.title;
+                console.log("second res"+res.title);
 
-                        if ((!studentDetailsFound) && (i == (numOfChildren - 1))) {
-                            resToClient.json({message:"Student Details spreadsheet is not found under CCA-admin folder"});
-                        }   
+                waterfallCallback(null,user,event_title,event_members,cca_title);
+            });
+        },
+        //get event details
+        function(user,event_title,event_members,cca_title,waterfallCallback){
+            console.log("cca title:" + cca_title);
+            console.log("event title:" + event_title);
+            gapi.googleDrive.files.list({
+                'access_token':user[0].credentials.access_token,
+                'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-List of Events'"
+            },
+            function(err,res){
+                googleSpreadsheet.load({
+                    debug:true,
+                    spreadsheetId:res.items[0].id,
+                    worksheetId:'od6',
+                    accessToken:{
+                        type:'Bearer',
+                        token:user[0].credentials.access_token
+                    }
+                },
+                function sheetReady(err, spreadsheet) {
+                    if(err) throw err;
+                    spreadsheet.receive(function(err,rows,info){
+                        if (err) throw err;
+                        //refactor rows
+                        var i = 1;
+                        for(var key in rows){
+                            var obj = rows[key];
+                            for(var prop in obj){
+                                if(i != 1 && obj.hasOwnProperty(prop) && obj["1"] == event_title){
+                                    var col = parseInt(prop);
+                                    switch(col){
+                                        case 1:event_details.title = obj[prop]; break;
+                                        case 2:event_details.studentsNeeded = obj[prop]; break;
+                                        case 3:break;
+                                        case 4:event_details.startDate = obj[prop]; break;
+                                        case 5:event_details.endDate = obj[prop]; break;
+                                        case 6:event_details.time = obj[prop]; break;
+                                        case 7:event_details.venue = obj[prop]; break;
+                                        case 8:event_details.reportTime = obj[prop]; break;
+                                        case 9:event_details.busTime = obj[prop]; break;
+                                        case 10:event_details.comments = obj[prop]; break;
+                                        case 11:event_details.TOIC = obj[prop]; break;
+                                        default: break;
+                                    }
+                                }
+                            }
+                            i++;
+                        }
+                        //end of rafactor rows
+                        waterfallCallback(null,user,event_title,event_members,cca_title,event_details);
                     });
-                }   
-            } else{
-                resToClient.json({message:"error when accessing CCA Admin folder", err:err});
+                });
+            });
+        },
+        //get cca members
+        function(user,event_title,event_members,cca_title,event_details,waterfallCallback){
+            gapi.googleDrive.files.list({
+                'access_token':user[0].credentials.access_token,
+                'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-Student Details'"
+            },
+            function(err,res){
+                googleSpreadsheet.load({
+                    debug:true,
+                    spreadsheetId:res.items[0].id,
+                    worksheetId:'od6',
+                    accessToken:{
+                        type:'Bearer',
+                        token:user[0].credentials.access_token
+                    }
+                },
+                function sheetReady(err, spreadsheet) {
+                    if(err) throw err;
+                    spreadsheet.receive(function(err,rows,info){
+                        if (err) throw err;
+                        //refactor rows
+                        var i = 1;
+                        for(var key in rows){
+                            var obj = rows[key];
+                            var j =1;
+                            var student = {};
+                            for(var prop in obj){
+                                if(i != 1 && obj.hasOwnProperty(prop)){
+                                    var col = parseInt(prop);
+                                    switch(col){
+                                        case 1:student.name = obj[prop]; break;
+                                        case 2:student.id = obj[prop]; break;
+                                        case 3:student.level = obj[prop]; break;
+                                        case 4:student.class = obj[prop]; break;
+                                        case 5:student.race = obj[prop]; break;
+                                        case 6:student.nationality = obj[prop]; break;
+                                        case 7:student.guardian_contact_phone = obj[prop]; break;
+                                        case 8:student.guardian_contact_mobile = obj[prop]; break;
+                                        case 9:student.guardian_contact_other = obj[prop]; break;
+                                        case 10:student.medical_concern = obj[prop]; break;
+                                        default: break;
+                                    }
+                                    j++;
+                                }
+                            }
+                            student.isSelected = false;
+                            cca_members.push(student);
+                            i++;
+                        }
+                        //end of rafactor rows
+                        cca_members.shift(); //remove the first empty object
+                        //response.send(returnJSON);
+                        waterfallCallback(null,event_members,cca_members,event_details);
+                    });
+                });
+            });
+        },
+        //set isSelected flag for cca members for this event
+        function(event_members,cca_members,event_details,waterfallCallback){
+            for (var i = 0;i<event_members.length;i++){
+                var studentId = event_members[i].id;
+                for(var j = 0;j<cca_members.length;j++){
+                    if(studentId == cca_members[j].id){
+                        cca_members[j].isSelected = true;
+                    }
+                }
             }
-        });
-    } else {
-        resToClient.json({message:"cannot find CCA Admin folder in user google drive"});
-    }
+            event.cca_members = cca_members;
+            event.event_details = event_details;
+            response.send(event);
+            waterfallCallback(null);
+        }
+    ],
+    function(err,result){
+        //我已无语凝噎
+    });
 });
 
+app.get('/:user_id/allStudents/:CCAName', helperFunction.getAllStudents);
+app.get('/:user_id/allStudents', helperFunction.getAllStudents);
 
 
-app.post('/addMembersToCCA', function(req, res) {
-    var resToClient = res;
-    var CCADirectoryID = "";
-    if (rootFolderId) {
-        CCADirectoryID = rootFolderId;
-    };
-    
-    var studentDetailsFilename = "Student Details";
-    var memberDetailsFilename = "Student Details";
+app.get('/:user_id/membersOfCCA/:CCAName', helperFunction.getMembersOfCCA);
+app.get('/:user_id/membersOfCCA/:CCAName/:eventName', helperFunction.getMembersOfCCA);
+app.put('/:user_id/membersOfCCA', helperFunction.updateMembersOfCCA);
 
-    // console.log(req.body);
-    var CCAName = req.body.CCAName;
-    // var students = req.body.students;    
-    var students = ['T0299165Z', 'T0219245I'];
 
-    if (!gapi.oauth2Client.credentials.access_token) {
-        resToClient.json({message: "please log in first"});
-    }
+app.get('/:user_id/participants/:CCAName/:eventName', helperFunction.getParticipants); //API changed,remember to update
+app.get('/:user_id/participants/:CCAName/:eventName/:taskName', helperFunction.getParticipants); //API changed,remember to update
+app.put('/:user_id/participants', helperFunction.updateParticipants);
 
-    if (CCADirectoryID !== "") {
-        gapi.googleDrive.children.list({'folderId': CCADirectoryID}, function(err,res){
-            if (res) {
-                var studentDetailsFound = false;
-                var targetStudentDetails = [];
-                var numOfChildren = res.items.length;
+app.post('/:user_id/tasks', helperFunction.createTask);
 
-                for (var i = 0; i < numOfChildren; i++) {
-                    var id = res.items[i].id;
-                    gapi.googleDrive.files.get({'fileId': id}, function(err,res){
-                        if (err) {
-                            resToClient.json({message:"error when checking a file", err:err});
-                        }
-
-                        if (res.title === studentDetailsFilename) {
-                            studentDetailsFound = true;
-
-                            if (res.mimeType == "application/vnd.google-apps.spreadsheet") {
-                                var targetFileId = res.id;
-
-                                googleSpreadsheet.load({
-                                    debug: true,
-                                    spreadsheetId: targetFileId,
-                                    worksheetName: 'Sheet1',
-                                    accessToken : {
-                                      type: 'Bearer',
-                                      token: gapi.oauth2Client.credentials.access_token
-                                    }
-                                    }, function sheetReady(err, spreadsheet) {
-                                        if(err) {
-                                            resToClient.json({message:"error when loading the spreadsheet", err:err});
-                                        } else {
-                                            googleSpreadsheet.receive(function(err, rows, info) {
-                                              if(err){
-                                                throw err;
-                                              }else {
-                                                var numOfRows = info.totalRows;
-
-                                                var curRow = []
-                                                for (index in rows['1']) {
-                                                    curRow.push(rows['1'][index]);
-                                                };
-                                                targetStudentDetails.push(curRow);
-                                                // targetStudentDetails.push(rows['1']);
-
-                                                for (var i = 2; i < numOfRows+1; i++) {
-                                                    var index = '' + i;
-                                                    var curStudent = rows[index];
-                                                    var curId = curStudent['2'];
-                                                    if ((students.indexOf(curId)) !== -1) {
-                                                        var curRow = []
-                                                        for (index in curStudent) {
-                                                            curRow.push(curStudent[index]);
-                                                        };
-                                                        targetStudentDetails.push(curRow);
-                                                    }
-                                                };
-                                              } 
-                                            });
-                                        }
-
-                                    }
-                                );
-
-                            } else {
-                                var message = "unknown type error of student detail file: " + res.mimeType;
-                                resToClient.json({message:message});
-                            }
-                        } else if (res.title == CCAName){
-                            // find or create the CCA member list and insert data
-                            // console.log(res);
-                            // console.log("yes name is correct");
-
-                            if (res.mimeType == 'application/vnd.google-apps.folder') {
-                                var targetCCAFolderId = res.id;
-                                gapi.googleDrive.children.list({'folderId': targetCCAFolderId}, function(err,res){
-                                    if (res) {
-                                        var numOfChildren = res.items.length;
-
-                                        for (var i = 0; i < numOfChildren; i++) {
-                                            var id = res.items[i].id;
-                                            gapi.googleDrive.files.get({'fileId': id}, function(err,res){
-                                                if (err) {
-                                                    resToClient.json({message:"error when checking a file", err:err});
-                                                }
-
-                                                if (res.title === memberDetailsFilename && res.mimeType == "application/vnd.google-apps.spreadsheet") {
-                                                    var memberDetailsFileId = id;
-
-                                                    googleSpreadsheet.load({
-                                                        debug: true,
-                                                        spreadsheetId: memberDetailsFileId,
-                                                        worksheetName: 'Sheet1',
-                                                        accessToken : {
-                                                          type: 'Bearer',
-                                                          token: gapi.oauth2Client.credentials.access_token
-                                                        }
-                                                        }, function sheetReady(err, spreadsheet) {
-                                                            if(err) {
-                                                                resToClient.json({message:"error when loading the spreadsheet", err:err});
-                                                            } else {
-                                                                googleSpreadsheet.receive(function(err, rows, info) {
-                                                                  if(err){
-                                                                    throw err;
-                                                                  }else {
-                                                                    var numOfRows = info.totalRows;
-                                                                    var nextRow = info.nextRow;
-                                                                    console.log(targetStudentDetails);
-                                                                    if (numOfRows > 1 && targetStudentDetails.length > 0) {
-                                                                        targetStudentDetails.splice(0, 1);
-                                                                    }
-                                                                    console.log(numOfRows);
-
-                                                                    contents = {};
-                                                                    contents[nextRow] = targetStudentDetails;
-
-                                                                    googleSpreadsheet.add(contents);
-
-                                                                    // spreadsheet.add([[1,2,3],
-                                                                    //                  [4,5,6]]);   
-
-                                                                    // spreadsheet.add({
-                                                                    //   10: targetStudentDetails
-                                                                    // });
-
-                                                                    googleSpreadsheet.send(function(err) {
-                                                                      if(err) {
-                                                                        console.log("edit spreadsheet error");
-                                                                        console.log(err);
-                                                                      }
-                                                                      
-                                                                    });
-                                                                  } 
-                                                                });
-                                                            }
-
-                                                        }
-                                                    );
-
-                                                }
-                                            });
-                                        };
-
-                                    } else {
-                                        resToClient.json({message:"error when accessing CCA Admin folder", err:err});
-                                    }
-                                });
-                               
-                            }
-
-                            
-
-                        } 
-
-                        if ((!studentDetailsFound) && (i == (numOfChildren - 1))) {
-                            resToClient.json({message:"Student Details spreadsheet is not found under CCA-admin folder"});
-                        }   
-                    });
-                } 
-            } else{
-                resToClient.json({message:"error when accessing CCA Admin folder", err:err});
-            }
-        });
-    } else {
-        resToClient.json({message:"cannot find CCA Admin folder in user google drive"});
-    }
-});
+app.put('/:user_id/taskStatus', helperFunction.changeTaskStatus);
 
 if ('development' == app.get('env')) {
 
