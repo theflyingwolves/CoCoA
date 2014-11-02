@@ -157,29 +157,15 @@
 	border-width: 0;
 	padding: 0 0 0 0;
 	background-color: #222;
-}
-
-
-button.participants-btn{
+	height: 35px;
 	font-weight: bold;
-	border-width:0;
-	background-color: #222;
 	color:orange;
-	width: 48%;
-	height: 45px;
-	border-width: 0 0 5px 0;
-	border-color:transparent;
+	text-align: center;
+	padding-top: 5px;
 }
 
 
-button.participants-btn.active{
-	color: #FFCE6D;
-	border-style: solid;
-	border-color: #FFCE6D; 
-
-}
-
-.participants-row .highlighted{
+.participants-row.highlighted > p, .participants-row.highlighted > span{
 	font-weight: bold;
 	font-size: 22px;
 }

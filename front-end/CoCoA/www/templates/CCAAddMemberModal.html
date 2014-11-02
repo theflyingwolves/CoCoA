@@ -10,14 +10,15 @@
     </label>
 
 		<ion-list>
-			<ion-item ng-repeat="student in allSchoolStudents" ng-click="selectMember(student)">
+    <div class="item item-divider" ng-repeat-start="(initial, schoolStudents) in allSchoolStudentsViewModel">{{initial}}</div>
+			<ion-item ng-repeat="student in schoolStudents" ng-click="selectMember(student)">
 			  <div class="col col-90 task-row-inner">
     			<i class="icon ion-checkmark-circled" ng-if="student.selected"></i>
           <i class="icon ion-ios7-circle-outline" ng-if="!student.selected"></i>
           {{student.name}}
         </div>
 			</ion-item>
+    <div ng-repeat-end></div>
 		</ion-list>
-		
 	</ion-content>
 </ion-modal-view>
