@@ -373,6 +373,7 @@ angular.module('cocoa.controllers', [])
     .success(function(res, status){
       res.id = res.event_spreadsheet_id;
       $scope.eventlist.push(res);
+      window.setTimeout(function(){$scope.createAttendance(name)}, 3000);
     })
     .error(function(res){
       console.log("Error: createNewEvent: "+angular.toJson(res));
@@ -385,6 +386,28 @@ angular.module('cocoa.controllers', [])
       createNewEvent(eventName);
     }
   };
+
+  $scope.createAttendance = function(eventName){
+    console.log("Event Task: "+angular.toJson($scope.eventtasks));
+    var currCCA = StatusTracker.getCurrCCA();
+
+    console.log("Creating Task: "+ServerInfo.serverUrl()+"/"+AccountManager.getUserId+"/tasks");
+    console.log("CCAName: "+currCCA.title+" Event Name: "+eventName);
+    
+    $http.post(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/tasks",{
+      newTaskName:"Attendance",
+      CCAName: currCCA.title,
+      eventName: eventName
+    })
+
+    .success(function(data){
+      console.log("Success: Create Task Attendance");
+    })
+
+    .error(function(err){
+      console.log("Failed: Create Task "+console.log(err));
+    });
+  }
 
   $scope.enterEvent = function(id){
     $scope.loadingIndicator = $ionicLoading.show({
@@ -495,7 +518,6 @@ angular.module('cocoa.controllers', [])
   $scope.eventInfo = EventViewFactory.getEventInfo();
   $scope.selectedTaskIndex = -1;
   $scope.deletingTaskIndex = -1;
-  $scope.isTaskStudentEditMode = false;
   $scope.isEditMode = false;
 
   $ionicModal.fromTemplateUrl('templates/eventEditParticipant.html',{
@@ -601,6 +623,24 @@ angular.module('cocoa.controllers', [])
     }
     $scope.selectedTask.viewModel = generatePartModel(allParticipants);
     EventViewFactory.saveTask($scope.eventtasks);
+
+    console.log("Info: "+angular.toJson($scope.selectedTask));
+
+    var currCCA = StatusTracker.getCurrCCA();
+    var currEventDetails = StatusTracker.getCurrEvent().event_details;
+    $http.put(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/taskStatus",{
+      CCAName:currCCA.title,
+      eventName:currEventDetails.title,
+      task:$scope.selectedTask
+    })
+
+    .success(function(data){
+      console.log("Event Status Updated!!!!!! "+angular.toJson(data));
+    })
+
+    .error(function(err){
+      console.log("Error: "+angular.toJson(err));
+    });
   };
 
   $scope.chooseParticipant = function(id){
@@ -634,33 +674,6 @@ angular.module('cocoa.controllers', [])
     $scope.selectedRow = $scope.selectedRow == rowIndex? -1 : rowIndex;
   }
 
-  $scope.toggleTaskStudentEditMode = function(){
-    $scope.isTaskStudentEditMode = !$scope.isTaskStudentEditMode;
-    if($("#edit-btn").text() == "Finish"){
-      console.log("Comfirming");
-      $("#edit-btn").html("<span class='ion-edit'></span>");
-      var currCCA = StatusTracker.getCurrCCA();
-      var currEventDetails = StatusTracker.getCurrEvent().event_details;
-      console.log("Info: "+angular.toJson($scope.selectedTask));
-      $http.put(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/taskStatus",{
-        CCAName:currCCA.title,
-        eventName:currEventDetails.title,
-        task:$scope.selectedTask
-      })
-
-      .success(function(data){
-        console.log("Event Status Updated!!!!!! "+angular.toJson(data));
-      })
-
-      .error(function(err){
-        console.log("Error: "+angular.toJson(err));
-      });
-
-    }else{
-      console.log("Editting");
-      $("#edit-btn").text("Finish");
-    }
-  }
 
   $scope.toggleEventDetailEditMode = function(){
     $scope.isEditMode = !$scope.isEditMode;
