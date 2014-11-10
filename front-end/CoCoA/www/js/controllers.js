@@ -85,6 +85,23 @@ angular.module('cocoa.controllers', [])
       };
     },
 
+    saveEventList:function(events){
+      var allgroups = angular.fromJson(window.localStorage['usergroups']);
+      var activeIndex = parseInt(window.localStorage['lastActiveProject']);
+      allgroups[activeIndex].eventlist = events;
+      window.localStorage['usergroups'] = angular.toJson(allgroups);
+    },
+
+    getEventList:function(){
+      var allgroups = angular.fromJson(window.localStorage['usergroups']);
+      var activeIndex = parseInt(window.localStorage['lastActiveProject']);
+      if(allgroups[activeIndex] && allgroups[activeIndex].eventlist != undefined){
+        return allgroups[activeIndex].eventlist;
+      }else{
+        return [];
+      }
+    },
+
     newEvent: function(name){
       var id = this.generateRandomId();
       return {
@@ -100,6 +117,7 @@ angular.module('cocoa.controllers', [])
     },
 
     setLastActiveIndex: function(index) {
+      console.log("Last Active Index Changed from "+parseInt(window.localStorage['lastActiveProject'])+" to "+index);
       window.localStorage['lastActiveProject'] = index;
     },
 
@@ -331,6 +349,8 @@ angular.module('cocoa.controllers', [])
         $scope.usergroups.push(data[i]);
       }
 
+      Usergroups.save($scope.usergroups);
+
       $scope.selectCCA($scope.usergroups[Usergroups.getLastActiveIndex()],Usergroups.getLastActiveIndex());
 
     })
@@ -353,6 +373,16 @@ angular.module('cocoa.controllers', [])
     StatusTracker.selectCCA(cca);
     $ionicSideMenuDelegate.toggleLeft(false);
 
+    while($scope.eventlist.length >0 ){
+      $scope.eventlist.pop();
+    }
+
+    var events = Usergroups.getEventList();
+    for(var i=0; i<events.length; i++){
+      $scope.eventlist.push(events[i]);
+    }
+    console.log("Eveeees: "+angular.toJson($scope.eventlist));
+
     $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+$scope.activeGroup.id+"/events")
     .success(function(data){
       console.log("Data Received: "+angular.toJson(data));
@@ -362,6 +392,8 @@ angular.module('cocoa.controllers', [])
       for(var i=0; i<data.list_of_events.length; i++){
         $scope.eventlist.push(data.list_of_events[i]);
       }
+
+      Usergroups.saveEventList($scope.eventlist);
     });
   };
 
@@ -508,6 +540,15 @@ angular.module('cocoa.controllers', [])
   };
 
   $timeout(function() {
+    var data = Usergroups.all();
+    while($scope.usergroups.length > 0){
+      $scope.usergroups.pop();
+    }
+
+    for(var i=0; i<data.length;i++){
+      $scope.usergroups.push(data[i]);
+    }
+
     $scope.loadDataFromServer();
   });
 })
