@@ -27,22 +27,21 @@
         </label>
     </div>
 
-    <div ng-if="!isEditMode">
-      <label class="item item-input item-stacked-label">
-        <div class="row">
-          <div class="col col-33"><p class="info-label">Date</p></div>
-          <div class="col col-67">
-            <p ng-if="eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} - {{eventInfo.endDate | date: 'MMM dd'}}</p>
-            <p ng-if="eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} - {{eventInfo.endDate | date: 'MMM dd, yyyy'}}</p>
-            <p ng-if="eventInfo.startDate && !eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} </p>
-            <p ng-if="eventInfo.startDate && !eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} </p>
-            <p ng-if="!eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.endDate} | date: 'MMM dd'} </p>
-            <p ng-if="!eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.endDate} | date: 'MMM dd, yyyy'} </p>
-          </div>
+    <label class="item item-input item-stacked-label" ng-if="!isEditMode && (eventInfo.startDate || eventInfo.endDate)">
+      <div class="row">
+        <div class="col col-33"><p class="info-label">Date</p></div>
+        <div class="col col-67">
+          <p ng-if="eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} - {{eventInfo.endDate | date: 'MMM dd'}}</p>
+          <p ng-if="eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} - {{eventInfo.endDate | date: 'MMM dd, yyyy'}}</p>
+          <p ng-if="eventInfo.startDate && !eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd'}} </p>
+          <p ng-if="eventInfo.startDate && !eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.startDate | date: 'MMM dd, yyyy'}} </p>
+          <p ng-if="!eventInfo.startDate && eventInfo.endDate && eventInfo.isCurrentYear">{{eventInfo.endDate} | date: 'MMM dd'} </p>
+          <p ng-if="!eventInfo.startDate && eventInfo.endDate && !eventInfo.isCurrentYear">{{eventInfo.endDate} | date: 'MMM dd, yyyy'} </p>
         </div>
-      </label>
-    </div>
-    <label class="item item-input item-stacked-label">
+      </div>
+    </label>
+
+    <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.time">
       <div class="row">
         <div class="col col-33">
           <p class="info-label">Time</p>
@@ -53,7 +52,8 @@
         </div>
       </div>
     </label>
-    <label class="item item-input item-stacked-label">
+
+    <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.venue">
       <div class="row">
         <div class="col col-33">
           <p class="info-label">Venue</p>
@@ -134,10 +134,17 @@
       </div>
     </label>
 
+    <label class="item item-input item-stacked-label" ng-if="!isEditMode && !eventInfo.startDate && !eventInfo.endDate && !eventInfo.time && ! eventInfo.venue && !eventInfo.studentsNeeded && !eventInfo.reportTime && !eventInfo.reportVenue && !eventInfo.TOIC &&
+    !eventInfo.comments">
+      <div class="row">
+        <p>Event detail is empty</p>
+      </div>
+    </label>
+
         <div class="item item-divider"></div>
             
         <div class="item participants-divider" ng-if="!isEditMode">
-          View participants
+          participants
         </div>
         <div class="item participants-divider" ng-if="isEditMode">
           Choose participants

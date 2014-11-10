@@ -2,9 +2,9 @@
   <button menu-toggle="left" id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
 
   <ion-nav-buttons side="left">
-    <h1 class="title" ng-if="selectedTask">{{selectedTask.name}}</h1>
+    <h1 class="title" ng-if="selectedTask">{{selectedTask.taskName}}</h1>
     <h1 class="title" ng-if="!selectedTask" >All Participants</h1>
-    <button id="edit-btn" class="button button-clear button-positive" ng-click="toggleEditMode()"><span class="ion-edit"></span></button>
+    <button id="edit-btn" class="button button-clear button-positive" ng-click="toggleTaskStudentEditMode()"><span class="ion-edit"></span></button>
   </ion-nav-buttons>
   
   <ion-content class="has-header">
@@ -17,7 +17,7 @@
     <ion-list>
     <!--Participant rows-->
     <div class="item item-divider" ng-repeat-start="(initial, students) in selectedTask.viewModel">{{initial}}</div>
-  		<ion-item class="participants-row"  ng-repeat="student in students track by student.id" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1" ng-click="toggleStuInfoDisplay(student.id)" ng-class="{'edit-mode': isEditMode}">
+  		<ion-item class="participants-row"  ng-repeat="student in students track by student.id" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1" ng-click="toggleStuInfoDisplay(student.id)" ng-class="{'edit-mode': isTaskEditMode}">
   			<div class="col col-90 task-row-inner">
   				<i class="icon ion-checkmark-circled" ng-click="selectStudent(student.id)" ng-if="student.status" stop-event></i>
           <i class="icon ion-ios7-circle-outline" ng-click="selectStudent(student.id)" ng-if="!student.status" stop-event></i>

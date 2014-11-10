@@ -182,6 +182,25 @@ angular.module('cocoa.controllers', [])
       return eventParticipants;
     },
 
+    getTaskMemberList:function(){
+      updateSelectedEvent();
+      var cca_members = angular.fromJson(window.localStorage['selectedEvent']).cca_members;
+      var students = [];
+
+      console.log("cca_members: "+angular.toJson(cca_members));
+      
+      for(var i=0; i<cca_members.length; i++){
+        var student = cca_members[i];
+        if(student.selected){
+          student.status = false;
+          students.push(angular.fromJson(angular.toJson(student)));
+        }
+      }
+
+      console.log("Task member list: "+angular.toJson(students));
+      return students;
+    },
+
     getCCAMembersForEvent:function(){
       updateSelectedEvent();
       var cca_members = angular.fromJson(window.localStorage['selectedEvent']).cca_members;
@@ -279,6 +298,7 @@ angular.module('cocoa.controllers', [])
       $scope.usergroups.push(newCCA);
       Usergroups.save($scope.usergroups);
       $scope.selectCCA(newCCA, $scope.usergroups.length - 1);
+      console.log("Selecting Members for new CCA");
     })
 
     .error(function(res){
@@ -287,9 +307,21 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.loadDataFromServer = function(){
+    $ionicLoading.show({
+        content: 'Loading Data',
+        animation: 'fade-in',
+        showBackdrop: false,
+        maxWidth: 200,
+        showDelay: 500
+    });
+
     $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca")
 
     .success(function(data, status){
+
+      console.log("Load Data From Server Status: "+angular.toJson(status)+" with data "+angular.toJson(data));
+      console.log("Last Active Index: "+Usergroups.getLastActiveIndex());
+      $ionicLoading.hide();
 
       while($scope.usergroups.length > 0){
         $scope.usergroups.pop();
@@ -300,6 +332,7 @@ angular.module('cocoa.controllers', [])
       }
 
       $scope.selectCCA($scope.usergroups[Usergroups.getLastActiveIndex()],Usergroups.getLastActiveIndex());
+
     })
 
     .error(function(data,status){
@@ -315,14 +348,6 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.selectCCA = function(cca, index){
-    $scope.loadingIndicator = $ionicLoading.show({
-        content: 'Loading Data',
-        animation: 'fade-in',
-        showBackdrop: false,
-        maxWidth: 200,
-        showDelay: 500
-    });
-
     $scope.activeGroup = cca;
     Usergroups.setLastActiveIndex(index);
     StatusTracker.selectCCA(cca);
@@ -337,7 +362,6 @@ angular.module('cocoa.controllers', [])
       for(var i=0; i<data.list_of_events.length; i++){
         $scope.eventlist.push(data.list_of_events[i]);
       }
-      $ionicLoading.hide();
     });
   };
 
@@ -391,9 +415,19 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.showMemberModal = function(title){
+    console.log("Showing");
+    $scope.loadingIndicator = $ionicLoading.show({
+      content: 'Loading Data',
+      animation: 'fade-in',
+      showBackdrop: false,
+      maxWidth: 200,
+      showDelay: 500
+    });
+
     StatusTracker.saveCurrCCAForMemberEdit(title);
     $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/allStudents/"+title)
     .success(function(data){
+      $ionicLoading.hide();
       $scope.allSchoolStudents = data.students;
       $scope.allSchoolStudentsViewModel = generatePartModel($scope.allSchoolStudents);
       $scope.memberModal.show();
@@ -409,6 +443,8 @@ angular.module('cocoa.controllers', [])
 
   $scope.confirm = function(){
     var title = StatusTracker.getCurrCCAForMemberEdit();
+    $scope.memberModal.hide();
+
     $http.put(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/membersOfCCA",{
       CCAName: title,
       students:$scope.allSchoolStudents
@@ -416,7 +452,6 @@ angular.module('cocoa.controllers', [])
 
     .success(function(data){
       console.log("CCA Members Updated: "+angular.toJson(data));
-      $scope.memberModal.hide();
     })
     .error(function(err){
       console.log("Failed: CCA Member Info Update - "+angular.toJson(err));
@@ -460,6 +495,8 @@ angular.module('cocoa.controllers', [])
   $scope.eventInfo = EventViewFactory.getEventInfo();
   $scope.selectedTaskIndex = -1;
   $scope.deletingTaskIndex = -1;
+  $scope.isTaskStudentEditMode = false;
+  $scope.isEditMode = false;
 
   $ionicModal.fromTemplateUrl('templates/eventEditParticipant.html',{
     scope:$scope,
@@ -484,7 +521,7 @@ angular.module('cocoa.controllers', [])
 
     .success(function(data){
       var task = data.task;
-      task.status = EventViewFactory.getEventParticipants();
+      task.status = EventViewFactory.getTaskMemberList();
       console.log("Event Participants: "+angular.toJson(task.status));
       task.viewModel = generatePartModel(task.status);
       console.log(task.viewModel);
@@ -507,6 +544,7 @@ angular.module('cocoa.controllers', [])
     $scope.selectedTask.viewModel = generatePartModel($scope.selectedTask.status);
     console.log("Selecting Task: "+angular.toJson(task));
     $scope.selectedTaskIndex = index;
+    console.log("isEdit"+$scope.isEditMode);
   };
 
   $scope.scrollTop = function() {
@@ -554,9 +592,6 @@ angular.module('cocoa.controllers', [])
   }
 
   $scope.selectStudent = function(id){
-    if(!$scope.isEditMode)
-      return;
-
     var allParticipants = $scope.selectedTask.status;
     for(var i=0; i<allParticipants.length; i++){
       var participant = allParticipants[i];
@@ -599,9 +634,10 @@ angular.module('cocoa.controllers', [])
     $scope.selectedRow = $scope.selectedRow == rowIndex? -1 : rowIndex;
   }
 
-  $scope.toggleEditMode = function(){
-    $scope.isEditMode = !$scope.isEditMode;
+  $scope.toggleTaskStudentEditMode = function(){
+    $scope.isTaskStudentEditMode = !$scope.isTaskStudentEditMode;
     if($("#edit-btn").text() == "Finish"){
+      console.log("Comfirming");
       $("#edit-btn").html("<span class='ion-edit'></span>");
       var currCCA = StatusTracker.getCurrCCA();
       var currEventDetails = StatusTracker.getCurrEvent().event_details;
@@ -621,6 +657,7 @@ angular.module('cocoa.controllers', [])
       });
 
     }else{
+      console.log("Editting");
       $("#edit-btn").text("Finish");
     }
   }
@@ -669,6 +706,7 @@ angular.module('cocoa.controllers', [])
   }
 
   $scope.toggleTaskEditMode = function(){
+    console.log("toggle ")
     $scope.isTaskEditMode = !$scope.isTaskEditMode;
       if($("#task-edit-btn").text() == "Finish"){
       $("#task-edit-btn").text("Edit");
@@ -720,6 +758,7 @@ angular.module('cocoa.controllers', [])
     $scope.partViewModel = generatePartModel($scope.eventParticipants);
     $scope.tempParticipants = EventViewFactory.getCCAMembersForEvent();
     $scope.participantsEditModel = generatePartModel($scope.tempParticipants);
+    console.log("isEditMode "+$scope.isEditMode);
   };
 
   $scope.showPartModel = function(){
