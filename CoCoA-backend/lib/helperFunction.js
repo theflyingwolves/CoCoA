@@ -630,6 +630,7 @@ exports.updateMembersOfCCA = function(req, res) {
                                     for (var i = 0; i < rows.length; i++) {
                                         var curId = rows[i].id;
                                         var indexToDelete = -1;
+                                        var indexNoNeedTodelete = -1;
                                         
                                         for (var j = 0; j < studentsToAdd.length; j++) {
                                             if (studentsToAdd[j].id == curId) {
@@ -637,10 +638,24 @@ exports.updateMembersOfCCA = function(req, res) {
                                                 break;
                                             };
                                         };
+
+                                        for (var j = 0; j < studentsToDelete.length; j++) {
+                                            indexNoNeedTodelete = j;
+                                            if (studentsToDelete[j].id == curId) {
+                                                indexNoNeedTodelete = -1;
+                                                break;
+                                            };
+                                        };
+
                                         if (indexToDelete != -1) {
                                             studentsToAdd.splice(indexToDelete, 1);
                                         };
+                                        if (indexNoNeedTodelete != -1) {
+                                            studentsToDelete.splice(indexNoNeedTodelete, 1);
+                                        };
+
                                     };
+
 
                                     async.eachSeries(studentsToDelete, function(student, callback) {
 
@@ -1130,6 +1145,7 @@ exports.updateParticipants = function(req, res) {
 
     async.waterfall([
             function(callback){
+                console.log("step 1");
                  db.collection('users').find({google_id:req.params.user_id}).toArray(function(err, user) {
                     if (err) {
                         callback(err, []);
@@ -1139,6 +1155,7 @@ exports.updateParticipants = function(req, res) {
                 });
             },
             function(user, callback){ 
+                console.log("step 2");
                 var studentsToAdd = [];
                 var studentsToDelete = [];
                 for (var i = 0; i < students.length; i++) {
@@ -1152,7 +1169,8 @@ exports.updateParticipants = function(req, res) {
                 callback(null, studentsToAdd, studentsToDelete, students, user);
 
             },
-            function(studentsToAdd, studentsToDelete, students, callback){
+            function(studentsToAdd, studentsToDelete, students, user, callback){
+                console.log("step 3");
                 var fileName = CCAName+"-events-"+eventName;
                 var q = "title = '" + fileName+"'";
 
@@ -1166,7 +1184,7 @@ exports.updateParticipants = function(req, res) {
                         callback(message, []);
                     }else {
                         var items = res.items;
-
+                        console.log("step 4");
                         // if item is trashed or parent is not right 
                         // filter out the item
                         async.filter(items, 
@@ -1246,6 +1264,7 @@ exports.updateParticipants = function(req, res) {
                                     for (var i = 0; i < rows.length; i++) {
                                         var curId = rows[i].id;
                                         var indexToDelete = -1;
+                                        var indexNoNeedTodelete = -1;
                                         
                                         for (var j = 0; j < studentsToAdd.length; j++) {
                                             if (studentsToAdd[j].id == curId) {
@@ -1253,8 +1272,20 @@ exports.updateParticipants = function(req, res) {
                                                 break;
                                             };
                                         };
+
+                                        for (var j = 0; j < studentsToDelete.length; j++) {
+                                            indexNoNeedTodelete = j;
+                                            if (studentsToDelete[j].id == curId) {
+                                                indexNoNeedTodelete = -1;
+                                                break;
+                                            };
+                                        };
+
                                         if (indexToDelete != -1) {
                                             studentsToAdd.splice(indexToDelete, 1);
+                                        };
+                                        if (indexNoNeedTodelete != -1) {
+                                            studentsToDelete.splice(indexNoNeedTodelete, 1);
                                         };
                                     };
 

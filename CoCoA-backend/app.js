@@ -97,6 +97,7 @@ app.get('/oauth2callback', function(request, response) {
     gapi.oauth2Client.getToken(code, function(err, tokens){
     gapi.oauth2Client.setCredentials(tokens);
         async.waterfall([
+            //user login, pass googleId and credentials to follow functions
             function(callback){
                 gapi.googlePlus.people.get({ userId: 'me', auth: gapi.oauth2Client }, function(err, res) {
                     if (err) console.log(JSON.stringify(err));
@@ -106,25 +107,46 @@ app.get('/oauth2callback', function(request, response) {
                    callback(null,googleId,credentials);
                 });
             },
+            //get user root_folder_id by googleId
             function(googleId,credentials,callback){
                 var rootFolderId;
                 db.collection('users').find({google_id:googleId}).toArray(function(err, result) {
                     if (err) throw err;
+                    //new user
                     if(result.length == 0){
                         db.collection('users').insert({
                             google_id:googleId,
                             credentials:credentials,
                             root_folder_id:""
-                            },function(err,res){
+                        },
+                        function(err,res){
                             if (err) throw err;
+                            rootFolderId = "";
+                            callback(null,googleId,credentials,rootFolderId);
                         });
-                    }else{
-                        rootFolderId = result[0].root_folder_id;
                     }
-                    callback(null,googleId,credentials,rootFolderId);
+                    //return user
+                    else{
+                        console.log("I'm return user");
+                        //check validation of rootFolderId
+                        gapi.googleDrive.files.get({
+                        'fileId':result[0].root_folder_id
+                        },function(err,res){
+                            if(res!=null && res.length == 1){
+                                rootFolderId = result[0].root_folder_id;
+                            }
+                            else{
+                                console.log("root folder cannot found: ");
+                                rootFolderId = "";
+                            }
+                            callback(null,googleId,credentials,rootFolderId);
+                        });
+                    }
                 });
             },
+            //
             function(googleId,credentials,rootFolderId,callback){
+                console.log("current rootFolderId: "+rootFolderId);
                 if(rootFolderId != null && rootFolderId !=""){
                     db.collection('users').update(
                         {google_id:googleId},
@@ -133,7 +155,6 @@ app.get('/oauth2callback', function(request, response) {
                             credentials:credentials
                             }
                         },function(err,res){});
-                        //response.send({"googleId":googleId});
                 } else{
                     console.log("find my root folder id");
                     gapi.googleDrive.files.list({
@@ -141,15 +162,32 @@ app.get('/oauth2callback', function(request, response) {
                         'q':"title = 'CCA-Admin' and trashed = false"
                     }, function(err,res){
                         if(res.items.length == 0){
+                            console.log("I dont have");
+                            //create CCA_Admin if not found
                              gapi.googleDrive.files.insert({
                                 resource: {
                                     title: "CCA-Admin",
                                     mimeType: 'application/vnd.google-apps.folder'
                                 }
-                            }, function(err,res){if (err) throw err;});
+                            }, function(err,res){
+                                if (err) throw err;
+                                //update root folder id in database
+                                db.collection('users').update(
+                                    {
+                                        google_id:googleId
+                                    },
+                                    {
+                                    $set:{
+                                        credentials:credentials,
+                                        root_folder_id:res.id
+                                        }
+                                    },function(err,res){});
+
+                            });
                             //response.send({"googleId":googleId,"message":"CCA-Admin created"});
                         }
                         else if(res.items.length == 1){
+                            console.log("I have a rootFolder");
                             rootFolderId = res.items[0].id;
                             db.collection('users').update(
                                 {google_id:googleId},
@@ -162,7 +200,7 @@ app.get('/oauth2callback', function(request, response) {
                                 //response.send({"googleId":googleId});
                         }
                         else{
-                            //response.send({"googleId":googleId,"message":"You have more than one CCA-Admin Folder"});
+                            console.log("You have more than one CCA-Admin Folder");
                         }
                     });
                 }
@@ -192,6 +230,7 @@ app.get('/:user_id/cca', function(request,response){
                 'q':"'"+user[0].root_folder_id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'"
             },
             function(err,res){
+                if(err) throw err;
                 async.each(res.items, function(item,eachCallback){
                     var cca = {};
                     cca.id = item.id;
@@ -201,8 +240,9 @@ app.get('/:user_id/cca', function(request,response){
                 },
                 function(err){  
                     if(err){
-                        console.log(err);
+                        console.log(JSON.stringify(err));
                     } else{
+                        console.log("ccaList: "+ccaList);
                         response.send(ccaList);
                     }
                 });
@@ -238,6 +278,7 @@ app.post('/:user_id/cca', function(request,response){
                 }
             },
             function(err,res){
+                if(err) console.log(JSON.stringify(err));
                 var cca_id = res.id;
                 gapi.googleDrive.files.insert({
                     resource: {
@@ -311,7 +352,7 @@ app.post('/:user_id/cca', function(request,response){
                         if(err) throw err;
                         spreadsheet.add([['Name of Event','Students Needed','Students Selected','Starting Date',
                             'End Date','Event Time','Event Venue','Student Reporting Time + Venue',
-                            'Bus Timing','Other Comments','TO taking them']]);
+                            'Bus Timing','Other Comments','TO taking them', 'Student Tasks']]);
                         spreadsheet.send(function(err) {
                             if(err) throw err;
                             console.log("Updated successfully");
@@ -364,6 +405,7 @@ app.post('/:user_id/cca', function(request,response){
 });
 
 app.get('/:user_id/cca/:cca_id/events', function(request,response){
+
     async.waterfall([
         function(waterfallCallback){
              db.collection('users').find({google_id:request.params.user_id}).toArray(function(err, user) {
@@ -373,7 +415,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
         },
         function(user,waterfallCallback){
 
-            console.log(request.cookies);
+            // console.log(request.cookies);
             var returnJSON = {};
             var list_of_events = [];
             var list_of_event_ids = [];
@@ -384,6 +426,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
             },
             function(err,res){
                 if(err) throw err;
+                // console.log(res);
                 async.series([
                     function(callback){
                         //start of retriving event details
@@ -392,6 +435,8 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                             'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
                         },
                         function(err,res){
+                            console.log(err);
+                            console.log(res);
                             googleSpreadsheet.load({
                                 debug:true,
                                 spreadsheetId:res.items[0].id,
@@ -457,7 +502,11 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                                 async.each(res.items, function(item,eachCallback){
                                     var event = {};
                                     event.id = item.id;
-                                    event.title = item.title;
+                                    var n = item.title.search("-");
+                                    cca_title = item.title.substr(0,n);
+                                    var sub_spreadsheet_title = item.title.substr(n+1);
+                                    var m = sub_spreadsheet_title.search("-");
+                                    event.title = sub_spreadsheet_title.substr(m+1);
                                     list_of_event_ids.push(event);
                                     eachCallback();
                                 },
@@ -574,7 +623,8 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                         },
                         function sheetReady(err, spreadsheet) {
                                 if(err) throw err;
-                                spreadsheet.add([['Name of Student','ID','Level','Class']]);
+                                spreadsheet.add([['Name','ID','Level','Class','Race','Nationality','Guardian Contact 1',
+                        'Guardian Contact 2','Guardian Contact 3','Medical Concern']]);
                                 spreadsheet.send(function(err) {
                                 if(err) throw err;
                                 console.log("event spreadsheet created successfully");
@@ -711,6 +761,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                     function sheetReady(err, spreadsheet) {
                         spreadsheet.receive(function(err,rows,info){
                             if (err) throw err;
+                            console.log(rows);
                             //refactor rows
                             var i = 1;
                             for(var key in rows){
@@ -766,10 +817,15 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                         if (err) throw err;
                         //refactor rows
                         var i = 1;
+                        var taskString = "";
                         for(var key in rows){
+                            // console.log("checking a row");
                             var obj = rows[key];
                             for(var prop in obj){
+                                
                                 if(i != 1 && obj.hasOwnProperty(prop) && obj["1"] == event_title){
+                                    // console.log("found the row");
+                                    // console.log(obj);
                                     var col = parseInt(prop);
                                     switch(col){
                                         case 1:event_details.title = obj[prop]; break;
@@ -783,17 +839,112 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                                         case 9:event_details.busTime = obj[prop]; break;
                                         case 10:event_details.comments = obj[prop]; break;
                                         case 11:event_details.TOIC = obj[prop]; break;
+                                        case 12:taskString = obj[prop]; console.log(obj[prop]); break;
                                         default: break;
                                     }
                                 }
                             }
                             i++;
                         }
+                        var tasks = taskString.split(",");
+                        for (var i = 0; i < tasks.length; i++) {
+                            tasks[i] = tasks[i].trim();
+                        };
+                        // console.log(taskString);
+                        console.log(tasks);
                         //end of rafactor rows
-                        waterfallCallback(null,user,event_title,event_members,cca_title,event_details);
+                        waterfallCallback(null,user,event_title,event_members,cca_title,event_details, tasks);
                     });
                 });
             });
+        },
+        // get task status
+        function(user,event_title,event_members,cca_title,event_details,tasks,waterfallCallback){
+            gapi.oauth2Client.setCredentials(user[0].credentials);
+            gapi.googleDrive.files.get({
+                "fileId": request.params.event_id
+            },
+            function(err,res){
+                googleSpreadsheet.load({
+                        debug:true,
+                        spreadsheetId:res.id,
+                        worksheetId:'od6',
+                        accessToken:{
+                            type:'Bearer',
+                            token:user[0].credentials.access_token
+                        }
+                    },
+                    function sheetReady(err, spreadsheet) {
+                        spreadsheet.receive(function(err,rows,info){
+                            if (err) {
+                                waterfallCallback(err, []);
+                            } else {
+                                if (rows['1']) {
+                                    var columnCounts = 1;
+                                    var taskIndexes = [];
+                                    var otherIndexes = [];
+                                    for (var i = 0; i < tasks.length; i++) {
+                                        taskIndexes.push(-1);
+                                    };
+
+                                    for (key in rows['1']) {
+                                        var curTaskName = rows['1'][key];
+                                        var index = tasks.indexOf(curTaskName);
+                                        if (index != -1) {
+                                            taskIndexes[index] = columnCounts;
+                                        } else {
+                                            if (columnCounts > 2) {
+                                                otherIndexes.push(columnCounts);
+                                            };
+                                        }
+                                        columnCounts++;
+                                    };
+                                    console.log(taskIndexes);
+
+                                    var tasksArray = [];
+                                    for (var i = 0; i < taskIndexes.length; i++) {
+                                        console.log("here!");
+                                        var col = taskIndexes[i];
+                                        if(col != -1){
+                                            var curTask = {taskName: tasks[i]};
+
+                                            var students = [];
+                                            for (key in rows) {
+                                                if (key != '1') {
+                                                    var curRow = rows[key];
+                                                    var curName = curRow['1'];
+                                                    var curId = curRow['2'];
+                                                    var hasDone = false;
+                                                    if (rows[key][col] == "yes") {
+                                                        hasDone = true;
+                                                    }
+
+                                                    data = {};
+                                                    for (var j = 0; j < otherIndexes.length; j++) {
+                                                        var colToRead = otherIndexes[j]+"";
+                                                        var fieldName = rows['1'][colToRead];
+                                                        var value = curRow[colToRead];
+                                                        data[fieldName] = value;
+                                                    };
+
+                                                    var student = {name:curName, id:curId, status:hasDone, data:data};
+                                                    students.push(student);
+                                                };
+                                            };
+                                            curTask.status = students;
+                                            tasksArray.push(curTask);
+                                        }
+                                    };
+
+                                    event_details.tasks = tasksArray;
+                                    waterfallCallback(null,user,event_title,event_members,cca_title,event_details);
+                                }
+                            }
+                        });
+                    }
+                );
+            });
+
         },
         //get cca members
         function(user,event_title,event_members,cca_title,event_details,waterfallCallback){
@@ -820,27 +971,27 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                         for(var key in rows){
                             var obj = rows[key];
                             var j =1;
-                            var student = {};
+                            var student = {data:{}};
                             for(var prop in obj){
                                 if(i != 1 && obj.hasOwnProperty(prop)){
                                     var col = parseInt(prop);
                                     switch(col){
                                         case 1:student.name = obj[prop]; break;
                                         case 2:student.id = obj[prop]; break;
-                                        case 3:student.level = obj[prop]; break;
-                                        case 4:student.class = obj[prop]; break;
-                                        case 5:student.race = obj[prop]; break;
-                                        case 6:student.nationality = obj[prop]; break;
-                                        case 7:student.guardian_contact_phone = obj[prop]; break;
-                                        case 8:student.guardian_contact_mobile = obj[prop]; break;
-                                        case 9:student.guardian_contact_other = obj[prop]; break;
-                                        case 10:student.medical_concern = obj[prop]; break;
+                                        case 3:student.data.level = obj[prop]; break;
+                                        case 4:student.data.class = obj[prop]; break;
+                                        case 5:student.data.race = obj[prop]; break;
+                                        case 6:student.data.nationality = obj[prop]; break;
+                                        case 7:student.data.guardian_contact_phone = obj[prop]; break;
+                                        case 8:student.data.guardian_contact_mobile = obj[prop]; break;
+                                        case 9:student.data.guardian_contact_other = obj[prop]; break;
+                                        case 10:student.data.medical_concern = obj[prop]; break;
                                         default: break;
                                     }
                                     j++;
                                 }
                             }
-                            student.isSelected = false;
+                            student.selected = false;
                             cca_members.push(student);
                             i++;
                         }
@@ -858,18 +1009,22 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                 var studentId = event_members[i].id;
                 for(var j = 0;j<cca_members.length;j++){
                     if(studentId == cca_members[j].id){
-                        cca_members[j].isSelected = true;
+                        cca_members[j].selected = true;
                     }
                 }
             }
             event.cca_members = cca_members;
             event.event_details = event_details;
-            response.send(event);
-            waterfallCallback(null);
+            
+            waterfallCallback(null,event);
         }
     ],
     function(err,result){
-        //我已无语凝噎
+        if (err) {
+            response.send({message:err, event:event});
+        }else {
+            response.send({message:"success", event:event});
+        }
     });
 });
 
