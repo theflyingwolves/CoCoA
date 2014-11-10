@@ -1,6 +1,9 @@
 
 <ion-view data-ng-init="eventDetailsView()" hide-back-button="isEditMode">
   <ion-nav-buttons id="eventdetail-nav" side="left">
+    <ion-nav-back-button class="button-clear">
+    <i class="ion-arrow-left-c"></i> Back
+  </ion-nav-back-button>
     <h1 class="title">{{eventInfo.title}} - Details</h1>
     <a id="edit-btn" class="button button-clear button-positive" ng-click="toggleEventDetailEditMode()" >Edit</a>
   </ion-nav-buttons>
