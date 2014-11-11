@@ -128,6 +128,19 @@ app.get('/oauth2callback', function(request, response) {
                     //return user
                     else{
                         console.log("I'm return user");
+                        //update refresh token if it's changed
+                        if(credentials.refresh_token != null){
+                            db.collection('users').update(
+                            {google_id:googleId},
+                            {
+                            $set:{
+                                credentials:credentials,
+                                }
+                            },
+                            function(err,res){
+                                if (err) throw err;
+                            });
+                        }
                         //check validation of rootFolderId
                         gapi.googleDrive.files.get({
                         'fileId':result[0].root_folder_id
@@ -148,13 +161,7 @@ app.get('/oauth2callback', function(request, response) {
             function(googleId,credentials,rootFolderId,callback){
                 console.log("current rootFolderId: "+rootFolderId);
                 if(rootFolderId != null && rootFolderId !=""){
-                    db.collection('users').update(
-                        {google_id:googleId},
-                        {
-                        $set:{
-                            credentials:credentials
-                            }
-                        },function(err,res){});
+                    //do nothing
                 } else{
                     console.log("find my root folder id");
                     gapi.googleDrive.files.list({
@@ -162,7 +169,7 @@ app.get('/oauth2callback', function(request, response) {
                         'q':"title = 'CCA-Admin' and trashed = false"
                     }, function(err,res){
                         if(res.items.length == 0){
-                            console.log("I dont have");
+                            console.log("I dont have a root folder");
                             //create CCA_Admin if not found
                              gapi.googleDrive.files.insert({
                                 resource: {
@@ -178,26 +185,23 @@ app.get('/oauth2callback', function(request, response) {
                                     },
                                     {
                                     $set:{
-                                        credentials:credentials,
+                                        //credentials:credentials,
                                         root_folder_id:res.id
                                         }
                                     },function(err,res){});
 
                             });
-                            //response.send({"googleId":googleId,"message":"CCA-Admin created"});
                         }
                         else if(res.items.length == 1){
-                            console.log("I have a rootFolder");
+                            console.log("I have a root folder");
                             rootFolderId = res.items[0].id;
                             db.collection('users').update(
                                 {google_id:googleId},
                                 {
                                     $set:{
-                                        credentials:credentials,
                                         root_folder_id:rootFolderId
                                     }
                                 },function(err,res){});
-                                //response.send({"googleId":googleId});
                         }
                         else{
                             console.log("You have more than one CCA-Admin Folder");
@@ -209,7 +213,8 @@ app.get('/oauth2callback', function(request, response) {
             function(err, googleId){
                 if(err) throw err;
                 console.log("auth callback googleId: "+googleId);
-                response.redirect('http://ec2-54-169-115-238.ap-southeast-1.compute.amazonaws.com/www/index.html#/app/eventlist/'+googleId);
+                //response.redirect('http://ec2-54-169-115-238.ap-southeast-1.compute.amazonaws.com/www/index.html#/app/eventlist/'+googleId);
+                response.redirect('http://localhost:8100/#/app/eventlist/'+googleId);
             });
     });
 });
@@ -222,11 +227,14 @@ app.get('/:user_id/cca', function(request,response){
                 waterfallCallback(null,user);
             });
         },
+
         function(user,waterfallCallback){
             var ccaList = [];
+            //update access token when user logins
             gapi.oauth2Client.setCredentials(user[0].credentials);
+
             gapi.googleDrive.files.list({
-                'access_token':user[0].credentials.access_token,
+                //'access_token':user[0].credentials.access_token,
                 'q':"'"+user[0].root_folder_id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.folder'"
             },
             function(err,res){
@@ -238,21 +246,19 @@ app.get('/:user_id/cca', function(request,response){
                     ccaList.push(cca);
                     eachCallback();
                 },
-                function(err){  
+                function(err){
                     if(err){
                         console.log(JSON.stringify(err));
                     } else{
-                        console.log("ccaList: "+ccaList);
                         response.send(ccaList);
                     }
                 });
             });
-            //set userinfo cookies
-            response.cookie('userinfo',user[0]);
             waterfallCallback(null);
         }
     ],
     function(err,result){
+        
         if (err) throw err;
     });
 });
