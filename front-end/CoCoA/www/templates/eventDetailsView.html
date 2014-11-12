@@ -1,8 +1,10 @@
 
-<ion-view data-ng-init="eventDetailsView()" hide-back-button="isEditMode">
+<!-- <ion-view data-ng-init="eventDetailsView()" hide-back-button="isEditMode"> -->
+<ion-view data-ng-init="eventDetailsView()">
+
   <ion-nav-buttons id="eventdetail-nav" side="left">
-    <ion-nav-back-button class="button-clear">
-    <i class="ion-arrow-left-c"></i> Back
+  <ion-nav-back-button class="button-clear backbutton" ng-click="goback()">
+    <i class="ion-chevron-left"></i> Back
   </ion-nav-back-button>
     <h1 class="title">{{eventInfo.title}} - Details</h1>
     <a id="edit-btn" class="button button-clear button-positive" ng-click="toggleEventDetailEditMode()" >Edit</a>
@@ -137,14 +139,14 @@
       </div>
     </label>
 
-    <label class="item item-input item-stacked-label" ng-if="!isEditMode && !eventInfo.startDate && !eventInfo.endDate && !eventInfo.time && ! eventInfo.venue && !eventInfo.studentsNeeded && !eventInfo.reportTime && !eventInfo.reportVenue && !eventInfo.TOIC &&
+    <label class="item item-input item-stacked-label " ng-if="!isEditMode && !eventInfo.startDate && !eventInfo.endDate && !eventInfo.time && ! eventInfo.venue && !eventInfo.studentsNeeded && !eventInfo.reportTime && !eventInfo.reportVenue && !eventInfo.TOIC &&
     !eventInfo.comments">
-      <div class="row">
-        <p>Event detail is empty</p>
+      <div class="row empty">
+        <p><i class="icon ion-ios7-information"></i><span>Event detail is empty</span></p>
       </div>
     </label>
 
-        <div class="item item-divider"></div>
+        <div class="item item-divider thin"></div>
             
         <div class="item participants-divider" ng-if="!isEditMode">
           participants
