@@ -254,8 +254,9 @@ app.get('/oauth2callback', function(request, response) {
             function(err, googleId){
                 if(err) throw err;
                 console.log("auth callback googleId: "+googleId);
-                //response.redirect('http://ec2-54-169-115-238.ap-southeast-1.compute.amazonaws.com/www/index.html#/app/eventlist/'+googleId);
-                response.redirect('http://localhost:8100/#/app/eventlist/'+googleId);
+                 response.redirect('http://ec2-54-169-115-238.ap-southeast-1.compute.amazonaws.com/www/index.html#/app/eventlist/'+googleId);
+                
+                //response.redirect('http://localhost:8100/#/app/eventlist/'+googleId);
             });
     });
 });
@@ -360,7 +361,7 @@ app.post('/:user_id/cca', function(request,response){
                         worksheetId:'od6',
                         accessToken:{
                             type:'Bearer',
-                            token:user[0].credentials.access_token
+                            token:gapi.oauth2Client.credentials.access_token
                         }
                     },
                     function sheetReady(err, spreadsheet) {
@@ -392,7 +393,7 @@ app.post('/:user_id/cca', function(request,response){
                         worksheetId:'od6',
                         accessToken:{
                             type:'Bearer',
-                            token:user[0].credentials.access_token
+                            token:gapi.oauth2Client.credentials.access_token
                         }
                     },
                     function sheetReady(err, spreadsheet) {
@@ -426,7 +427,7 @@ app.post('/:user_id/cca', function(request,response){
                         worksheetId:'od6',
                         accessToken:{
                             type:'Bearer',
-                            token:user[0].credentials.access_token
+                            token:gapi.oauth2Client.credentials.access_token
                         }
                     },
                     function sheetReady(err, spreadsheet) {
@@ -478,7 +479,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                     function(callback){
                         //start of retriving event details
                         gapi.googleDrive.files.list({
-                            'access_token':user[0].credentials.access_token,
+                            //'access_token':user[0].credentials.access_token,
                             'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
                         },
                         function(err,res){
@@ -490,7 +491,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                                 worksheetId:'od6',
                                 accessToken:{
                                     type:'Bearer',
-                                    token:user[0].credentials.access_token
+                                    token:gapi.oauth2Client.credentials.access_token
                                 }
                             },
                             function sheetReady(err, spreadsheet) {
@@ -537,12 +538,12 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                     },
                     function(callback){
                         gapi.googleDrive.files.list({
-                            'access_token':user[0].credentials.access_token,
+                            //'access_token':user[0].credentials.access_token,
                             'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
                         },
                         function(err,res){
                             gapi.googleDrive.files.list({
-                                'access_token':user[0].credentials.access_token,
+                                //'access_token':user[0].credentials.access_token,
                                 'q':"'"+res.items[0].id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.spreadsheet'"
                             },
                             function(err,res){
@@ -609,7 +610,7 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                 var event_title = request.body.event_title;
                 //insert a new line into List of Events spreadsheet
                 gapi.googleDrive.files.list({
-                    'access_token':user[0].credentials.access_token,
+                    //'access_token':user[0].credentials.access_token,
                     'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-List of Events' and trashed = false"
                 },
                 function(err,res){
@@ -619,7 +620,7 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                         worksheetId:'od6',
                         accessToken:{
                             type:'Bearer',
-                            token:user[0].credentials.access_token
+                            token:gapi.oauth2Client.credentials.access_token
                         }
                     },
                     function sheetReady(err, spreadsheet) {
@@ -644,7 +645,7 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
 
                 //insert a new spreadsheet in Events folder
                 gapi.googleDrive.files.list({
-                    'access_token':user[0].credentials.access_token,
+                    //'access_token':user[0].credentials.access_token,
                     'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-Events' and trashed = false"
                 },
                 function(err,res){
@@ -665,7 +666,7 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                             worksheetId:'od6',
                             accessToken:{
                                 type:'Bearer',
-                                token:user[0].credentials.access_token
+                                token:gapi.oauth2Client.credentials.access_token
                             }
                         },
                         function sheetReady(err, spreadsheet) {
@@ -707,7 +708,7 @@ app.put('/:user_id/cca/:cca_id/events',function(request,response){
             function(err,res){
                 //insert a new line into List of Events spreadsheet
                 gapi.googleDrive.files.list({
-                    'access_token':user[0].credentials.access_token,
+                    //'access_token':user[0].credentials.access_token,
                     'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-List of Events'"
                 },
                 function(err,res){
@@ -717,7 +718,7 @@ app.put('/:user_id/cca/:cca_id/events',function(request,response){
                         worksheetId:'od6',
                         accessToken:{
                             type:'Bearer',
-                            token:user[0].credentials.access_token
+                            token:gapi.oauth2Client.credentials.access_token
                         }
                     },
                     function sheetReady(err, spreadsheet) {
@@ -802,7 +803,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                         worksheetId:'od6',
                         accessToken:{
                             type:'Bearer',
-                            token:user[0].credentials.access_token
+                            token:gapi.oauth2Client.credentials.access_token
                         }
                     },
                     function sheetReady(err, spreadsheet) {
@@ -845,7 +846,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
             console.log("cca title:" + cca_title);
             console.log("event title:" + event_title);
             gapi.googleDrive.files.list({
-                'access_token':user[0].credentials.access_token,
+                //'access_token':user[0].credentials.access_token,
                 'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-List of Events'"
             },
             function(err,res){
@@ -855,7 +856,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                     worksheetId:'od6',
                     accessToken:{
                         type:'Bearer',
-                        token:user[0].credentials.access_token
+                        token:gapi.oauth2Client.credentials.access_token
                     }
                 },
                 function sheetReady(err, spreadsheet) {
@@ -918,7 +919,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                         worksheetId:'od6',
                         accessToken:{
                             type:'Bearer',
-                            token:user[0].credentials.access_token
+                            token:gapi.oauth2Client.credentials.access_token
                         }
                     },
                     function sheetReady(err, spreadsheet) {
@@ -996,7 +997,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
         //get cca members
         function(user,event_title,event_members,cca_title,event_details,waterfallCallback){
             gapi.googleDrive.files.list({
-                'access_token':user[0].credentials.access_token,
+                //'access_token':user[0].credentials.access_token,
                 'q':"'"+request.params.cca_id+"' in parents and title = '"+cca_title+"-Student Details'"
             },
             function(err,res){
@@ -1006,7 +1007,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
                     worksheetId:'od6',
                     accessToken:{
                         type:'Bearer',
-                        token:user[0].credentials.access_token
+                        token:gapi.oauth2Client.credentials.access_token
                     }
                 },
                 function sheetReady(err, spreadsheet) {
