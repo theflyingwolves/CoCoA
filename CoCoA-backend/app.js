@@ -178,6 +178,47 @@ app.get('/oauth2callback', function(request, response) {
                                 }
                             }, function(err,res){
                                 if (err) throw err;
+                                //insert template of Student Details
+                                gapi.googleDrive.files.insert({
+                                    resource: {
+                                        title: "Student Details",
+                                        mimeType: 'application/vnd.google-apps.spreadsheet',
+                                        parents: [
+                                        {
+                                        "kind":"drive#fileLink",
+                                        "id":res.id
+                                        }]
+                                    }
+                                },
+                                function(err,res){
+                                    googleSpreadsheet.load({
+                                        debug:true,
+                                        spreadsheetId:res.id,
+                                        worksheetId:'od6',
+                                        accessToken:{
+                                            type:'Bearer',
+                                            token:credentials.access_token
+                                        }
+                                    },
+                                    function sheetReady(err, spreadsheet) {
+                                        if(err) throw err;
+                                        spreadsheet.add([
+                                            ['Name','ID','Level','Class','Race','Nationality','Guardian Contact 1',
+                                            'Guardian Contact 2','Guardian Contact 3','Medical Concern'],
+                                            ['Leonardo','A12345678','A','1','Italian','Italian'],
+                                            ['Michelangelo','B12345678','B','2','Italian','Italian'],
+                                            ['Raffaello','C12345678','C','3','Italian','Italian'],
+                                            ['Donatello','D12345678','D','4','Italian','Italian']
+                                            ]);
+                                        spreadsheet.send(function(err) {
+                                            if(err) throw err;
+                                            console.log("Updated successfully");
+                                        });
+                                    });
+                                console.log("create students details spreadsheet successfully");
+                                });
+                                //end of insert template of Student Details
+
                                 //update root folder id in database
                                 db.collection('users').update(
                                     {
