@@ -74,6 +74,17 @@ angular.module('cocoa.controllers', [])
     },
 
     save: function(groups){
+      var existingGroups = angular.fromJson(window.localStorage['usergroups']);
+      for(var i=0; i<groups.length;i++){
+        var group = groups[i];
+        for(var j=0; j< existingGroups.length; j++){
+          var oldGroup = existingGroups[j];
+          if(group.id == oldGroup.id){
+            group.eventlist = oldGroup.eventlist;
+            break;
+          }
+        }
+      }
       window.localStorage['usergroups'] = angular.toJson(groups);
     },
 
@@ -95,7 +106,7 @@ angular.module('cocoa.controllers', [])
     getEventList:function(){
       var allgroups = angular.fromJson(window.localStorage['usergroups']);
       var activeIndex = parseInt(window.localStorage['lastActiveProject']);
-      if(allgroups[activeIndex] && allgroups[activeIndex].eventlist != undefined){
+      if(allgroups && allgroups[activeIndex] && allgroups[activeIndex].eventlist != undefined){
         return allgroups[activeIndex].eventlist;
       }else{
         return [];
@@ -277,7 +288,7 @@ angular.module('cocoa.controllers', [])
   };
 })
 
-.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $stateParams, $ionicModal, $window, $ionicLoading, ServerInfo, Usergroups, AccountManager, StatusTracker){
+.controller('usergroupCtrl',function($scope,$http, $timeout, $ionicSideMenuDelegate, $stateParams,$ionicPopup ,$ionicModal, $window, $ionicLoading, ServerInfo, Usergroups, AccountManager, StatusTracker){
   // AccountManager.saveUserId($stateParams.googleId);
   $scope.usergroups = Usergroups.all();
   // $scope.eventlist = Usergroups.getEventList();
@@ -306,6 +317,14 @@ angular.module('cocoa.controllers', [])
   }
 
   var createNewCCA = function(name){
+    $scope.loadingIndicator = $ionicLoading.show({
+      content: 'Loading Data',
+      animation: 'fade-in',
+      showBackdrop: false,
+      maxWidth: 200,
+      showDelay: 500
+    });
+
     $http.post(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca",{
       cca_title:name
     })
@@ -316,6 +335,7 @@ angular.module('cocoa.controllers', [])
       $scope.usergroups.push(newCCA);
       Usergroups.save($scope.usergroups);
       $scope.selectCCA(newCCA, $scope.usergroups.length - 1);
+      $ionicLoading.hide();
       console.log("Selecting Members for new CCA");
     })
 
@@ -359,8 +379,6 @@ angular.module('cocoa.controllers', [])
 
     .success(function(data, status){
 
-      console.log("Load Data From Server Status: "+angular.toJson(status)+" with data "+angular.toJson(data));
-      console.log("Last Active Index: "+Usergroups.getLastActiveIndex());
       $ionicLoading.hide();
 
       while($scope.usergroups.length > 0){
@@ -383,10 +401,27 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.newUserGroup = function(){
-    var ccaName = prompt("Name for new CCA");
-    if(ccaName && ccaName.trim() != ""){
-      createNewCCA(ccaName);
-    }
+
+    $scope.newCCAToCreate = {};
+    var ccaNamePrompt = $ionicPopup.show({
+      template: '<input type="text" ng-model="newCCAToCreate.ccaName">',
+      title:'Create New CCA',
+      subTitle: 'Enter name for new CCA to create',
+      scope:$scope,
+      buttons:[
+      {text:'Cancel'},
+      {
+        text:'<b>Create</b>',
+        onTap:function(e){
+          if(!$scope.newCCAToCreate.ccaName){
+            e.preventDefault();
+          }else{
+            createNewCCA($scope.newCCAToCreate.ccaName);
+          }
+        }
+      }
+      ]
+    });
   };
 
   $scope.selectCCA = function(cca, index){
@@ -404,16 +439,20 @@ angular.module('cocoa.controllers', [])
       $scope.eventlist.push(events[i]);
     }
 
+    console.log("Select CCA: Event List from cache: "+angular.toJson($scope.eventlist));
+
     $http.get(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+$scope.activeGroup.id+"/events")
     .success(function(data){
       console.log("Data Received: "+angular.toJson(data));
 
       if($scope.eventlist.length <= 0 || test_change($scope.eventlist,data.list_of_events)){
-        console.log("Changed");
+        // if(test_change($scope.eventlist,data.list_of_events)){
+        console.log("Changeddd");
 
         while($scope.eventlist.length >0 ){
           $scope.eventlist.pop();
         }
+
         for(var i=0; i<data.list_of_events.length; i++){
           $scope.eventlist.push(data.list_of_events[i]);
         }
@@ -427,6 +466,14 @@ angular.module('cocoa.controllers', [])
   };
 
   var createNewEvent = function(name){
+    $scope.loadingIndicator = $ionicLoading.show({
+      content: 'Loading Data',
+      animation: 'fade-in',
+      showBackdrop: false,
+      maxWidth: 200,
+      showDelay: 500
+    });
+
     $http.post(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/cca/"+$scope.activeGroup.id+"/events",{
       event_title:name
     })
@@ -434,6 +481,7 @@ angular.module('cocoa.controllers', [])
     .success(function(res, status){
       res.id = res.event_spreadsheet_id;
       $scope.eventlist.push(res);
+      $ionicLoading.hide();
       window.setTimeout(function(){$scope.createAttendance(name)}, 3000);
     })
     .error(function(res){
@@ -442,10 +490,31 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.newEvent = function(){
-    var eventName = prompt("Name for new event");
-    if(eventName && eventName.trim() != ""){
-      createNewEvent(eventName);
-    }
+    // var eventName = prompt("Name for new event");
+    // if(eventName && eventName.trim() != ""){
+    //   createNewEvent(eventName);
+    // }
+
+    $scope.newEventToCreate = {};
+    var eventNamePrompt = $ionicPopup.show({
+      template: '<input type="text" ng-model="newEventToCreate.eventname">',
+      title:'Create New Event',
+      subTitle: 'Enter name for new event to create',
+      scope:$scope,
+      buttons:[
+      {text:'Cancel'},
+      {
+        text:'<b>Create</b>',
+        onTap:function(e){
+          if(!$scope.newEventToCreate.eventname){
+            e.preventDefault();
+          }else{
+            createNewEvent($scope.newEventToCreate.eventname);
+          }
+        }
+      }
+      ]
+    });
   };
 
   $scope.createAttendance = function(eventName){
@@ -569,8 +638,9 @@ angular.module('cocoa.controllers', [])
     return result;
   };
 
-  (function(){
-        var data = Usergroups.all();
+  $timeout(function() {
+
+    var data = Usergroups.all();
 
     console.log("Current Events: "+angular.toJson(data));
 
@@ -582,11 +652,6 @@ angular.module('cocoa.controllers', [])
       $scope.usergroups.push(data[i]);
     }
 
-    $scope.selectCCA($scope.usergroups[Usergroups.getLastActiveIndex()],Usergroups.getLastActiveIndex());
-
-  })();
-
-  $timeout(function() {
     $scope.loadDataFromServer();
   });
 })
@@ -611,8 +676,14 @@ angular.module('cocoa.controllers', [])
     var currCCA = StatusTracker.getCurrCCA();
     var currEventDetails = StatusTracker.getCurrEvent().event_details;
 
-    console.log("Creating Task: "+ServerInfo.serverUrl()+"/"+AccountManager.getUserId+"/tasks");
-    console.log("CCAName: "+currCCA.title+" Event Name: "+currEventDetails.title);
+    $scope.loadingIndicator = $ionicLoading.show({
+      content: 'Loading Data',
+      animation: 'fade-in',
+      showBackdrop: false,
+      maxWidth: 200,
+      showDelay: 500
+    });
+
     
     $http.post(ServerInfo.serverUrl()+"/"+AccountManager.getUserId()+"/tasks",{
       newTaskName:name,
@@ -628,6 +699,7 @@ angular.module('cocoa.controllers', [])
       console.log(task.viewModel);
       $scope.eventtasks.push(task);
       $scope.selectTask(task);
+      $ionicLoading.hide();
       $ionicSideMenuDelegate.toggleLeft(false);
     })
 
@@ -686,10 +758,32 @@ angular.module('cocoa.controllers', [])
   };
 
   $scope.newTask = function(){
-    var taskName = prompt("Name for new task");
-    if(taskName && taskName.trim() != "")
-      console.log("Creating Task with name: "+taskName);
-      createTask(taskName);
+    // var taskName = prompt("Name for new task");
+
+    $scope.newTaskToCreate = {};
+    var taskNamePrompt = $ionicPopup.show({
+      template: '<input type="text" ng-model="newTaskToCreate.taskName">',
+      title:'Create New Task',
+      subTitle: 'Enter name for new task to create',
+      scope:$scope,
+      buttons:[
+      {text:'Cancel'},
+      {
+        text:'<b>Create</b>',
+        onTap:function(e){
+          if(!$scope.newTaskToCreate.taskName){
+            e.preventDefault();
+          }else{
+            createTask($scope.newTaskToCreate.taskName);
+          }
+        }
+      }
+      ]
+    });
+
+    // if(taskName && taskName.trim() != "")
+    //   console.log("Creating Task with name: "+taskName);
+    //   createTask(taskName);
   };
 
   $scope.diselectTask = function(){
