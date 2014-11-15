@@ -479,6 +479,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
             },
             function(err,res){
                 if(err) throw err;
+                var cca_title_ontop = res.title;
                 // console.log(res);
                 async.series([
                     function(callback){
@@ -547,6 +548,7 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                             'q':"'"+request.params.cca_id+"' in parents and title = '"+res.title+"-Events'"
                         },
                         function(err,res){
+                            var eventsFolderId = res.items[0].id;
                             gapi.googleDrive.files.list({
                                 //'access_token':user[0].credentials.access_token,
                                 'q':"'"+res.items[0].id+"' in parents and trashed = false and mimeType = 'application/vnd.google-apps.spreadsheet'"
@@ -577,7 +579,11 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                                             }
                                         }
                                         returnJSON.list_of_events = list_of_events;
-                                        response.send(returnJSON);
+                                        var curResult = {returnJSON:returnJSON, eventsFolderId:eventsFolderId, cca_title_ontop:cca_title_ontop};
+                                        console.log("after getting events");
+                                        console.log(curResult);
+                                        callback(null, curResult);
+                                        // response.send(returnJSON);
                                     }
                                 });
                             });
@@ -586,13 +592,89 @@ app.get('/:user_id/cca/:cca_id/events', function(request,response){
                     }
                 ],
                 function(err,result){
-                    if(err) throw err;
+                    console.log("testing data result");
+                    console.log(result);
+                    var data = result[1];
+                    if (err) {
+                        waterfallCallback(err, data.returnJSON);
+                    }else {
+                        waterfallCallback(null, data.returnJSON, data.eventsFolderId, data.cca_title_ontop);
+                    }
                 });
             });
-            waterfallCallback(null);
+            // waterfallCallback(null);
+        },
+        function(returnJSON, eventsFolderId, cca_title_ontop, waterfallCallback){
+            console.log("testing data");
+            console.log(returnJSON);
+            console.log(eventsFolderId);
+            console.log(cca_title_ontop);
+            var indexToAddSpreadsheet = [];
+            for (var i = 0; i < returnJSON.list_of_events.length; i++) {
+                var event = returnJSON.list_of_events[i];
+                if (!event['id']) {
+                    indexToAddSpreadsheet.push(i);
+                };
+            };
+            
+
+            async.each(indexToAddSpreadsheet, function(index, callback) {
+                
+                var event_title = returnJSON.list_of_events[index].title;
+                var cca_title = cca_title_ontop;
+
+                gapi.googleDrive.files.insert({
+                    resource: {
+                        title: cca_title+"-events-"+event_title,
+                        mimeType: 'application/vnd.google-apps.spreadsheet',
+                        parents: [{
+                        "kind":"drive#fileLink",
+                        "id":eventsFolderId
+                        }]
+                    }
+                },
+                function(err,res){
+                    returnJSON.list_of_events[index]['id'] = res.id;
+                    callback();
+                    googleSpreadsheet.load({
+                        debug:true,
+                        spreadsheetId:res.id,
+                        worksheetId:'od6',
+                        accessToken:{
+                            type:'Bearer',
+                            token:gapi.oauth2Client.credentials.access_token
+                        }
+                    },
+                    function sheetReady(err, spreadsheet) {
+                            if(err) throw err;
+                            spreadsheet.add([['Name','ID','Level','Class','Race','Nationality','Guardian Contact 1',
+                    'Guardian Contact 2','Guardian Contact 3','Medical Concern']]);
+                            spreadsheet.send(function(err) {
+                            if(err) throw err;
+                            console.log("event spreadsheet created successfully");
+                        });
+                    });
+                    
+                });
+
+                            
+            }, function(err){
+                if( err ) {
+                  waterfallCallback(err, returnJSON);
+                } else {
+                  waterfallCallback(null, returnJSON);
+                }
+            });
+
         }
     ],
     function(err,result){
+        if (err) {
+            throw err;
+        }else {
+            response.send(result);    
+        }
+
     });
 });
 
