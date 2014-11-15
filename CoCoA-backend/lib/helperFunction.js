@@ -35,7 +35,7 @@ exports.getAllStudents = function(req, res) {
                 gapi.oauth2Client.setCredentials(user[0].credentials);
                 gapi.googleDrive.files.list({
                     'q':q,
-                    'access_token':user[0].credentials.access_token
+                    //'access_token':user[0].credentials.access_token
                 }, function(err, res){
                     if (err) {
                         callback("error while finding the file by its name", []);
@@ -50,7 +50,10 @@ exports.getAllStudents = function(req, res) {
 
                                 if (!item.labels.trashed) {
                                     var id = item.parents[0].id;
-                                    gapi.googleDrive.files.get({'fileId': id, 'access_token':user[0].credentials.access_token}, function(err,res){
+                                    gapi.googleDrive.files.get({
+                                        'fileId': id, 
+                                        //'access_token':user[0].credentials.access_token
+                                    }, function(err,res){
                                         if (err) {
                                             callback(false);
                                         } else {
@@ -98,7 +101,7 @@ exports.getAllStudents = function(req, res) {
             gapi.oauth2Client.setCredentials(user[0].credentials);
             gapi.googleDrive.files.list(
                 {'q':q, 
-                 'access_token':user[0].credentials.access_token
+                 //'access_token':user[0].credentials.access_token
                 }, function(err, res){
                 if (err) {
                     var message = "error while finding the file by its name";
@@ -117,7 +120,7 @@ exports.getAllStudents = function(req, res) {
                                 gapi.oauth2Client.setCredentials(user[0].credentials);
                                 gapi.googleDrive.files.get(
                                     {'fileId': id,
-                                    'access_token':user[0].credentials.access_token
+                                    //'access_token':user[0].credentials.access_token
                                 }, function(err,res){
                                     if (err) {
                                         callback(false);
@@ -188,7 +191,7 @@ exports.getAllStudents = function(req, res) {
 
 // temporary no use
 exports.getAllStudentsV2 = function(req, res) {
-	var resToClient = res;
+    var resToClient = res;
     var CCADirectoryID = rootFolderId;
     var studentDetailsFilename = "Student Details";
     // var fileName = "testSheet";
@@ -222,24 +225,24 @@ exports.getAllStudentsV2 = function(req, res) {
                                 };
                                 var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
 
-								my_sheet.getInfo( function( err, sheet_info ){
-							        if (err) {
-							        	console.log(err);
-							        } else {
-							        	console.log(sheet_info);
-							        }
+                                my_sheet.getInfo( function( err, sheet_info ){
+                                    if (err) {
+                                        console.log(err);
+                                    } else {
+                                        console.log(sheet_info);
+                                    }
 
-							        console.log( sheet_info.title + ' is loaded' );
-							        
-							        sheet_info.worksheets[0].getRows( function( err, rows ){
-							            console.log(rows);
-							            // rows[0].colname = 'new val';
-							            // rows[0].save();
-							            // rows[0].del();
-							        });
-							    })
+                                    console.log( sheet_info.title + ' is loaded a' );
+                                    
+                                    sheet_info.worksheets[0].getRows( function( err, rows ){
+                                        console.log(rows);
+                                        // rows[0].colname = 'new val';
+                                        // rows[0].save();
+                                        // rows[0].del();
+                                    });
+                                })
 
-							    resToClient.json({message:"dummy"});
+                                resToClient.json({message:"dummy"});
                             } else {
                                 var message = "unknown type error of student detail file: " + res.mimeType;
                                 resToClient.json({message:message});
@@ -297,7 +300,7 @@ exports.getMembersOfCCA = function(req, res){
                 gapi.oauth2Client.setCredentials(user[0].credentials);
                 gapi.googleDrive.files.list(
                     {'q':q,
-                    'access_token':user[0].credentials.access_token
+                    //'access_token':user[0].credentials.access_token
                 }, function(err, res){
                     if (err) {
                         callback("error while finding the file by its name", []);
@@ -314,7 +317,7 @@ exports.getMembersOfCCA = function(req, res){
                                     gapi.oauth2Client.setCredentials(user[0].credentials);
                                     gapi.googleDrive.files.get(
                                         {'fileId': id,
-                                        'access_token':user[0].credentials.access_token
+                                        //'access_token':user[0].credentials.access_token
                                     }, function(err,res){
                                         if (err) {
                                             callback(false);
@@ -362,10 +365,10 @@ exports.getMembersOfCCA = function(req, res){
             var fileName = CCAName+"-Student Details";
             var q = "title = '" + fileName+"'";
 
-            gapi.oauth2Client.setCredentials(user[0].credentials);
+            //gapi.oauth2Client.setCredentials(user[0].credentials);
             gapi.googleDrive.files.list(
                 {'q':q,
-                'access_token':user[0].credentials.access_token
+                //'access_token':user[0].credentials.access_token
             }, function(err, res){
                 if (err) {
                     var message = "error while finding the file by its name";
@@ -380,10 +383,10 @@ exports.getMembersOfCCA = function(req, res){
 
                             if (!item.labels.trashed) {
                                 var id = item.parents[0].id;
-                                gapi.oauth2Client.setCredentials(user[0].credentials);
+                                //gapi.oauth2Client.setCredentials(user[0].credentials);
                                 gapi.googleDrive.files.get(
                                     {'fileId': id,
-                                    'access_token':user[0].credentials.access_token
+                                    //'access_token':user[0].credentials.access_token
                                 }, function(err,res){
                                     if (err) {
                                         callback(false);
@@ -454,9 +457,11 @@ exports.getMembersOfCCA = function(req, res){
 
 
 exports.addMembersToCCA = function(req, res) {
-	var resToClient = res;
+    var resToClient = res;
     var CCAName = req.body.CCAName;
     var students = req.body.students;
+    
+    gapi.oauth2Client.setCredentials(user[0].credentials);  //this line by lzs
 
     if (!gapi.oauth2Client.credentials.access_token) {
         res.json({message: "please log in first"});
@@ -541,7 +546,11 @@ exports.updateMembersOfCCA = function(req, res) {
                 var fileName = CCAName+"-Student Details";
                 var q = "title = '" + fileName+"'";
 
-                gapi.googleDrive.files.list({'q':q}, function(err, res){
+                gapi.oauth2Client.setCredentials(user[0].credentials);
+                gapi.googleDrive.files.list(
+                    {'q':q,
+                    //'access_token':user[0].credentials.access_token
+                },function(err, res){
                     if (err) {
                         var message = "error while finding the file by its name";
                         callback(message, []);
@@ -555,11 +564,11 @@ exports.updateMembersOfCCA = function(req, res) {
 
                                 if (!item.labels.trashed) {
                                     var id = item.parents[0].id;
-                                    gapi.oauth2Client.setCredentials(user[0].credentials);
-                                    gapi.googleDrive.files.list(
-                                        {'q':q,
-                                        'access_token':user[0].credentials.access_token
-                                    },function(err,res){
+                                    //gapi.oauth2Client.setCredentials(user[0].credentials);
+                                    gapi.googleDrive.files.get(
+                                        {'fileId': id,
+                                        //'access_token':user[0].credentials.access_token
+                                    }, function(err,res){
                                         if (err) {
                                             callback(false);
                                         } else {
@@ -605,10 +614,9 @@ exports.updateMembersOfCCA = function(req, res) {
 
                 if (item.mimeType == "application/vnd.google-apps.spreadsheet") {
                     var memberDetailsFileId = id;
-
                     var auth = {
                           type: 'Bearer',
-                          value: user[0].credentials.access_token
+                          value: gapi.oauth2Client.credentials.access_token
                     };
                     var my_sheet = new googleSpreadsheetNew(memberDetailsFileId, auth);
 
@@ -617,15 +625,17 @@ exports.updateMembersOfCCA = function(req, res) {
                             var message = "error while loading spreadsheet '"+fileName+"'";
                             callback(err, []);
                         } else {
-                            console.log( sheet_info.title + ' is loaded' );
+                            console.log( sheet_info.title + ' is loaded b' );
 
                             sheet_info.worksheets[0].getRows( function( err, rows ){
                                 if (err) {
                                     callback(err);
                                 } else {
+                                    var studentsReallyNeedToDelete = [];
                                     for (var i = 0; i < rows.length; i++) {
                                         var curId = rows[i].id;
                                         var indexToDelete = -1;
+                                        var indexNoNeedTodelete = -1;
                                         
                                         for (var j = 0; j < studentsToAdd.length; j++) {
                                             if (studentsToAdd[j].id == curId) {
@@ -633,11 +643,26 @@ exports.updateMembersOfCCA = function(req, res) {
                                                 break;
                                             };
                                         };
+
+                                        for (var j = 0; j < studentsToDelete.length; j++) {
+                                            // indexNoNeedTodelete = j;
+                                            if (studentsToDelete[j].id == curId) {
+                                                studentsReallyNeedToDelete.push(studentsToDelete[j]);
+                                                // indexNoNeedTodelete = -1;
+                                                break;
+                                            };
+                                        };
+
                                         if (indexToDelete != -1) {
                                             studentsToAdd.splice(indexToDelete, 1);
                                         };
+                                        // if (indexNoNeedTodelete != -1) {
+                                        //     studentsToDelete.splice(indexNoNeedTodelete, 1);
+                                        // };
+
                                     };
 
+                                    studentsToDelete = studentsReallyNeedToDelete;
                                     async.eachSeries(studentsToDelete, function(student, callback) {
 
                                         sheet_info.worksheets[0].getRows( function( err, rows ){
@@ -692,7 +717,7 @@ exports.updateMembersOfCCA = function(req, res) {
                         worksheetName: 'Sheet1',
                         accessToken : {
                           type: 'Bearer',
-                          token: user[0].credentials.access_token
+                          token: gapi.oauth2Client.credentials.access_token
                         }
                         }, function sheetReady(err, spreadsheet) {
                             if(err) {
@@ -826,7 +851,7 @@ exports.deleteMembersFromCCA = function(req, res) {
                             resToClient.json({message: message, err:err});   
                         } else {
                             
-                            console.log( sheet_info.title + ' is loaded' );
+                            console.log( sheet_info.title + ' is loaded c' );
 
                             async.eachSeries(students, function(studentID, callback) {
 
@@ -880,7 +905,7 @@ url: /participants/
 
 *******************************************************************************************/
 
-// still implemeting, haven't tested
+
 exports.getParticipants = function(req, res) {
     var resToClient = res;
 
@@ -906,7 +931,7 @@ exports.getParticipants = function(req, res) {
             gapi.oauth2Client.setCredentials(user[0].credentials);
             gapi.googleDrive.files.list(
                 {'q':q,
-                'access_token':user[0].credentials.access_token
+                //'access_token':user[0].credentials.access_token
             },function(err, res){
                 if (err) {
                     callback("error while finding the file by its name", []);
@@ -924,7 +949,7 @@ exports.getParticipants = function(req, res) {
                                 gapi.oauth2Client.setCredentials(user[0].credentials);
                                 gapi.googleDrive.files.get(
                                     {'fileId': id,
-                                    'access_token':user[0].credentials.access_token
+                                    //'access_token':user[0].credentials.access_token
                                 }, function(err,res){
                                     if (err) {
                                         callback(false);
@@ -978,7 +1003,7 @@ exports.getParticipants = function(req, res) {
                         worksheetName: 'Sheet1',
                         accessToken : {
                           type: 'Bearer',
-                          token: user[0].credentials.access_token
+                          token: gapi.oauth2Client.credentials.access_token
                         }
                         }, function sheetReady(err, spreadsheet) {
                             if(err) {
@@ -1063,7 +1088,7 @@ exports.getParticipants = function(req, res) {
 
 // temporary no use
 exports.addParticipants = function(req, res) {
-	var resToClient = res;
+    var resToClient = res;
     var CCAName = req.body.CCAName;
     var eventName = req.body.eventName;
     var students = req.body.students;
@@ -1126,6 +1151,7 @@ exports.updateParticipants = function(req, res) {
 
     async.waterfall([
             function(callback){
+                console.log("step 1");
                  db.collection('users').find({google_id:req.params.user_id}).toArray(function(err, user) {
                     if (err) {
                         callback(err, []);
@@ -1135,6 +1161,7 @@ exports.updateParticipants = function(req, res) {
                 });
             },
             function(user, callback){ 
+                console.log("step 2");
                 var studentsToAdd = [];
                 var studentsToDelete = [];
                 for (var i = 0; i < students.length; i++) {
@@ -1148,21 +1175,22 @@ exports.updateParticipants = function(req, res) {
                 callback(null, studentsToAdd, studentsToDelete, students, user);
 
             },
-            function(studentsToAdd, studentsToDelete, students, callback){
+            function(studentsToAdd, studentsToDelete, students, user, callback){
+                console.log("step 3");
                 var fileName = CCAName+"-events-"+eventName;
                 var q = "title = '" + fileName+"'";
 
                 gapi.oauth2Client.setCredentials(user[0].credentials);
                 gapi.googleDrive.files.list(
                     {'q':q,
-                    'access_token':user[0].credentials.access_token
+                    //'access_token':user[0].credentials.access_token
                 },function(err, res){
                     if (err) {
                         var message = "error while finding the file by its name";
                         callback(message, []);
                     }else {
                         var items = res.items;
-
+                        console.log("step 4");
                         // if item is trashed or parent is not right 
                         // filter out the item
                         async.filter(items, 
@@ -1173,7 +1201,7 @@ exports.updateParticipants = function(req, res) {
                                     gapi.oauth2Client.setCredentials(user[0].credentials);
                                     gapi.googleDrive.files.get(
                                         {'fileId': id,
-                                        'access_token':user[0].credentials.access_token
+                                        //'access_token':user[0].credentials.access_token
                                     }, function(err,res){
                                         if (err) {
                                             callback(false);
@@ -1216,6 +1244,7 @@ exports.updateParticipants = function(req, res) {
             },
             function(item, studentsToAdd, studentsToDelete, students, user, callback){
                 console.log("enter final process of students info");
+                console.log("该删的1："+JSON.stringify(studentsToDelete));
 
                 var id = item.id;
 
@@ -1224,7 +1253,7 @@ exports.updateParticipants = function(req, res) {
 
                     var auth = {
                           type: 'Bearer',
-                          value: user[0].credentials.access_token
+                          value: gapi.oauth2Client.credentials.access_token
                     };
                     var my_sheet = new googleSpreadsheetNew(memberDetailsFileId, auth);
 
@@ -1233,30 +1262,49 @@ exports.updateParticipants = function(req, res) {
                             var message = "error while loading spreadsheet '"+fileName+"'";
                             callback(err, []);
                         } else {
-                            console.log( sheet_info.title + ' is loaded' );
+                            console.log( sheet_info.title + ' is loaded d' );
 
                             sheet_info.worksheets[0].getRows( function( err, rows ){
                                 if (err) {
                                     callback(err);
                                 } else {
+                                    var studentsReallyNeedToDelete = [];
                                     for (var i = 0; i < rows.length; i++) {
                                         var curId = rows[i].id;
                                         var indexToDelete = -1;
-                                        
+                                        var indexNoNeedTodelete = -1;
                                         for (var j = 0; j < studentsToAdd.length; j++) {
                                             if (studentsToAdd[j].id == curId) {
+
                                                 indexToDelete = j;
                                                 break;
                                             };
                                         };
+
+                                        for (var j = 0; j < studentsToDelete.length; j++) {
+                                            // indexNoNeedTodelete = j;
+                                            if (studentsToDelete[j].id == curId) {
+                                                console.log("应该进来一次");
+                                                studentsReallyNeedToDelete.push(studentsToDelete[j]);
+                                                // indexNoNeedTodelete = -1;
+                                                break;
+                                            };
+                                        };
+
                                         if (indexToDelete != -1) {
                                             studentsToAdd.splice(indexToDelete, 1);
                                         };
+                                        // if (indexNoNeedTodelete != -1) {
+                                        //     studentsToDelete.splice(indexNoNeedTodelete, 1);
+                                        // };
                                     };
-
+                                    studentsToDelete = studentsReallyNeedToDelete;
+                                    console.log("该删的2："+JSON.stringify(studentsToDelete));
                                     async.eachSeries(studentsToDelete, function(student, callback) {
+                                        console.log("进不来");
 
                                         sheet_info.worksheets[0].getRows( function( err, rows ){
+
                                                 if (err) {
                                                     callback(err);
                                                 } else {
@@ -1308,7 +1356,7 @@ exports.updateParticipants = function(req, res) {
                         worksheetName: 'Sheet1',
                         accessToken : {
                           type: 'Bearer',
-                          token: user[0].credentials.access_token
+                          token: gapi.oauth2Client.credentials.access_token
                         }
                         }, function sheetReady(err, spreadsheet) {
                             if(err) {
@@ -1437,7 +1485,7 @@ exports.createTask = function(req, res){
                                 gapi.oauth2Client.setCredentials(user[0].credentials);
                                 gapi.googleDrive.files.list(
                                     {'q':q,
-                                    'access_token':user[0].credentials.access_token
+                                    //'access_token':user[0].credentials.access_token
                                 },function(err, res){
                                     if (err) {
                                         var message = "error while finding the file by its name";
@@ -1455,7 +1503,7 @@ exports.createTask = function(req, res){
                                                     gapi.oauth2Client.setCredentials(user[0].credentials);
                                                     gapi.googleDrive.files.get(
                                                         {'fileId': id,
-                                                        'access_token':user[0].credentials.access_token
+                                                        //'access_token':user[0].credentials.access_token
                                                     }, function(err,res){
                                                         if (err) {
                                                             callback(false);
@@ -1506,7 +1554,7 @@ exports.createTask = function(req, res){
                                         
                                     var auth = {
                                           type: 'Bearer',
-                                          value: user[0].credentials.access_token
+                                          value: gapi.oauth2Client.credentials.access_token
                                     };
                                     var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
 
@@ -1559,7 +1607,7 @@ exports.createTask = function(req, res){
                                 gapi.oauth2Client.setCredentials(user[0].credentials);
                                 gapi.googleDrive.files.list(
                                     {'q':q,
-                                    'access_token':user[0].credentials.access_token
+                                    //'access_token':user[0].credentials.access_token
                                 },function(err, res){
                                     if (err) {
                                         var message = "error while finding the file by its name";
@@ -1577,7 +1625,7 @@ exports.createTask = function(req, res){
                                                     gapi.oauth2Client.setCredentials(user[0].credentials);
                                                     gapi.googleDrive.files.get(
                                                         {'fileId': id,
-                                                        'access_token':user[0].credentials.access_token
+                                                        //'access_token':user[0].credentials.access_token
                                                     }, function(err,res){
                                                         if (err) {
                                                             callback(false);
@@ -1632,7 +1680,7 @@ exports.createTask = function(req, res){
                                         worksheetName: 'Sheet1',
                                         accessToken : {
                                           type: 'Bearer',
-                                          token: user[0].credentials.access_token
+                                          token: gapi.oauth2Client.credentials.access_token
                                         }
                                         }, function sheetReady(err, spreadsheet) {
                                             if(err) {
@@ -1778,7 +1826,7 @@ exports.changeTaskStatus = function(req, res){
                 gapi.oauth2Client.setCredentials(user[0].credentials);
                 gapi.googleDrive.files.list(
                     {'q':q,
-                    'access_token':user[0].credentials.access_token
+                    //'access_token':user[0].credentials.access_token
                 },function(err, res){
                     if (err) {
                         var message = "error while finding the file by its name";
@@ -1796,7 +1844,7 @@ exports.changeTaskStatus = function(req, res){
                                     gapi.oauth2Client.setCredentials(user[0].credentials);
                                     gapi.googleDrive.files.get(
                                         {'fileId': id,
-                                        'access_token':user[0].credentials.access_token
+                                        //'access_token':user[0].credentials.access_token
                                     }, function(err,res){
                                         if (err) {
                                             callback(false);
@@ -1850,7 +1898,7 @@ exports.changeTaskStatus = function(req, res){
                         worksheetName: 'Sheet1',
                         accessToken : {
                           type: 'Bearer',
-                          token: user[0].credentials.access_token
+                          token: gapi.oauth2Client.credentials.access_token
                         }
                         }, function sheetReady(err, spreadsheet) {
                             if(err) {
@@ -2167,63 +2215,63 @@ function appendRowsToSheetWithDetails(item, targetStudentDetails, resToClient){
 
 // temporary no use
 function appendRowsToSheet(sheet2Id, targetStudentDetails, resToClient){
-	if (!gapi.oauth2Client.credentials.access_token) {
+    if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
     }
 
-	gapi.googleDrive.files.get({'fileId': sheet2Id}, function(err,res){
-	    if (err) {
-	        resToClient.json({message:"error when checking a file", err:err});
-	    }
+    gapi.googleDrive.files.get({'fileId': sheet2Id}, function(err,res){
+        if (err) {
+            resToClient.json({message:"error when checking a file", err:err});
+        }
 
-	    if (res.mimeType == "application/vnd.google-apps.spreadsheet") {
-	        var memberDetailsFileId = sheet2Id;
+        if (res.mimeType == "application/vnd.google-apps.spreadsheet") {
+            var memberDetailsFileId = sheet2Id;
 
-	        googleSpreadsheet.load({
-	            debug: true,
-	            spreadsheetId: memberDetailsFileId,
-	            worksheetName: 'Sheet1',
-	            accessToken : {
-	              type: 'Bearer',
-	              token: gapi.oauth2Client.credentials.access_token
-	            }
-	            }, function sheetReady(err, spreadsheet) {
-	                if(err) {
-	                    resToClient.json({message:"error when loading the spreadsheet", err:err});
-	                } else {
-	                    spreadsheet.receive(function(err, rows, info) {
-	                      if(err){
-	                        throw err;
-	                      }else {
-	                        var numOfRows = info.totalRows;
-	                        var nextRow = info.nextRow;
-	                        console.log(targetStudentDetails);
-	                        if (numOfRows > 1 && targetStudentDetails.length > 0) {
-	                            targetStudentDetails.splice(0, 1);
-	                        }
-	                        console.log(numOfRows);
+            googleSpreadsheet.load({
+                debug: true,
+                spreadsheetId: memberDetailsFileId,
+                worksheetName: 'Sheet1',
+                accessToken : {
+                  type: 'Bearer',
+                  token: gapi.oauth2Client.credentials.access_token
+                }
+                }, function sheetReady(err, spreadsheet) {
+                    if(err) {
+                        resToClient.json({message:"error when loading the spreadsheet", err:err});
+                    } else {
+                        spreadsheet.receive(function(err, rows, info) {
+                          if(err){
+                            throw err;
+                          }else {
+                            var numOfRows = info.totalRows;
+                            var nextRow = info.nextRow;
+                            console.log(targetStudentDetails);
+                            if (numOfRows > 1 && targetStudentDetails.length > 0) {
+                                targetStudentDetails.splice(0, 1);
+                            }
+                            console.log(numOfRows);
 
-	                        contents = {};
-	                        contents[nextRow] = targetStudentDetails;
+                            contents = {};
+                            contents[nextRow] = targetStudentDetails;
 
-	                        spreadsheet.add(contents);
-	                        spreadsheet.send(function(err) {
-	                          if(err) {
-	                          	resToClient.json({message:"edit spreadsheet error", err:err});
-	                            // console.log("edit spreadsheet error");
-	                            // console.log(err);
-	                          } else {
-	                          	resToClient.json({message:"success"});
-	                          }
-	                          
-	                        });
-	                      } 
-	                    });
-	                }
-	            }
-	        );
-		}
-	});
+                            spreadsheet.add(contents);
+                            spreadsheet.send(function(err) {
+                              if(err) {
+                                resToClient.json({message:"edit spreadsheet error", err:err});
+                                // console.log("edit spreadsheet error");
+                                // console.log(err);
+                              } else {
+                                resToClient.json({message:"success"});
+                              }
+                              
+                            });
+                          } 
+                        });
+                    }
+                }
+            );
+        }
+    });
 }
 
 // this function read the student details from a spreadsheet
@@ -2235,7 +2283,7 @@ function readFromASpreadSheetWithFileDetail(item, selected, callback, user){
             
         var auth = {
               type: 'Bearer',
-              value: user[0].credentials.access_token
+              value: gapi.oauth2Client.credentials.access_token
         };
         var my_sheet = new googleSpreadsheetNew(targetFileId, auth);
 
@@ -2409,7 +2457,7 @@ function readStudentInfoFromASpreadSheetWithFileDetail(item, resToClient){
 // this function read the target spreadsheet from row 2 and return all name and id
 // temporary no use
 function readStudentInfoFromASpreadSheet(sheetId, resToClient){
-	if (!gapi.oauth2Client.credentials.access_token) {
+    if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
     } else {
         if (sheetId) {
@@ -2477,25 +2525,25 @@ function readStudentInfoFromASpreadSheet(sheetId, resToClient){
 // temporary no use
 function appendStudentDetailsToOneCCA(CCADirectoryID, CCAName, targetStudentDetails, resToClient){
 
-	gapi.googleDrive.children.list({'folderId': CCADirectoryID}, function(err,res){
-		if (res) {
-			var numOfChildrenInRoot = res.items.length;
-			var numOfChildrenInRootChecked = 0;
-			var isTargetCCAFolderFound = false;
+    gapi.googleDrive.children.list({'folderId': CCADirectoryID}, function(err,res){
+        if (res) {
+            var numOfChildrenInRoot = res.items.length;
+            var numOfChildrenInRootChecked = 0;
+            var isTargetCCAFolderFound = false;
 
-			for (var i = 0; i < numOfChildrenInRoot; i++) {
-				var id = res.items[i].id;
-				
-				gapi.googleDrive.files.get({'fileId': id}, function(err,res){
-					if (err) {
-						resToClient.json({message:"error when checking a file", err:err});
+            for (var i = 0; i < numOfChildrenInRoot; i++) {
+                var id = res.items[i].id;
+                
+                gapi.googleDrive.files.get({'fileId': id}, function(err,res){
+                    if (err) {
+                        resToClient.json({message:"error when checking a file", err:err});
                     }
 
                     if (res.title == CCAName && res.mimeType == 'application/vnd.google-apps.folder'){
-                    	isTargetCCAFolderFound = true;
+                        isTargetCCAFolderFound = true;
 
 
-                    	var targetCCAFolderId = res.id;
+                        var targetCCAFolderId = res.id;
                         gapi.googleDrive.children.list({'folderId': targetCCAFolderId}, function(err,res){
                             if (res) {
                                 var numOfChildrenInTargetFolder = res.items.length;
@@ -2543,11 +2591,11 @@ function appendStudentDetailsToOneCCA(CCADirectoryID, CCAName, targetStudentDeta
                                                             spreadsheet.add(contents);
                                                             spreadsheet.send(function(err) {
                                                               if(err) {
-                                                              	resToClient.json({message:"edit spreadsheet error", err:err});
+                                                                resToClient.json({message:"edit spreadsheet error", err:err});
                                                                 // console.log("edit spreadsheet error");
                                                                 // console.log(err);
                                                               } else {
-                                                              	resToClient.json({message:"success"});
+                                                                resToClient.json({message:"success"});
                                                               }
                                                               
                                                             });
@@ -2557,11 +2605,11 @@ function appendStudentDetailsToOneCCA(CCADirectoryID, CCAName, targetStudentDeta
 
                                                 }
                                             );
-										}
+                                        }
 
-										numOfChildrenInTargetFolderChecked++;
-										if (numOfChildrenInTargetFolderChecked == numOfChildrenInTargetFolder && !isMemberDetailsSpreadsheetFound) {
-											resToClient.json({message:"Student Details Spreadsheet is not found under the target CCA folder"});
+                                        numOfChildrenInTargetFolderChecked++;
+                                        if (numOfChildrenInTargetFolderChecked == numOfChildrenInTargetFolder && !isMemberDetailsSpreadsheetFound) {
+                                            resToClient.json({message:"Student Details Spreadsheet is not found under the target CCA folder"});
                                         }
                                     });
                                 };
@@ -2570,20 +2618,22 @@ function appendStudentDetailsToOneCCA(CCADirectoryID, CCAName, targetStudentDeta
                                 resToClient.json({message:"error when accessing CCA Admin folder", err:err});
                             }
                         });
-					}
-
-					numOfChildrenInRootChecked++;
-					if (numOfChildrenInRoot == numOfChildrenInRootChecked && !isTargetCCAFolderFound) {
-						resToClient.json({message:"target CCA folder is not found under CCA-Admin folder"});
                     }
-				});
-			}
 
-		} else {
-			resToClient.json({message:"error when accessing CCA Admin folder", err:err});
-		}
-	});
+                    numOfChildrenInRootChecked++;
+                    if (numOfChildrenInRoot == numOfChildrenInRootChecked && !isTargetCCAFolderFound) {
+                        resToClient.json({message:"target CCA folder is not found under CCA-Admin folder"});
+                    }
+                });
+            }
 
-
+        } else {
+            resToClient.json({message:"error when accessing CCA Admin folder", err:err});
+        }
+    });
 
 }
+
+
+
+
