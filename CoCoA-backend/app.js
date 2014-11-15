@@ -110,10 +110,10 @@ app.get('/oauth2callback', function(request, response) {
             //get user root_folder_id by googleId
             function(googleId,credentials,callback){
                 var rootFolderId;
-                db.collection('users').find({google_id:googleId}).toArray(function(err, result) {
+                db.collection('users').find({google_id:googleId}).toArray(function(err, user) {
                     if (err) throw err;
                     //new user
-                    if(result.length == 0){
+                    if(user.length == 0){
                         db.collection('users').insert({
                             google_id:googleId,
                             credentials:credentials,
@@ -141,31 +141,36 @@ app.get('/oauth2callback', function(request, response) {
                                 if (err) throw err;
                             });
                         }
+                        //reset access token
+                        gapi.oauth2Client.setCredentials(user[0].credentials);
+
                         //check validation of rootFolderId
                         gapi.googleDrive.files.get({
-                        'fileId':result[0].root_folder_id
+                        'fileId':user[0].root_folder_id
                         },function(err,res){
                             if(res!=null && res.length == 1){
-                                rootFolderId = result[0].root_folder_id;
+                                console.log("root folder is valid");
+                                rootFolderId = user[0].root_folder_id;
                             }
                             else{
                                 console.log("root folder cannot found: ");
                                 rootFolderId = "";
                             }
-                            callback(null,googleId,credentials,rootFolderId);
+                            callback(null,googleId,user,rootFolderId);
                         });
                     }
                 });
             },
             //
-            function(googleId,credentials,rootFolderId,callback){
+            function(googleId,user,rootFolderId,callback){
                 console.log("current rootFolderId: "+rootFolderId);
                 if(rootFolderId != null && rootFolderId !=""){
                     //do nothing
                 } else{
                     console.log("find my root folder id");
+                    gapi.oauth2Client.setCredentials(user[0].credentials);
                     gapi.googleDrive.files.list({
-                        'access_token':credentials.access_token,
+                        //'access_token':credentials.access_token,
                         'q':"title = 'CCA-Admin' and trashed = false"
                     }, function(err,res){
                         if(res.items.length == 0){
@@ -197,7 +202,7 @@ app.get('/oauth2callback', function(request, response) {
                                         worksheetId:'od6',
                                         accessToken:{
                                             type:'Bearer',
-                                            token:credentials.access_token
+                                            token:gapi.oauth2Client.credentials.access_token
                                         }
                                     },
                                     function sheetReady(err, spreadsheet) {
@@ -908,7 +913,7 @@ app.get('/:user_id/cca/:cca_id/events/:event_id', function(request,response){
         },
         // get task status
         function(user,event_title,event_members,cca_title,event_details,tasks,waterfallCallback){
-            gapi.oauth2Client.setCredentials(user[0].credentials);
+            //gapi.oauth2Client.setCredentials(user[0].credentials);
             gapi.googleDrive.files.get({
                 "fileId": request.params.event_id
             },

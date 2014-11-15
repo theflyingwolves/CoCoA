@@ -631,6 +631,7 @@ exports.updateMembersOfCCA = function(req, res) {
                                 if (err) {
                                     callback(err);
                                 } else {
+                                    var studentsReallyNeedToDelete = [];
                                     for (var i = 0; i < rows.length; i++) {
                                         var curId = rows[i].id;
                                         var indexToDelete = -1;
@@ -644,9 +645,10 @@ exports.updateMembersOfCCA = function(req, res) {
                                         };
 
                                         for (var j = 0; j < studentsToDelete.length; j++) {
-                                            indexNoNeedTodelete = j;
+                                            // indexNoNeedTodelete = j;
                                             if (studentsToDelete[j].id == curId) {
-                                                indexNoNeedTodelete = -1;
+                                                studentsReallyNeedToDelete.push(studentsToDelete[j]);
+                                                // indexNoNeedTodelete = -1;
                                                 break;
                                             };
                                         };
@@ -654,13 +656,13 @@ exports.updateMembersOfCCA = function(req, res) {
                                         if (indexToDelete != -1) {
                                             studentsToAdd.splice(indexToDelete, 1);
                                         };
-                                        if (indexNoNeedTodelete != -1) {
-                                            studentsToDelete.splice(indexNoNeedTodelete, 1);
-                                        };
+                                        // if (indexNoNeedTodelete != -1) {
+                                        //     studentsToDelete.splice(indexNoNeedTodelete, 1);
+                                        // };
 
                                     };
 
-
+                                    studentsToDelete = studentsReallyNeedToDelete;
                                     async.eachSeries(studentsToDelete, function(student, callback) {
 
                                         sheet_info.worksheets[0].getRows( function( err, rows ){
@@ -1242,7 +1244,7 @@ exports.updateParticipants = function(req, res) {
             },
             function(item, studentsToAdd, studentsToDelete, students, user, callback){
                 console.log("enter final process of students info");
-                //console.log("该删的1："+JSON.stringify(studentsToDelete));
+                console.log("该删的1："+JSON.stringify(studentsToDelete));
 
                 var id = item.id;
 
@@ -1266,6 +1268,7 @@ exports.updateParticipants = function(req, res) {
                                 if (err) {
                                     callback(err);
                                 } else {
+                                    var studentsReallyNeedToDelete = [];
                                     for (var i = 0; i < rows.length; i++) {
                                         var curId = rows[i].id;
                                         var indexToDelete = -1;
@@ -1279,10 +1282,11 @@ exports.updateParticipants = function(req, res) {
                                         };
 
                                         for (var j = 0; j < studentsToDelete.length; j++) {
-                                            indexNoNeedTodelete = j;
+                                            // indexNoNeedTodelete = j;
                                             if (studentsToDelete[j].id == curId) {
-                                                //console.log("应该进来一次");
-                                                indexNoNeedTodelete = -1;
+                                                console.log("应该进来一次");
+                                                studentsReallyNeedToDelete.push(studentsToDelete[j]);
+                                                // indexNoNeedTodelete = -1;
                                                 break;
                                             };
                                         };
@@ -1290,13 +1294,14 @@ exports.updateParticipants = function(req, res) {
                                         if (indexToDelete != -1) {
                                             studentsToAdd.splice(indexToDelete, 1);
                                         };
-                                        if (indexNoNeedTodelete != -1) {
-                                            studentsToDelete.splice(indexNoNeedTodelete, 1);
-                                        };
+                                        // if (indexNoNeedTodelete != -1) {
+                                        //     studentsToDelete.splice(indexNoNeedTodelete, 1);
+                                        // };
                                     };
-                                    //console.log("该删的2："+JSON.stringify(studentsToDelete));
+                                    studentsToDelete = studentsReallyNeedToDelete;
+                                    console.log("该删的2："+JSON.stringify(studentsToDelete));
                                     async.eachSeries(studentsToDelete, function(student, callback) {
-                                        //console.log("进不来");
+                                        console.log("进不来");
 
                                         sheet_info.worksheets[0].getRows( function( err, rows ){
 
