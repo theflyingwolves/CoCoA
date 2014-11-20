@@ -17,7 +17,7 @@
           <div class="row">
             <div class="col col-33"><p class="info-label">Start Date</p></div>
             <div class="col col-67">
-              <input type="date" ng-model="eventInfo.startDate">
+              <input type="date" value="eventInfo.startDate" ng-model="eventInfo.startDate">
             </div>
           </div>
         </label>
@@ -26,7 +26,7 @@
           <div class="row">
             <div class="col col-33"><p class="info-label">End Date</p></div>
             <div class="col col-67">
-              <input type="date" ng-model="eventInfo.endDate">
+              <input type="date" value="eventInfo.endDate" ng-model="eventInfo.endDate">
             </div>
           </div>
         </label>
@@ -58,6 +58,18 @@
       </div>
     </label>
 
+    <label class="item item-input item-stacked-label" ng-show="!isEditMode">
+      <div class="row">
+        <div class="col col-33">
+          <p class="info-label">No. students</p>
+        </div>
+        <div class="col col-67">
+          <input type="time" placeholder="Event Time" ng-show="isEditMode" ng-model="eventInfo.time">
+          <p ng-show="!isEditMode">{{eventSelectedParticipants.length}}</p>
+        </div>
+      </div>
+    </label>
+
     <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.venue">
       <div class="row">
         <div class="col col-33">
@@ -73,10 +85,10 @@
     <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.studentsNeeded">
       <div class="row">
         <div class="col col-33">
-          <p class="info-label">Students Type</p>
+          <p class="info-label">Students</p>
         </div>
         <div class="col col-67">
-          <input type="text" placeholder="Number of Students Needed" ng-show="isEditMode" ng-model="eventInfo.studentsNeeded">
+          <input type="text" placeholder="e.g. 2 Sec 2's & 4 Sec 4's" ng-show="isEditMode" ng-model="eventInfo.studentsNeeded">
           <p ng-show="!isEditMode && eventInfo.studentsNeeded">{{eventInfo.studentsNeeded}}</p>
         </div>
       </div>
@@ -94,7 +106,7 @@
       </div>
     </label>
 
-    <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.reportVenue">
+<!--     <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.reportVenue">
       <div class="row">
         <div class="col col-33 item-text-wrap">
           <p class="info-label">Report Venue</p>
@@ -104,7 +116,7 @@
           <p ng-show="!isEditMode">{{eventInfo.reportVenue}}</p>
         </div>
       </div>
-    </label>
+    </label> -->
 
     <label class="item item-input item-stacked-label" ng-show="isEditMode || eventInfo.TOIC">
       <div class="row">
@@ -112,7 +124,7 @@
           <p class="info-label">Teacher IC</p>
         </div>
         <div class="col col-67">
-          <input type="text" placeholder="TO In Charge" ng-show="isEditMode" ng-model="eventInfo.TOIC">
+          <input type="text" placeholder="Teacher In Charge" ng-show="isEditMode" ng-model="eventInfo.TOIC">
           <p ng-show="!isEditMode">{{eventInfo.TOIC}}</p>
         </div>
       </div>
@@ -139,63 +151,94 @@
       </div>
     </label>
 
-    <label class="item item-input item-stacked-label " ng-if="!isEditMode && !eventInfo.startDate && !eventInfo.endDate && !eventInfo.time && ! eventInfo.venue && !eventInfo.studentsNeeded && !eventInfo.reportTime && !eventInfo.reportVenue && !eventInfo.TOIC &&
-    !eventInfo.comments">
+    <label class="item item-input item-stacked-label " ng-if="!isEditMode && !eventInfo.startDate && !eventInfo.endDate && !eventInfo.time && ! eventInfo.venue && !eventInfo.studentsNeeded && !eventInfo.reportTime && !eventInfo.TOIC && !eventInfo.comments">
       <div class="row empty">
-        <p><i class="icon ion-ios7-information"></i><span>Event detail is empty</span></p>
+        <p><i class="icon ion-ios7-information"></i><span>Click edit to add event details</span></p>
       </div>
     </label>
 
         <div class="item item-divider thin"></div>
             
-        <div class="item participants-divider" ng-if="!isEditMode">
+        <div class="item participants-divider" ng-if="!isParticipantEditMode">
           participants
+          <a class="part-edit-btn right-button icon ion-plus" ng-click="toggleParticipantEditMode(false)"></a>
         </div>
-        <div class="item participants-divider" ng-if="isEditMode">
+        <div class="item participants-divider" ng-if="isParticipantEditMode">
+          <a class="part-edit-btn right-button font" ng-click="toggleParticipantEditMode(true)" >Finish</a>
           Choose participants
         </div>
-        <form>
-          <label class="item item-input search">
+        <form ng-if="eventSelectedParticipants.length > 0 || isEditMode">
+          <label class="item item-input search" >
             <i class='icon ion-search placeholder-icon'></i>
             <input type="text" ng-model="stdNameFilter" placeholder="Search">     
           </input>
           </label>
         </form>
-        <ion-list ng-if="!isEditMode">
+        <label class="item item-input item-stacked-label " ng-if="eventSelectedParticipants.length == 0 && !isEditMode">
+          <div class="row empty">
+            <p><i class="icon ion-ios7-information"></i><span>Click + to add participants</span></p>
+          </div>
+        </label>
+        <ion-list ng-if="!isParticipantEditMode">
           <div class="item item-divider" ng-repeat-start="(initial, participants) in partViewModel">{{initial}}</div>
           <ion-item class="participants-row" ng-repeat="student in participants track by student.id" ng-if="student.selected && (!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase())) > -1"  ng-click="toggleStuInfoDisplay(student.id)" ng-class="{'highlighted' : selectedRow == student.id}">
-            <p>{{student.name}}</p>
+            <div class="row">
+              <p class="col col-90" ng-class="{'alert' : student.data.medical_concern}">{{student.name}}</p>
+            </div>
             <div ng-show="selectedRow == student.id" class="item-animate">
-                <br>
-                <label>Class</label>
+              <br>
+                <hr>
+                <label><b>Class</b></label>
                 <p>{{student.data.class}}</p>
                 <hr>
-                <label>Tel</label>
-                <p>{{student.data.contactNumber}}</p>
+                <label><b>Tel</b></label>
+                <p>{{student.data.guardian_contact_phone}}, {{student.data.guardian_contact_mobile}}</p>
+                <hr>
+                <label><b>Race</b></label>
+                <p>{{student.data.race}}</p>
+                <hr>
+                <label><b>Med Concerns</b></label>
+                <p class="alert">{{student.data.medical_concern}}</p>
             </div>
           </ion-item>
           <div ng-repeat-end></div>
         </ion-list>
 
-        <ion-list ng-if="isEditMode">
+        <ion-list ng-if="isParticipantEditMode">
           <div class="item item-divider" ng-repeat-start="(initial, participants) in participantsEditModel">{{initial}}</div>
-          <ion-item class="participants-row" ng-repeat="student in participants" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1"  ng-class="{'highlighted' : selectedRow == student.id}">
-            <i class="icon ion-checkmark-circled" ng-click="chooseParticipant(student.id)" ng-if="student.selected" stop-event></i>
-            <i class="icon ion-ios7-circle-outline" ng-click="chooseParticipant(student.id)" ng-if="!student.selected" stop-event></i>
-           <span ng-click="toggleStuInfoDisplay(student.id)">{{student.name}}</span>
+          <ion-item class="participants-row" ng-repeat="student in participants" ng-if="!stdNameFilter || student.name.toLowerCase().indexOf(stdNameFilter.toLowerCase()) > -1"  ng-class="{'highlighted' : selectedRow == student.id}" ng-click="chooseParticipant(student.id)">
+            <div class="row">
+              <div class="col col-15">
+                <i class="icon ion-checkmark-circled"  ng-if="student.selected"></i>
+                <i class="icon ion-ios7-circle-outline" ng-if="!student.selected"></i>
+              </div>
+              <div class="col col-80" ng-class="{'alert' : student.data.medical_concern}">
+               {{student.name}}
+              </div>
+              <div class="col col-5">
+               <i class="icon ion-ios7-arrow-forward " ng-click="toggleStuInfoDisplay(student.id)" stop-event></i>
+              </div>
+            </div>
             <div ng-show="selectedRow == student.id" class="item-animate">
               <br>
-              <label>Class</label>
-              <p>{{student.data.class}}</p>
-              <hr>
-              <label>Tel</label>
-              <p>{{student.data.guardian_contact_mobile}}</p>
+                <hr>
+                <label><b>Class</b></label>
+                <p>{{student.data.class}}</p>
+                <hr>
+                <label><b>Tel</b></label>
+                <p>{{student.data.guardian_contact_phone}}, {{student.data.guardian_contact_mobile}}</p>
+                <hr>
+                <label><b>Race</b></label>
+                <p>{{student.data.race}}</p>
+                <hr>
+                <label><b>Med Concerns</b></label>
+                <p class="alert">{{student.data.medical_concern}}</p>
             </div>
           </ion-item>
           <div ng-repeat-end></div>
         </ion-list>
     </div>
   </ion-content>
-        <button menu-toggle="left"  id="menu-toggle" class="button button-icon"><span class="ion-chevron-left"></span></button>
+        <button menu-toggle="left"  id="menu-toggle" class="button button-icon"><span class="ion-navicon"></span></button>
 
 </ion-view>

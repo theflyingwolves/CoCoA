@@ -7,7 +7,7 @@
     <ion-nav-view name="content" animation="slide-left-right"></ion-nav-view>
   </ion-pane>
 
-  <ion-side-menu side="left">
+  <ion-side-menu side="left" id="CCAMenu">
     <header class="bar bar-header bar-stable">
       <h1 class="title">CCA</h1>
       <button class="button button-icon ion-plus" ng-click="newUserGroup()"></button>
@@ -16,7 +16,7 @@
 
       <ion-list>
         <ion-item nav-clear menu-close ng-repeat="group in usergroups" ng-click="selectCCA(group,$index)" style="font-size:20px; font-weight:500">
-        {{group.title}} <span style="float: right"><i class="icon ion-person-add" style="font-size:20px" ng-click="showMemberModal(group.title);$event.stopPropagation()"></i></span>
+        {{group.title}} <span style="float: right"><i class="icon ion-person-add" ng-click="showMemberModal(group.title)" stopevent></i></span>
         </ion-item>
       </ion-list>
       
