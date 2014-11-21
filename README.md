@@ -16,3 +16,5 @@ CoCoA is a mobile web application that help Singapore school teachers to manage 
 *Wu Lifu
 *Wang Yichao
 *Li Zhenshuo
+* Li Zhenshuo
+  	
