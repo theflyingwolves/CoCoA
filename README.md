@@ -8,8 +8,8 @@ CoCoA is a mobile web application that help Singapore school teachers to manage 
 
 ### How do I get set up? ###
 * Backend:
-* cd CoCoA-backend 
-* node app.js
++ cd CoCoA-backend 
++ node app.js
 
 ### Members & Contributions ###
 + **Wang Kunzhen -A0105514U**
