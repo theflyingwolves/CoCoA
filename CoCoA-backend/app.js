@@ -129,19 +129,20 @@ app.get('/oauth2callback', function(request, response) {
                     else{
                         console.log("I'm return user");
                         //update refresh token if it's changed
-                        if(credentials.refresh_token != null){
-                            db.collection('users').update(
-                            {google_id:googleId},
-                            {
-                            $set:{
-                                credentials:credentials,
-                                }
-                            },
-                            function(err,res){
-                                if (err) throw err;
-                            });
-                        }
+                        // if(credentials.refresh_token != null){
+                        //     db.collection('users').update(
+                        //     {google_id:googleId},
+                        //     {
+                        //     $set:{
+                        //         credentials:credentials,
+                        //         }
+                        //     },
+                        //     function(err,res){
+                        //         if (err) throw err;
+                        //     });
+                        // }
                         //reset access token
+                        
                         gapi.oauth2Client.setCredentials(user[0].credentials);
 
                         //check validation of rootFolderId
@@ -758,8 +759,8 @@ app.post('/:user_id/cca/:cca_id/events', function(request,response){
                         },
                         function sheetReady(err, spreadsheet) {
                                 if(err) throw err;
-                                spreadsheet.add([['Name','ID','Level','Class','Race','Nationality','Guardian Contact 1',
-                        'Guardian Contact 2','Guardian Contact 3','Medical Concern']]);
+                                spreadsheet.add([['Name','ID','Level','Class','Race','Nationality','Guardian Contact Phone',
+                        'Guardian Contact Home','Guardian Contact Other','Medical Concern']]);
                                 spreadsheet.send(function(err) {
                                 if(err) throw err;
                                 console.log("event spreadsheet created successfully");
