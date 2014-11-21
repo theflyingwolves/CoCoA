@@ -8,7 +8,7 @@ var google = require('googleapis'),
 
 var authUrl = oauth2Client.generateAuthUrl({
   access_type: 'offline',
-  approval_prompt: 'force',
+  //approval_prompt: 'force',
   scope: [  
             'https://www.googleapis.com/auth/plus.me',
             'https://www.googleapis.com/auth/drive',

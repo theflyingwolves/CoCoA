@@ -70,15 +70,12 @@ exports.getAllStudents = function(req, res) {
                             }, 
                             function(results){
                                 var items = results;
-                                // console.log("finish filtering duplicate files");
-                                // console.log(items.length);
 
                                 if (items.length == 0) {
                                     var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
                                     callback(message, []);
                                 } else if (items.length > 1) {
                                     var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
-                                    // console.log(items);
                                     callback(message, []);
                                 } else {
                                     var item = items[0];
@@ -146,7 +143,6 @@ exports.getAllStudents = function(req, res) {
                                 callback(message, []);
                             } else if (items.length > 1) {
                                 var message = "duplicate spreadsheets '"+fileName+"'in your google drive";
-                                // console.log(items);
                                 callback(message, []);
                             } else {
                                 var item = items[0];
@@ -195,7 +191,6 @@ exports.getAllStudentsV2 = function(req, res) {
     var CCADirectoryID = rootFolderId;
     var studentDetailsFilename = "Student Details";
     // var fileName = "testSheet";
-    // console.log("test access_token");
     if (!gapi.oauth2Client.credentials.access_token) {
         resToClient.json({message: "please log in first"});
     }
@@ -336,8 +331,6 @@ exports.getMembersOfCCA = function(req, res){
                             }, 
                             function(results){
                                 var items = results;
-                                // console.log("finish filtering duplicate files");
-                                // console.log(items.length);
 
                                 if (items.length == 0) {
                                     var message = "cannot find the target spreadsheet '"+fileName+"'under the target CCA folder";
@@ -1244,7 +1237,6 @@ exports.updateParticipants = function(req, res) {
             },
             function(item, studentsToAdd, studentsToDelete, students, user, callback){
                 console.log("enter final process of students info");
-                console.log("该删的1："+JSON.stringify(studentsToDelete));
 
                 var id = item.id;
 
@@ -1284,7 +1276,6 @@ exports.updateParticipants = function(req, res) {
                                         for (var j = 0; j < studentsToDelete.length; j++) {
                                             // indexNoNeedTodelete = j;
                                             if (studentsToDelete[j].id == curId) {
-                                                console.log("应该进来一次");
                                                 studentsReallyNeedToDelete.push(studentsToDelete[j]);
                                                 // indexNoNeedTodelete = -1;
                                                 break;
@@ -1299,9 +1290,7 @@ exports.updateParticipants = function(req, res) {
                                         // };
                                     };
                                     studentsToDelete = studentsReallyNeedToDelete;
-                                    console.log("该删的2："+JSON.stringify(studentsToDelete));
                                     async.eachSeries(studentsToDelete, function(student, callback) {
-                                        console.log("进不来");
 
                                         sheet_info.worksheets[0].getRows( function( err, rows ){
 
