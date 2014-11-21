@@ -7,9 +7,9 @@ This README would normally document whatever steps are necessary to get your app
 CoCoA is a mobile web application that help Singapore school teachers to manage their CCA events.
 
 ### How do I get set up? ###
-*Backend:
-*cd CoCoA-backend 
-*node app.js
+* Backend:
+* cd CoCoA-backend 
+* node app.js
 
 ### Members & Contributions ###
 + **Wang Kunzhen -A0105514U**
