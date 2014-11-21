@@ -11,10 +11,13 @@ CoCoA is a mobile web application that help Singapore school teachers to manage 
 *cd CoCoA-backend 
 *node app.js
 
-### Who do I talk to? ###
-*Wang Kunzhen
-*Wu Lifu
-*Wang Yichao
-*Li Zhenshuo
-* Li Zhenshuo
-  	
+### Members & Contributions ###
++ **Wang Kunzhen -A0105514U**
+    + Frontend Design
++ **Wu Lifu -A0105661M**
+    + Backend Design
++ **Wang Yichao -A0105667B**
+    + Frontend Design
+
++ **Li Zhenshuo -A0091610R**
+    + Backend Design
