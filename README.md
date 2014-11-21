@@ -7,7 +7,6 @@ This README would normally document whatever steps are necessary to get your app
 CoCoA is a mobile web application that help school teachers to manage their CCA events.
 
 ### How do I get set up? ###
-cd CoCoA-backend
 node app.js
 
 ### Who do I talk to? ###
